@@ -1,0 +1,149 @@
+<!DOCTYPE html SYSTEM "http://www.thymeleaf.org/dtd/xhtml1-strict-thymeleaf-spring4-4.dtd">
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorator="layout">
+<head>
+    <title>Report</title>
+    <style type="text/css">
+    #rejectModal {
+    width: 50%;
+    height: 40%;
+    margin-left: 35%;
+    padding: 0;
+}
+#apprModal {
+    width: 90%;
+    height: 90%;
+    margin-left: 5%;
+    padding: 0;
+}
+.modal-content {
+  height: auto;
+  min-height: 100%;
+  border-radius: 0;
+}
+.group
+{
+	/* background: #eeeeee; */
+}
+#nullifyModal {
+	z-index: 1080 !important;
+}
+    </style>
+<style>
+.dataTables_filter
+{
+    display: inline;
+    float: right;
+}
+
+.dataTables_length
+{
+   display: inline;
+}
+.dt-buttons
+{
+   margin-left:25%;
+}
+.input-group-addon {
+    padding: 2px 12px !important;
+ }
+</style>
+</head>
+<body>
+<section layout:fragment="header">
+    <h1>Report</h1>
+<ol class="breadcrumb">
+    <li><a href="/"><i class="fa fa-dashboard"></i> Price Approval</a></li>
+    <li class="active">Report</li>
+</ol>
+</section>
+<div layout:fragment="content">
+    <div class="box">
+        <div class="box-body no-padding">
+        
+ <form role="form"  th:object="${listSelector}" th:action="@{/priceapr/reportdownload}" method="get" name="myForm" id="myForm">
+ <div class="table-responsive hidden-xs">
+<table class="table table-striped" style="margin-bottom: 1%;">
+  <tbody><tr>  
+	<td>
+		<label>From Date:</label>
+                <div class="input-group date">
+                  <div class="input-group-addon">
+                    <i class="fa fa-calendar"></i>
+                  </div>
+                  <input type="text" class="form-control pull-right datepicker" th:field="*{fromDate}">
+                </div>
+                <!-- /.input group -->
+	</td>
+	</tr>
+	<tr>
+	<td>
+                <label>To Date:</label>
+                <div class="input-group date">
+                  <div class="input-group-addon">
+                    <i class="fa fa-calendar"></i>
+                  </div>
+                  <input type="text" class="form-control pull-right datepicker" th:field="*{toDate}">
+                </div>
+                <!-- /.input group -->
+  	</td>
+  	</tr>
+	<!-- <tr>
+  	<td>	
+  		 <label for="listType">Status</label><br>	
+		  <div class="input-group">
+			 <select class="form-control input-sm"  th:field="*{status}">  
+				<option value="" th:selected="*{status==''}">All</option>
+				<option value="S" th:selected="*{status=='S'}">Submitted</option>
+				<option value="A" th:selected="*{status=='A'}">Approved</option>
+				<option value="R" th:selected="*{status=='A'}">Rejected</option>
+				<option value="P" th:selected="*{status=='P'}">Posted To SAP</option> 
+			 </select>
+		  </div>
+  	</td>
+    </tr>
+	 -->
+	 <tr>
+  	<td>
+  		<button type="button" id="subBtn" class="btn btn-primary pull-right"  style="margin-right: 5px;">Download Report <i class="fa fa-paper-plane"></i></button>
+  	</td>
+  </tr>
+  
+  </tbody></table>
+  </div>
+  </form>
+        </div>
+    </div>
+</div>
+<div layout:fragment="scriptContent">
+
+<script type="text/javascript">
+$(document).ready(function() {
+		
+	  
+    $('.datepicker').datepicker({
+    	 autoclose: true,
+         format: 'dd/mm/yyyy'
+    });
+    
+    $('#example').DataTable({
+		 dom: 'lBfrtip',
+		 buttons: [  { extend: 'excel', text: '<i class="fa fa-file-excel-o" style="color:green"> </i> EXCEL',title:null,filename:'Download' },{ extend: 'pdf', text: '<i class="fa fa-file-pdf-o" style="color:red"></i> PDF',title:null }]
+	
+		}
+			
+	);
+    $("#subBtn").click(function(){
+		
+				//$('#pleaseWaitDialog').modal('show');
+				$("#myForm").submit();
+			
+	});
+	 
+});
+</script>
+
+
+</div>
+
+</body>
+</html>

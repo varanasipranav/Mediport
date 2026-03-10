@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+	xmlns:layout="http://www.ultraq.net.nz/web/thymeleaf/layout"
+	layout:decorate="layout">
+<head>
+<meta charset="ISO-8859-1">
+<title>List Materials</title>
+<style>
+.dataTables_filter
+{
+    display: inline;
+    float: right;
+}
+
+.dataTables_length
+{
+   display: inline;
+}
+.dt-buttons
+{
+   margin-left:25%;
+}
+.input-group-addon {
+    padding: 2px 12px !important;
+ }
+</style>
+</head>
+<body>
+	<section layout:fragment="header">
+		<h1>Material Limit Upload</h1>
+		<ol class="breadcrumb">
+			<li><a th:href="@{/dashboard/index.html}"><i
+					class="fa fa-dashboard"></i> Master data</a></li>
+			<li class="active">Synchronization</li>
+		</ol>
+	</section>
+	<div layout:fragment="content">
+	<div  class="alert alert-success alert-dismissible">
+    			<i class="icon fa fa-check"></i>
+    			<span>Materials Synchronization Job Started. This will take 15-20 minutes to complete.</span>
+    	
+    	</div>
+
+		<!-- /.box-body -->
+		<!-- 
+	</form>
+ -->
+	
+	
+	<!-- Models End -->
+	
+	</div>
+	
+	<!-- Script Start -->
+	<div layout:fragment="scriptContent">
+
+	</div>
+</body>
+</html>

@@ -1,0 +1,565 @@
+<!DOCTYPE html SYSTEM "http://www.thymeleaf.org/dtd/xhtml1-strict-thymeleaf-spring4-4.dtd">
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorator="layout">
+<head>
+	<style type="text/css">
+.hide {
+    display: none;
+}
+
+.scrolltable {
+    display: flex;
+    flex-flow: column;
+    min-height: 100px;
+    max-height: 380px;
+    width: 100%;
+}
+.scrolltable thead {
+    /* head takes the height it requires, 
+    and it's not scaled when table is resized */
+    flex: 0 0 auto;
+    width: calc(100% - 0.9em);
+}
+.scrolltable tbody {
+    /* body takes all the remaining available space */
+    flex: 1 1 auto;
+    display: block;
+    overflow-y: scroll;
+}
+.scrolltable tbody tr {
+    width: 100%;
+}
+.scrolltable thead, .scrolltable tbody tr {
+    display: table;
+    table-layout: fixed;
+}
+    
+    </style>
+    <title>Price Approval</title>
+</head>
+<body>
+<section layout:fragment="header"> 
+    <h1>Request Details For <span th:text="${priceFormDet.reqHeader.condDesc}"></span></h1>
+    <ol class="breadcrumb">
+        <li><a href="/"><i class="fa fa-dashboard"></i> Price Approval</a></li>
+        <li class="active">List</li>
+    </ol>
+</section>
+<div layout:fragment="content">
+	<div th:if="${success!= null}" class="alert alert-success alert-dismissible">
+   			<i class="icon fa fa-check"></i>
+   			<span th:text="${success}" ></span>
+   	</div>
+    <div class="box">
+    	     <form data-toggle="validator" role="form" name="myForm" th:object="${priceFormDet}" th:action="@{/priceapr/submitRequest}" method="post" >
+            <div class="box-body">
+                <div class="table-responsive" style="margin-top:2%">
+                <input type="hidden" th:field="*{reqHeader.id}"/>
+                <input type="hidden" th:field="*{reqHeader.condType}"/>
+                <input type="hidden" th:field="*{priceSeqMaster.id}"/>
+                <input type="hidden" id="offline" th:value="${session.offline}"/>                
+                <table class="col-sm-12 table-bordered table-condensed">
+                <tr>
+                	<th>Request No</th>
+                	<td th:text="*{reqHeader.id}"></td>
+                	<th>Condition</th>
+                	<td th:text="*{reqHeader.condType+'['+reqHeader.condDesc+']'}"></td>
+                </tr>
+                <tr>
+                	<th>Created By</th>
+                	<td th:text="*{createdBy}"></td>
+                	<th>Created On</th>
+                	<td th:text="*{#dates.format(reqHeader.createdOn, 'dd/MM/yyyy')}"></td>
+                </tr>
+                <tr th:if="*{reqHeader.valArea != null}">
+                	<th>Area</th>
+                	<td th:text="*{reqHeader.valArea+'['+reqHeader.valDesc+']'}"></td>
+                	<td></td>
+                	<td></td>
+                </tr>
+                </table> 
+                
+          <table class="col-sm-12 table table-bordered table-condensed scrolltable" id="headers" style="margin-top:5px">
+                    <thead>
+                	<tr>
+                		<th th:if="*{priceSeqMaster.salesOrg == 'X'}">Sales Org.</th>
+                		<th th:if="*{priceSeqMaster.distChnl == 'X'}">Distr. Chl</th>
+                		<th th:if="*{priceSeqMaster.salesDocType == 'X'}">Sales doc. type</th>
+                		<th th:if="*{priceSeqMaster.mainChnl == 'X'}">Main.Chane</th>
+                		<th th:if="*{priceSeqMaster.subChnl == 'X'}">Sub.Chl</th>
+                		<th th:if="*{priceSeqMaster.custType == 'X'}">Cust. Type</th>
+                		<th th:if="*{priceSeqMaster.division == 'X'}">Division</th>
+                		<th th:if="*{priceSeqMaster.customer == 'X'}">Customer</th>
+                		<th th:if="*{priceSeqMaster.salesOffice == 'X'}">Sales Off.</th>
+                		<th th:if="*{priceSeqMaster.chainCode == 'X'}">Chain Code</th>
+                		<th th:if="*{priceSeqMaster.material == 'X'}">Material</th>
+                		<th th:if="*{priceSeqMaster.brand == 'X'}">Brand</th>
+                		<th th:if="*{priceSeqMaster.distCat == 'X'}">Dist.Categ</th>
+                		<th th:if="*{priceSeqMaster.prdType == 'X'}">Prd. Type</th>
+                		<th>Valid From</th>
+                		<th>Valid To</th>
+                		<th th:text="*{(reqHeader.condType == 'ZLP' || reqHeader.condType == 'ZMRP'?'Value':'Discount %age')+''+'[ No Of Records :'+#lists.size(pricReqItemList)}+']'"></th>
+                		<th th:if="*{showMatDisc}">ZMRP</th>
+                		<th th:if="*{showMatDisc}">ZLP</th>
+                		<th th:if="*{showSubCond}">Trade Disc %</th>
+                		<th th:if="*{showSubCond}">Sub Total</th>
+                		<th th:if="*{showSubCond}">Add Disc %</th>
+                		<th th:if="*{showMatDisc}">NLC</th>
+                		<th th:if="*{showMatDisc}">COGS</th>
+                		<th th:if="*{showMatDisc}">Variable O/H % On NLC</th>
+                		<th th:if="*{showMatDisc}">GST</th>
+                		<th th:if="*{showMatDisc}">TVC</th>
+                		<th th:if="*{showMatDisc}">GC Amt</th>
+                		<th th:if="*{showMatDisc}">Budgeted GC%</th>
+                		<th th:if="*{showMatDisc}">Margin %<br>After Discount</th>
+                		<!-- <th th:if="*{showMatDisc}">Margin <br> Before Discount</th> -->
+                	</tr>
+                	</thead>
+                	<tbody> 
+                	 <tr th:if="*{pricReqItemList.empty}">
+            			<td colspan="2"> No Data </td>
+       			   </tr>
+                	<tr th:each="row, itemStat : *{pricReqItemList}" th:if="*{!showSubmit || pricReqItemList[__${itemStat.index}__].status != 'A'}"> 
+						<td th:if="*{priceSeqMaster.salesOrg == 'X'}">
+							  <input type="text"  autocomplete="off" readonly class="form-control" th:field="*{pricReqItemList[__${itemStat.index}__].salesOrg}" />
+						</td>
+						<td th:if="*{priceSeqMaster.distChnl == 'X'}">
+							  <input type="text"  autocomplete="off" readonly class="form-control" th:field="*{pricReqItemList[__${itemStat.index}__].distChnl}" />
+						</td>
+						<td th:if="*{priceSeqMaster.salesDocType == 'X'}">
+							<input type="text"  autocomplete="off" readonly class="form-control" th:field="*{pricReqItemList[__${itemStat.index}__].salesDocType}" />
+						</td>
+						<td th:if="*{priceSeqMaster.mainChnl == 'X'}">
+							  <input type="text"  autocomplete="off" readonly class="form-control" th:field="*{pricReqItemList[__${itemStat.index}__].mainChnl}" />
+						</td>
+						<td th:if="*{priceSeqMaster.subChnl == 'X'}">
+							  <input type="text"  autocomplete="off" readonly class="form-control" th:field="*{pricReqItemList[__${itemStat.index}__].subChnl}" />
+						</td>
+						<td th:if="*{priceSeqMaster.custType == 'X'}">
+							<input type="text"  autocomplete="off" readonly class="form-control" th:field="*{pricReqItemList[__${itemStat.index}__].custType}" />
+						</td>
+						<td th:if="*{priceSeqMaster.division == 'X'}">
+							<input type="text"  autocomplete="off" readonly class="form-control" th:field="*{pricReqItemList[__${itemStat.index}__].division}" />
+						</td>
+							<td th:if="*{priceSeqMaster.customer == 'X'}">
+							  <input type="text"  autocomplete="off" readonly class="form-control" th:field="*{pricReqItemList[__${itemStat.index}__].customer}" />
+						</td>
+						</td>
+							<td th:if="*{priceSeqMaster.salesOffice == 'X'}">
+							  <input type="text"  autocomplete="off" readonly class="form-control" th:field="*{pricReqItemList[__${itemStat.index}__].salesOffice}" />
+						</td>
+						<td th:if="*{priceSeqMaster.chainCode == 'X'}">
+							<input type="text"  autocomplete="off" readonly class="form-control" th:field="*{pricReqItemList[__${itemStat.index}__].chainCode}" />
+						</td>
+						<td th:if="*{priceSeqMaster.material == 'X'}">
+							<input type="text"  autocomplete="off" readonly class="form-control" th:field="*{pricReqItemList[__${itemStat.index}__].material}" />
+						</td>
+						<td th:if="*{priceSeqMaster.brand == 'X'}">
+							<input type="text"  autocomplete="off" readonly class="form-control" th:field="*{pricReqItemList[__${itemStat.index}__].brand}" />
+						</td>
+						<td th:if="*{priceSeqMaster.distCat == 'X'}">
+							<input type="text"  autocomplete="off" readonly class="form-control" th:field="*{pricReqItemList[__${itemStat.index}__].distCat}" />
+						</td>
+						<td th:if="*{priceSeqMaster.prdType == 'X'}">
+							<input type="text"  autocomplete="off" readonly class="form-control" th:field="*{pricReqItemList[__${itemStat.index}__].prdType}" />
+						</td>
+						<td>
+							<input type="text"  autocomplete="off" readonly class="form-control" th:field="*{pricReqItemList[__${itemStat.index}__].validFrom}" />
+						</td>
+						<td>
+							<input type="text"  autocomplete="off" readonly class="form-control" th:field="*{pricReqItemList[__${itemStat.index}__].validTo}" />
+						</td>
+						<td>
+							<input type="text"  autocomplete="off" readonly class="form-control" th:onchange="|calculateGC('${itemStat.index}')|" th:readonly="*{!showSubCond}"  th:field="*{pricReqItemList[__${itemStat.index}__].value}" />
+							<input type="hidden"  th:field="*{pricReqItemList[__${itemStat.index}__].mrp}">
+							<input type="hidden"  th:field="*{pricReqItemList[__${itemStat.index}__].lprice}">
+							<input type="hidden"  th:field="*{pricReqItemList[__${itemStat.index}__].subtot}">
+							<input type="hidden"  th:field="*{pricReqItemList[__${itemStat.index}__].vprs}">
+							<input type="hidden"  th:field="*{pricReqItemList[__${itemStat.index}__].conditions}">
+							<input type="hidden"  th:field="*{pricReqItemList[__${itemStat.index}__].condBefTotal}">
+							<input type="hidden"  th:field="*{pricReqItemList[__${itemStat.index}__].condTot}">
+							<input type="hidden"  th:field="*{pricReqItemList[__${itemStat.index}__].marBefDis}">
+							<input type="hidden"  th:field="*{pricReqItemList[__${itemStat.index}__].trdDis}">
+							<input type="hidden"  th:field="*{pricReqItemList[__${itemStat.index}__].budgetGC}">
+							<input type="hidden"  th:field="*{pricReqItemList[__${itemStat.index}__].gcAmount}">
+							<input type="hidden"  th:field="*{pricReqItemList[__${itemStat.index}__].gstPer}">
+							<input type="hidden"  th:field="*{pricReqItemList[__${itemStat.index}__].tvc}">
+							<input type="hidden"  th:field="*{pricReqItemList[__${itemStat.index}__].varOHDisPer}">
+							<!--  <input type="hidden"  th:field="*{pricReqItemList[__${itemStat.index}__].varOHDisVal}">
+						<input type="hidden"  th:field="*{pricReqItemList[__${itemStat.index}__].gstVal}">-->
+						</td>
+						<td class="ExportLabelTD" th:if="*{showMatDisc}" th:text="*{pricReqItemList[__${itemStat.index}__].mrp}">
+						
+						
+						
+						</td>
+						<td class="ExportLabelTD" th:if="*{showMatDisc}" th:text="*{#numbers.formatDecimal(pricReqItemList[__${itemStat.index}__].lprice, 0, 'COMMA', 2, 'POINT')}"></td>
+						<td th:if="*{showSubCond}" th:text="*{pricReqItemList[__${itemStat.index}__].trdDis}"></td>
+						<td th:if="*{showSubCond}" th:text="*{pricReqItemList[__${itemStat.index}__].condBefTotal}"></td>
+						<td th:if="*{showSubCond}" th:utext="*{pricReqItemList[__${itemStat.index}__].condDispStr}"></td>
+						<td class="ExportLabelTD" th:if="*{showMatDisc}" th:text="*{#numbers.formatDecimal(pricReqItemList[__${itemStat.index}__].subtot, 0, 'COMMA', 2, 'POINT')}"></td>
+						<td class="ExportLabelTD" th:if="*{showMatDisc}" th:text="*{#numbers.formatDecimal(pricReqItemList[__${itemStat.index}__].vprs, 0, 'COMMA', 2, 'POINT')}"></td>
+						<td class="ExportLabelTD" th:if="*{showMatDisc}" th:text="*{#numbers.formatDecimal(pricReqItemList[__${itemStat.index}__].varOHDisPer, 0, 'COMMA', 2, 'POINT')}"></td>
+						<td class="ExportLabelTD" th:if="*{showMatDisc}" th:text="*{#numbers.formatDecimal(pricReqItemList[__${itemStat.index}__].gstPer, 0, 'COMMA', 2, 'POINT')}"></td>
+						<td class="ExportLabelTD" th:if="*{showMatDisc}" th:text="*{#numbers.formatDecimal(pricReqItemList[__${itemStat.index}__].tvc, 0, 'COMMA', 2, 'POINT')}"></td>
+						<td class="ExportLabelTD" th:if="*{showMatDisc}" th:text="*{#numbers.formatDecimal(pricReqItemList[__${itemStat.index}__].gcAmount, 0, 'COMMA', 2, 'POINT')}"></td>
+						<td class="ExportLabelTD" th:if="*{showMatDisc}" th:text="*{#numbers.formatDecimal(pricReqItemList[__${itemStat.index}__].budgetGC, 0, 'COMMA', 2, 'POINT')}"></td>
+						<td class="ExportLabelTD" th:if="*{showMatDisc}">
+							<span th:id="${'gcDispStr'+itemStat.index}" th:text="*{#numbers.formatDecimal(pricReqItemList[__${itemStat.index}__].marAftDis, 0, 'COMMA', 2, 'POINT')}"> </span>
+						</td>
+						<!-- <td class="ExportLabelTD" th:if="*{showMatDisc}" th:text="*{#numbers.formatDecimal(pricReqItemList[__${itemStat.index}__].marBefDis, 0, 'COMMA', 2, 'POINT')}"></td> -->
+						
+                	</tr>
+                	</tbody>
+                </table>
+    
+				<table class="col-sm-12 table table-bordered table-condensed">
+				<thead>
+					<tr>
+						<th colspan='2'>Comments</th>
+					</tr>
+					</thead>
+				<tbody>
+				<tr th:each="row, itemStat : *{commentsList}">
+				<td>	<input hidden="hidden" th:field="*{commentsList[__${itemStat.index}__].createdBy}">
+					<input hidden="hidden" th:field="*{commentsList[__${itemStat.index}__].comments}">
+				<span th:text="*{commentsList[__${itemStat.index}__].createdBy}"></span></td>
+						<td th:text="*{commentsList[__${itemStat.index}__].comments}"> </td>
+					</tr>
+					<tr th:if="*{showSubmit || showPost}">	
+					<td><span sec:authentication="principal.firstName"> &nbsp; </span></td>
+						<td><textarea class="form-control validate[required]" name="comments" th:field="*{comments}"></textarea></td>
+					</tr>	
+				</tbody>
+				</table>                        
+            </div>
+            </div>
+            <div class="box-footer">
+            	<button type="button" id="backBtn" class="btn btn-primary pull-right" style="margin-left:5px"><i class="fa fa-arrow-left fa-lg"></i>&nbsp;Back</button>
+                <button type="button" id="rejBtn" th:if="*{showSubmit || showPost}" class="btn btn-danger pull-right" style="margin-left:5px"><i class="fa fa-remove fa-lg"></i>&nbsp;Reject</button>
+                <button type="button" id="aprBtn" th:if="*{showSubmit}" class="btn btn-success pull-right" style="margin-left:5px"><i class="fa fa-check fa-lg"></i>&nbsp;Approve</button>
+                <button type="button" id="postBtn" th:if="*{showPost}" class="btn btn-success pull-right" style="margin-left:5px"><i class="fa fa-check fa-lg"></i>&nbsp;Post To SAP</button>
+                <button type="button" id="downloadBtn" class="btn btn-info pull-right" style="margin-left:5px"><i class="fa fa-download"></i>&nbsp;Download</button>
+                
+            </div> 
+        </form>
+    </div>
+    
+    
+</div>
+<div layout:fragment="scriptContent">
+<script type="text/javascript">
+     
+    $(function () {
+    	$("#backBtn").click(function(){
+    		  window.history.back();
+    	});
+    	if($('#offline').val() == "true")
+    	{
+    		$('#mainHeader').hide();
+    		$('#sideMenuBar').hide();
+    		$("#logoLink").attr("href","#");
+    		$('#sidebarBtn').trigger('click');
+    	}
+		$('.select2').select2();
+		$("#aprBtn").click(function(){
+			//Pace.restart();
+			$('#pleaseWaitDialog').modal('show');
+			document.myForm.action="/priceapr/submitRequest";
+			document.myForm.submit();
+		});
+		$("#postBtn").click(function(){
+			//Pace.restart();
+			$('#pleaseWaitDialog').modal('show');
+			document.myForm.action="/priceapr/postRequest";
+			document.myForm.submit();
+		});
+		$("#rejBtn").click(function(){
+			//Pace.restart();
+			$('#pleaseWaitDialog').modal('show');
+			document.myForm.action="/priceapr/rejectRequest";
+			document.myForm.submit();
+		});
+/* 		$("#downloadBtn1").click(function(){
+			var tab_text="<table border='2px'><tr bgcolor='#87AFC6'>";
+		    var textRange; var j=0;
+		    tab = document.getElementById('headers'); // id of table
+
+		    for(j = 0 ; j < tab.rows.length ; j++) 
+		    {     
+		        tab_text=tab_text+tab.rows[j].innerHTML+"</tr>";
+		        //tab_text=tab_text+"</tr>";
+		    }
+
+		    tab_text=tab_text+"</table>";
+		    //tab_text= tab_text.replace(/<A[^>]*>|<\/A>/g, "");//remove if u want links in your table
+		    //tab_text= tab_text.replace(/<img[^>]*>/gi,""); // remove if u want images in your table
+		    //tab_text= tab_text.replace(/<input[^>]*>|<\/input>/gi, ""); // reomves input params
+
+		    var ua = window.navigator.userAgent;
+		    var msie = ua.indexOf("MSIE "); 
+
+		    if (msie > 0 || !!navigator.userAgent.match(/Trident.*rv\:11\./))      // If Internet Explorer
+		    {
+		        txtArea1.document.open("txt/html","replace");
+		        txtArea1.document.write(tab_text);
+		        txtArea1.document.close();
+		        txtArea1.focus(); 
+		        sa=txtArea1.document.execCommand("SaveAs",true,"Report.xls");
+		    }  
+		    else                 //other browser not tested on IE 11
+		        sa = window.open('data:application/vnd.ms-excel,' + encodeURIComponent(tab_text));  
+
+		    return (sa);
+		}); */
+	 });
+    $('input').on('paste', function(e){
+        var $this = $(this);
+        $.each(e.originalEvent.clipboardData.items, function(i, v){
+            if (v.type === 'text/plain'){
+                v.getAsString(function(text){
+                    var x = $this.closest('td').index(),
+                        y = $this.closest('tr').index(),
+                        obj = {};
+                    text = text.trim('\r\n');
+                    $.each(text.split('\r\n'), function(i2, v2){
+                        $.each(v2.split('\t'), function(i3, v3){
+                            var row = y+i2, col = x+i3;
+                            obj['cell-'+row+'-'+col] = v3;
+                            $this.closest('table').find('tr:eq('+row+') td:eq('+col+') input').val(v3);
+                        });
+                    });
+                    //$('div').text(JSON.stringify(obj));
+                });
+            }
+        });
+        return false;
+       
+    });
+    $("#downloadBtn").click(function(){
+        var $table = $("#headers");
+        ExportHTMLTableToExcel($table);
+     });
+
+  function ExportHTMLTableToExcel($table) {
+      var tab_text = ""
+      var final_text = "";
+      var filename = $table.attr('export-excel-filename'); // attribute to be 
+                                                           // applied on Table tag
+      filename = isNullOrUndefinedWithEmpty(filename)? "Download" : filename;
+      var index = $table.find("tbody tr").length;
+      if (Number(index) > 0) {
+          $.each($table, function (index, item) {
+              var element = $(item);
+              var headertext = $("#" + element[0].id).closest
+                               (":has(label.HeaderLabel)").find('label').text().trim();
+              if (headertext == "") {
+                  tab_text = "<table border='2px'><tr>";
+              }
+              else {
+                  tab_text = "<table border='2px'><tr> " + headertext + "</tr><tr>";
+              }
+
+              // Create column header
+              element.find("thead tr th").each(function () {
+                  if (!$(this).hasClass("NoExport"))
+                      tab_text = tab_text + "<td bgcolor='#87AFC6'>" + 
+                                 $(this)[0].innerHTML + "</td>";
+              });
+
+              //Close column header
+              tab_text = tab_text + "</tr>";
+
+              // Create body column
+              element.find(" tbody tr").each(function () {
+                  tab_text = tab_text + "<tr>";
+                  $(this).find("td").each(function () {
+                      if ($(this).hasClass("ExportLabelTD"))
+                      {
+                          var value = $(this).html();
+                           tab_text = tab_text + "<th>" + value + "</th>";
+                      }
+                      else {
+                          $(this).find("input,select").each(function () {
+                              var value = "";
+
+                              if ($(this).prop("type") == 'select-one') {
+                                  value = $('option:selected', this).text();
+                              } else {
+                                  value = $(this).val();
+                              }
+
+                              if (!$(this).closest("td").hasClass("NoExport") && 
+                                  !$(this).hasClass("NoExport")) { // NoExport is used for TD 
+                                          // or tan input tag that not needs to be exported
+                                  tab_text = tab_text + "<th>" + value + "</th>";
+                              }
+                          });
+                      }
+                  });
+                  tab_text = tab_text + "</tr>";
+              });
+
+              // Create colum footer
+              element.find("tfoot tr td").each(function () {
+                  var colspan = $(this).attr("colspan");
+                  var rowspan = $(this).attr("rowspan");
+
+                  colspan = colspan == undefined ? 1 : colspan;
+                  rowspan = rowspan == undefined ? 1 : rowspan;
+
+                  if ($(this).hasClass("NoExport")) {
+                      tab_text = tab_text + "";
+                  }
+                  else if ($(this).hasClass("ExportValueTD")) // Footer class that needs 
+                                                        // to be no td that have input tags
+                  {
+                      $(this).find("input,select").each(function () {
+                          var value = "";
+
+                          if ($(this).prop("type") == 'select-one') {
+                              value = $('option:selected', this).text();
+                          } else {
+                              value = $(this).val();
+                          }
+
+                          if (!$(this).closest("td").hasClass("NoExport") && 
+                              !$(this).hasClass("NoExport")) {
+                              tab_text = tab_text + "<td colspan=" + colspan + " rowspan=" + rowspan + ">" + value + "</th>";
+                          }
+                      });
+                  }
+                  else
+                      tab_text = tab_text + "<td colspan=" + colspan + "  rowspan=" + rowspan + ">" + $(this).html() + "</td>";
+              });
+
+              tab_text = tab_text + "<tr></tr></table>";
+
+              if (index == 0) {
+                  final_text = tab_text;
+              }
+              else {
+                  final_text = final_text + tab_text;
+              }
+          });
+
+          var ua = window.navigator.userAgent;
+          var msie = ua.indexOf("MSIE ");
+
+          if (msie > 0 || !!navigator.userAgent.match
+                       (/Trident.*rv\:11\./))      // If Internet Explorer
+          {
+              txtArea1 = window.open();
+              txtArea1.document.open("txt/html", "replace");
+              txtArea1.document.write(final_text);
+              txtArea1.document.close();
+              txtArea1.focus();
+              sa = txtArea1.document.execCommand("SaveAs", true, filename+".xls");
+              return (sa);
+          }
+          else                 //other browser not tested on IE 11
+          {
+              //sa = window.open('data:application/vnd.ms-excel,' + 
+              //         encodeURIComponent(final_text));
+              var anchor = document.createElement('a');
+              anchor.setAttribute('href', 'data:application/vnd.ms-excel,' + 
+                                   encodeURIComponent(final_text));
+              anchor.setAttribute('download', filename);
+              anchor.style.display = 'none';
+              document.body.appendChild(anchor);
+              anchor.click();
+              document.body.removeChild(anchor);
+          }
+      }
+  }
+
+  function isNullOrUndefinedWithEmpty(text){
+     if(text==undefined)
+        return true;
+     else if(text == null)
+        return true;
+     else if(text == null)
+        return true;
+     else
+        false;
+  }
+  function calculateGC(rowInd)
+  {
+  	var inputValue		= parseFloat(document.getElementById("pricReqItemList"+rowInd+".value").value);
+  	var mrp		= parseFloat(document.getElementById("pricReqItemList"+rowInd+".mrp").value);
+  	var lprice	= parseFloat(document.getElementById("pricReqItemList"+rowInd+".lprice").value);
+  	var subtot	= parseFloat(document.getElementById("pricReqItemList"+rowInd+".subtot").value);
+  	var vprs	= parseFloat(document.getElementById("pricReqItemList"+rowInd+".vprs").value);
+  	//var marAftDis	= document.getElementById("pricReqItemList"+rowInd+".marAftDis").value;
+  	var conditions	= document.getElementById("pricReqItemList"+rowInd+".conditions").value;
+  	var condBefTotal	= parseFloat(document.getElementById("pricReqItemList"+rowInd+".condBefTotal").value);
+  	var condTot	= document.getElementById("pricReqItemList"+rowInd+".condTot").value;
+  	//var marBefDis	= document.getElementById("pricReqItemList"+rowInd+".marBefDis").value;
+  	var trdDis	= parseFloat(document.getElementById("pricReqItemList"+rowInd+".trdDis").value);
+  	var budgetGC	= parseFloat(document.getElementById("pricReqItemList"+rowInd+".budgetGC").value);
+  	var gcAmount	= parseFloat(document.getElementById("pricReqItemList"+rowInd+".gcAmount").value);
+  	var gstPer	= parseFloat(document.getElementById("pricReqItemList"+rowInd+".gstPer").value);
+  	//var gstVal	= document.getElementById("pricReqItemList"+rowInd+".gstVal").value;
+  	var tvc	= parseFloat(document.getElementById("pricReqItemList"+rowInd+".tvc").value);
+  	var varOHDisPer	= parseFloat(document.getElementById("pricReqItemList"+rowInd+".varOHDisPer").value);
+  	//var varOHDisVal	= document.getElementById("pricReqItemList"+rowInd+".varOHDisVal").value;
+  	var disVal=0.0;	
+  	var varOHDisVal = 0.0,gstVal=0.0,marBefDis=0.0,marAftDis=0.0;
+  	
+  	if(!isNaN(trdDis))
+  	{
+  		disVal=parseFloat(trdDis);
+  	}
+	
+  	var subtot = inputValue-((inputValue*disVal)/100);
+  	var marAftDis = 0.0;
+  	var marBefDis = 0.0;
+  	var condDispStr="";
+  	var condBefTot=subtot;
+		var subCondTot= 0.0;
+				
+		try
+		{
+			var subCondList = conditions.split(",");		
+			subCondList.forEach(function(tempCondVal)
+			{
+				var tempCondPer=parseFloat(tempCondVal.split("#")[1]);
+				subCondTot+=percentOf(tempCondPer, condBefTot);
+			});
+		}
+		catch(e){}
+		
+		if(subCondTot > 0)
+		{
+			subtot-=subCondTot
+		}
+		
+		varOHDisVal=(subtot*varOHDisPer)/100;
+		gstVal=(subtot*gstPer)/100;
+		tvc=vprs+varOHDisVal+gstVal;
+		gcAmount=subtot-tvc;
+		
+		
+		if(gcAmount > 0)
+		{ 
+			//vprs	=	round(vprs+(vprs*0.09),2);	
+			//marAftDis=round(((subtot-vprs)/vprs)*100,2);
+			marAftDis=(gcAmount/subtot)*100;
+			//marBefDis = round(((lprice-vprs)/vprs)*100,2); 
+			
+			document.getElementById("gcDispStr"+rowInd).innerHTML =marAftDis.toFixed(2);
+
+		}
+  	
+  	
+  	
+  	//alert(marAftDis);
+  }
+  function percentOf(percentage, total) {
+      return (percentage*total)/100;
+  }
+  </script>
+
+   
+</div>
+</body>
+</html>

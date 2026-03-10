@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/web/thymeleaf/layout"
+      xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity5"
+      layout:decorate="layout">
+<head>
+    <meta charset="UTF-8">
+    <title>Statutory Compliance Forms</title>
+    <script th:src="@{/resources/dist/js/utils.js}"></script> 
+
+    <link rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .table-sticky-header thead th {
+            position: sticky;
+            top: 0;
+            background-color: #f8f9fa;
+            z-index: 2;
+            box-shadow: 0 2px 2px -1px rgba(0, 0, 0, 0.4);
+        }
+        
+        .shadow-danger {
+		    box-shadow: 0 0 10px rgba(255, 0, 0, 0.6) !important;
+		}
+		
+		.bg-light-blue {
+		    background-color: #f8fcff !important;
+		}
+	
+		.bg-light-red {
+		    background-color: #fff5f5 !important;
+		}
+		
+		.ribbon {
+		    position: absolute;
+		    top: 0;
+		    right: 0;
+		    overflow: hidden;
+		    width: 90px;
+		    height: 90px;
+		    z-index: 1;
+		}
+		
+		
+		.ribbon-top-right span {
+		   position: absolute;
+		    display: block;
+		    width: 140px;
+		    padding: 5px 0;
+		    background-color: #dc3545; /* Red */
+		    color: #fff;
+		    text-align: center;
+		    font-size: 12px;
+		    font-weight: bold;
+		    transform: rotate(45deg);
+		    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+		    top: 20px;
+		    right: -30px;
+		    text-shadow: 0 1px 1px rgba(0,0,0,0.2);
+		    border-top: 1px solid rgba(255,255,255,0.2);
+		    border-bottom: 1px solid rgba(0,0,0,0.1);
+		}
+    </style>
+    
+    <script>
+	    function uploadStatutoryFile(fieldId) {
+	        const fileInput = document.getElementById('file-' + fieldId);
+	        const file = fileInput.files[0];
+	
+	        if (!file) {
+	            alert('Please select a file to upload.');
+	            return;
+	        }
+	
+	        const formData = new FormData();
+	        formData.append('file', file);
+	
+	        const docNo = fieldId;
+	        const docType = 'ehs';
+	        const docItemType = 'statutory';
+	
+	        $.ajax({
+	            url: `/fileUpload/handle/${docNo}/${docType}/${docItemType}`,
+	            type: 'POST',
+	            headers: {
+	                "X-CSRF-TOKEN": $('input[name="_csrf"]').val()
+	            },
+	            data: formData,
+	            processData: false,
+	            contentType: false,
+	            success: function (response) {
+	                alert(response.message);
+	
+	                // Save to hidden input so it goes in the form
+	                $('#documentPath-' + fieldId).val(response.fileName);
+	                // Update UI
+	                $('#upload-section-' + fieldId).hide();
+
+	                const actionsHtml = `
+	                	<div id="file-actions-${fieldId}" class="mb-3">
+		                	<label class="form-label">Uploaded Document</label> 
+		                    <div class="d-flex gap-2">
+		                        <a class="btn btn-success btn-sm"
+		                           href="/view/${response.fileName}/${docNo}/${docType}/${docItemType}"
+		                           target="_blank">
+		                            View File
+		                        </a>
+		                        <button class="btn btn-danger btn-sm"
+		                        		type="button"
+				                        id="delete-file-${fieldId}"
+				                        data-id="${fieldId}"
+				                        data-filename="${response.fileName}"
+				                        onclick="deleteStatutoryFile(this)">
+				                    Delete File
+				                </button> 
+		                    </div>
+	                    </div>
+	                    `;
+	                $('#upload-section-' + fieldId).after(actionsHtml);
+	            },
+	            error: function (xhr, status, error) {
+	                alert('An error occurred: ' + error);
+	            }
+	        });
+	    }
+	    
+	    function deleteStatutoryFile(button) {
+	    	console.log("BUTTON => " , button);
+	        const id = button.getAttribute("data-id");
+	        const fileName = button.getAttribute("data-filename");
+	        
+	        console.log(id, fileName);
+
+	        if (!confirm("Are you sure you want to delete this file?")) return;
+
+	        $.ajax({
+	        	url: `/delete/${fileName}/${id}/ehs/statutory`,
+	            //url: `/fileUpload/delete/${fileName}/${id}/ehs/statutory`,
+	            type: 'DELETE',
+	            headers: {
+	                "X-CSRF-TOKEN": $('input[name="_csrf"]').val()
+	            },
+	            success: function () {
+	                // Hide file actions
+	                $(`#file-actions-${id}`).hide();
+	                // Show upload section
+	                $(`#upload-section-${id}`).show();
+	                // Also clear any hidden documentPath field if used
+	                 $('#documentPath-' + id).val('');
+	            },
+	            error: function (xhr) {
+	                alert("Failed to delete file: " + xhr.responseText);
+	            }
+	        });
+	    }
+    </script>
+</head>
+<body>
+	<section layout:fragment="header">
+	    <div class="container-fluid">
+	        <div class="row">
+	            <div class="col-sm-6">
+	                <h1 class="text-primary text-bold text-lg ml-2">Statutory Compliance Form</h1>
+	            </div> 
+	            <div class="col-sm-6">
+	                <ol class="breadcrumb float-sm-right">
+	                    <li class="breadcrumb-item"><a href="#">EHS</a></li>
+	                    <li class="breadcrumb-item active">Statutory Compliance Form</li>
+	                </ol>
+	            </div>
+	        </div>
+	    </div>
+	</section>
+	
+	<div class="container-fluid" layout:fragment="content">
+	    <div class="row">
+	        <div class="col-12">
+	            <div class="card">
+	                <div class="card-body">
+						<div class="container mt-2">
+							    <div th:if="${readonly}" class="mb-2">
+							        <a href="#" onclick="window.history.back();" class="btn btn-outline-primary btn-sm">
+							            <i class="fas fa-arrow-left me-1"></i> Back to Dashboard
+							        </a>
+							    </div>
+							<h4 class="text-muted">
+                                Plant Name: <span th:text="${requirements[0].plantName}"></span>
+                            </h4>
+						    <div class="row g-4">
+						        <div class="col-md-6" th:each="req, iterStat : ${requirements}">
+						            <div th:class="'card shadow-md ' + (!${req.isValid} ? 'border border-danger bg-light-red shadow-danger' : 'bg-light-blue')">
+						                <!-- Ribbon -->
+						                 
+									    <div th:if="!${req.isValid}" class="ribbon ribbon-top-right">
+									        <span><i class="fas fa-times-circle me-1"></i>Invalid</span> 
+									    </div>
+						                <div class="card-body">
+						                    <form th:action="@{/ehs/updateRequirement}" method="post" enctype="multipart/form-data">
+						                        <input type="hidden" name="id" th:value="${req.id}" />
+												<input type="hidden" th:id="'documentPath-' + ${req.id}" name="documentPath" />
+										 
+						                        <div class="mb-2 row">
+						                            <label class="form-label fw-bold col-6">
+						                                <span th:text="${req.requirement}"></span>
+						                            </label> 
+						                            <div class="col-6" th:if="${#strings.contains(req.requirement, 'IBR')}">
+						                                <label class="form-label">Some T Input</label>
+						                                <input type="number" class="form-control form-control-sm" name="tinput" th:disabled="${readonly}" required />
+						                            </div> 
+						                        </div>
+				
+						                        <div class="row">
+						                            <div class="col-6 mb-3">
+						                                <label class="form-label">Valid From</label>
+						                                <input type="date" class="form-control form-control-sm" name="validFrom" th:value="${req.validFrom}" th:disabled="${readonly}" required />
+						                            </div>
+						
+						                            <div class="col-6 mb-3">
+						                                <label class="form-label">Valid Till</label>
+						                                <input type="date" class="form-control form-control-sm" name="validTill" th:value="${req.validTill}" th:disabled="${readonly}" required />
+						                            </div>
+						                        </div>
+		
+						                        <div th:style="${req.documentPath != null} ? 'display:none;' : ''" class="mb-3" th:id="'upload-section-' + ${req.id}">
+											        <label class="form-label">Upload Document</label>
+											        <div class="d-flex justify-content-between align-items-center gap-2"> 
+												        <input class="form-control form-control-sm" type="file" th:id="'file-' + ${req.id}" th:value="${req.validFrom}" th:disabled="${readonly}"  required/>
+												        <button th:if="${!readonly}" type="button" class="btn btn-primary btn-sm" th:onclick="'uploadStatutoryFile(' + ${req.id} + ')'">Upload</button>
+											    	</div>
+											    </div>
+						
+												<div th:if="${req.documentPath != null}" th:id="'file-actions-' + ${req.id}" class="mb-3">
+													<label class="form-label">Uploaded Document</label> 
+												    <div class="d-flex gap-2"> 
+												     
+												        <a class="btn btn-success btn-sm"
+												      
+												        th:href="@{/view/{filename}/{docId}/{docType}/{docItemType}(
+												            filename=${req.documentPath},
+												            docId=${req.id}, 
+												            docType='ehs',
+												            docItemType='statutory')}"
+												       
+												           target="_blank">
+												            View File
+												        </a>
+												        <button type="button"
+												        		th:if="${!readonly}"
+												                class="btn btn-danger btn-sm"
+												                th:id="'delete-file-' + ${req.id}"
+												                th:data-id="${req.id}"
+												                th:data-filename="${req.documentPath}"
+												                th:onclick="deleteStatutoryFile(this)">
+												            Delete File 
+												        </button>
+												    </div>  
+											    </div>
+						
+						                        <div class="text-end">
+						                            <button type="submit" class="btn btn-success btn-sm" th:if="${!readonly}">Update</button>
+						                        </div>
+						                    </form>
+						                </div>
+						            </div>
+						        </div>
+						    </div>
+						</div>
+					</div>
+	            </div>
+	        </div>
+	    </div>
+	</div>
+
+    <div layout:fragment="scriptContent">
+        <script>
+        	
+        </script>
+    </div>
+    
+</body>

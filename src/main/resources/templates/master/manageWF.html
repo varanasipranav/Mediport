@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+	xmlns:layout="http://www.ultraq.net.nz/web/thymeleaf/layout"
+	layout:decorate="layout">
+
+<head>
+<meta charset="ISO-8859-1">
+<title>Workflow Mapping</title>
+<style type="text/css">
+.has-error {
+    border-color: #dd4b39;
+    box-shadow: none
+
+}
+.select2-container--default .select2-selection--multiple .select2-selection__choice {
+    background-color: #b54545;
+   }
+</style>
+</head>
+<body>
+	<section layout:fragment="header">
+		<h1>
+			Workflow Mapping <small></small>
+		</h1>
+		<ol class="breadcrumb">
+			<li class="active">Workflow Mapping</li>
+		</ol>
+	</section>
+	<div layout:fragment="content">
+		<div th:if="${success!= null}" class="alert alert-success alert-dismissible">
+    			<i class="icon fa fa-check"></i>
+    			<span th:text="${success}" ></span>
+    	</div>
+		<form role="form" id="myForm" th:action="@{/master/wf/getdetails}"
+			th:object="${wfInput}" th:method="post">
+			<div class="box">
+			<div class="box-body">
+			<table class="table table-striped table-bordered">
+			<tr>
+				<th>Sales Org</th>
+				<th>Division</th>
+				<th>Dist Chnl</th>
+				<th>Main Chnl</th>
+				<th>Sub Chnl</th>
+				<th>Condition</th>
+				<th>Brand</th>
+				<td rowspan=2><button type="button"  id="goBtn" class="btn btn-primary pull-right" style="margin-left:5px;margin-top:5px"><i class="fa fa-arrow-right"></i> Go</button></td>
+			</tr>
+			
+			<tr>
+				<td>	
+						<select class="form-control select2" th:field="*{selSalesOrg}"  id="selSalesOrg">
+						    <option value="">--Select Sales Org--</option>
+						    <option th:each="option : *{salesOrg}" th:value="${option.value1}" th:text="${option.value1+'-'+option.value2}"></option>
+						</select>
+				</td>
+				<td>	
+					<select class="form-control select2" th:field="*{selDivision}"  id="selDivision">
+					    <option value="">--Select Division--</option>
+					    <option th:each="option : *{Division}" th:value="${option.value1}" th:text="${option.value1+'-'+option.value2}"></option>
+					</select>
+				</td>
+				<td>	
+					<select class="form-control select2" th:field="*{selDistChnl}"  id="selDistChnl">
+					    <option value="">--Select Dist Chnl--</option>
+					    <option th:each="option : *{distChnl}" th:value="${option.value1}" th:text="${option.value1+'-'+option.value2}"></option>
+					</select>
+				</td>
+				<td>	
+					<select class="form-control select2" th:field="*{selMainChnl}"  id="selMainChnl">
+					    <option value="">--Select Main Chnl--</option>
+					    <option th:each="option : *{mainChnl}" th:value="${option.value1}" th:text="${option.value1+'-'+option.value2}"></option>
+					</select>
+				</td>
+				<td>	
+					<select class="form-control select2" th:field="*{selSubChnl}"  id="selSubChnl">
+					    <option value="">--Select Sub Chnl--</option>
+					    <option th:each="option : *{subChnl}" th:value="${option.value1}" th:text="${option.value1+'-'+option.value2}"></option>
+					</select>
+				</td>
+				<td>	
+					<select class="form-control select2" th:field="*{selCondTypes}"  id="selCondTypes">
+					    <option value="">--Select Condition--</option>
+					    <option th:each="option : *{condTypes}" th:value="${option.value1}" th:text="${option.value1+'-'+option.value2}"></option>
+					</select>
+				</td>
+				<td>	
+					<select class="form-control select2" th:field="*{selBrand}"  id="selBrand">
+					    <option value="">--Select Brand--</option>
+					    <option th:each="option : *{brands}" th:value="${option.value1}" th:text="${option.value1+'-'+option.value2}"></option>
+					</select>
+				</td>
+				
+			</tr>
+				
+			</table>	
+				<input type="hidden" th:field="*{wfKey}">
+				<table  class="table table-striped table-bordered"
+					style="width: 100%" th:if="*{wfRowList != null && !wfRowList.empty}">
+					<thead>
+						<tr>
+							<th>Level</th>
+							<th>Users</th>
+						</tr>
+					</thead>
+					<tbody>
+						<tr th:each="row, itemStat:*{wfRowList}">
+							<td th:text="*{wfRowList[__${itemStat.index}__].level}"></td>
+							<td>
+								<input type="hidden" th:field="*{wfRowList[__${itemStat.index}__].level}">
+								<select class="form-control select2" th:field="*{wfRowList[__${itemStat.index}__].selUserList}"   multiple="multiple" placeholder="select user">
+									<option th:each="option : ${row.userList}" th:value="${option.userId}" th:text="${option.firstName+'-'+option.lastName+'['+option.userId+']'}"></option>
+								</select>			
+							</td>
+						</tr>
+					</tbody>
+				</table>
+				
+
+			</div>
+			<!-- /.box-body -->
+
+			<div class="box-footer">
+				<button type="button"  th:if="*{wfRowList != null && !wfRowList.empty}" id="subBtn" class="btn btn-primary pull-right" style="margin-left:5px">Submit</button>
+				<button type="button"   id="downloadBtn" class="btn btn-primary pull-right" style="margin-left:5px">Download</button>
+				
+			
+			</div>
+			</div>
+		</form>
+
+	
+</body>
+<div layout:fragment="scriptContent">
+<script>
+$(function () {
+	$('.select2').select2();
+	$('#selSalesOrg').val("VIPL").trigger("change");
+	//$('#selDistChnl').val("MT").trigger("change");
+	//#$('#selMainChnl').val("MTR").trigger("change");
+	//$('#selSubChnl').val("HYP").trigger("change");
+	$("#goBtn").click(function(){
+		   $("#myForm").attr("action", "/master/wf/getdetails");
+			$("#myForm").submit();
+			Pace.restart();
+		});
+	$("#subBtn").click(function(){
+		   $("#myForm").attr("action", "/master/wf/save");
+			$("#myForm").submit();
+			Pace.restart();
+		});
+	$("#downloadBtn").click(function(){
+		   location.href= "/master/wf/downloadall";
+			Pace.restart();
+		});
+ });
+</script>
+</div>
+</html>s

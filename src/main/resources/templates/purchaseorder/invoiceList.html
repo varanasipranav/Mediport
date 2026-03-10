@@ -1,0 +1,256 @@
+<!DOCTYPE html SYSTEM "http://www.thymeleaf.org/dtd/xhtml1-strict-thymeleaf-spring4-4.dtd">
+<html xmlns:th="http://www.thymeleaf.org"
+	xmlns:layout="http://www.ultraq.net.nz/web/thymeleaf/layout"
+	layout:decorate="layout">
+<head>
+<title>List</title>
+<style type="text/css">
+#rejectModal {
+	width: 50%;
+	height: 40%;
+	margin-left: 35%;
+	padding: 0;
+}
+
+#apprModal {
+	width: 90%;
+	height: 90%;
+	margin-left: 5%;
+	padding: 0;
+}
+
+.modal-content {
+	height: auto;
+	min-height: 100%;
+	border-radius: 0;
+}
+
+.group {
+	/* background: #eeeeee; */
+	
+}
+
+#nullifyModal {
+	z-index: 1080 !important;
+}
+</style>
+<style>
+.dataTables_filter {
+	display: inline;
+	float: right;
+}
+
+.dataTables_length {
+	display: inline;
+}
+
+.dt-buttons {
+	margin-left: 25%;
+}
+
+.input-group-addon {
+	padding: 2px 12px !important;
+}
+  	.text-primary {
+  		color: #2B56A5 !important;
+  	}
+</style>
+
+<link rel="stylesheet" type="text/css" href="../../../../resources/dist/css/table.css">
+</head>
+<body>
+	<section layout:fragment="header">
+		<div class="container-fluid">
+			<div class="row mb-2">
+				<div class="col-sm-6">
+					<h1 class="text-primary text-bold text-lg ml-2">Submitted invoices</h1>
+				</div>
+				<div class="col-sm-6">
+					<ol class="breadcrumb float-sm-right">
+						<li class="breadcrumb-item"><a href="#">Submitted invoices</a></li>
+						<li class="breadcrumb-item active">List</li>
+					</ol>
+				</div>
+			</div>
+		</div>
+		<!-- /.container-fluid -->
+	</section>
+	<div class="container-fluid" layout:fragment="content">
+		<div th:if="${success!= null}" class="alert alert-success alert-dismissible auto-dismiss">
+	   			<i class="icon fa fa-check"></i>
+	   			<span th:text="${success}" ></span>
+	   	</div>
+	   	<div th:if="${error!= null}" class="alert alert-danger alert-dismissible auto-dismiss">
+	   			<i class="icon fa fa-check"></i>
+	   			<span th:text="${error}" ></span>
+	   	</div>
+		<div class="row">
+			<div class="col-12">
+				<div class="card">
+					<div class="card-body">
+
+						<form role="form" th:object="${listSelector}"
+							th:action="@{/invoice/list}" method="get" name="myForm">
+							<div class="table-responsive hidden-xs">
+								<table class="table table-striped" style="margin-bottom: 1%;">
+									<tbody>
+										<tr>
+											<td><label>From Date:</label>
+												<div class="input-group mb-3">
+													<span class="input-group-text border-right-0"
+														id="basic-addon1"><i class="fa fa-calendar"></i></span> <input
+														type="text" th:field="*{fromDate}" class="form-control datepicker"
+														placeholder="Start Date" aria-label="Username"
+														aria-describedby="basic-addon1">
+												</div></td>
+											<td><label>To Date:</label>
+												<div class="input-group mb-3">
+													<span class="input-group-text border-right-0"
+														id="basic-addon1"><i class="fa fa-calendar"></i></span> <input
+														type="text" th:field="*{toDate}" class="form-control datepicker"
+														placeholder="End Date" aria-label="Username"
+														aria-describedby="basic-addon1">
+												</div></td>
+
+											<td>
+												<div
+													class="d-flex align-items-center justify-content-center mt-3">
+													<button type="submit"
+														class="btn btn-primary pull-right mt-3 w-100">
+														Apply
+														<!-- <i class="fa fa-paper-plane"></i> -->
+													</button>
+												</div>
+											</td>
+										</tr>
+
+									</tbody>
+								</table>
+							</div>
+						</form>
+						<div class="table-responsive">
+							<table id="example"
+								class="styled-table table  table-bordered dt-responsive nowrap"
+								cellspacing="0" width="100%">
+								<thead>
+									<tr>
+										<th>Doc No</th>
+										<th sec:authorize="hasAnyRole('ROLE_CPT', 'ROLE_FIN')">Plant</th>
+										<th>PO No.</th>
+										<th>Invoice Number</th>
+										<th>Invoice Date</th>
+										<th>Invoice Value</th>
+										<th>Status</th>
+										<th>Miro Number</th>
+									</tr>
+								</thead>
+								<tbody>
+									<tr th:each="po: ${reqList}">
+										<td><a th:href="${'/invoice/details/' + {po.docNo}}" th:text="${po.docNo}"></a></td>
+										<td sec:authorize="hasAnyRole('ROLE_CPT', 'ROLE_FIN')" th:text="${po.plantNo}"></td>										
+										<td class="po-number" th:text="${po.poNo}"></td>	
+										<td th:text="${po.invoiceNo}"></td>
+										<td th:text="${#dates.format(po.invoiceDate, 'dd/MM/yyyy')}"></td>
+										<td class="total-value" th:text="${po.invoiceValue}"></td>
+
+										<td class="text-center align-middle" style="min-width: 140px;">
+											<span th:if="${po.status == 'REJECTED'}"
+												  class="badge rounded-pill bg-danger px-4 py-2 fs-6 w-100 d-inline-block">Rejected</span>
+
+											<span th:if="${po.status == 'SUBMITTED'}"
+												  class="badge rounded-pill bg-warning text-dark px-4 py-2 fs-6 w-100 d-inline-block">Submitted</span>
+
+											<span th:if="${po.status == 'APPROVED'}"
+												  class="badge rounded-pill bg-success px-4 py-2 fs-6 w-100 d-inline-block">Approved</span>
+										</td>
+
+
+										<td class="text-capitalize" th:text="${po.miroNumber}"></td>
+									</tr>
+								</tbody>
+							</table>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+	<div layout:fragment="scriptContent">
+
+		<script type="text/javascript">
+			$(document)
+					.ready(
+							function() {
+								
+								$(".po-number").each(function () {
+								      const fullPo = $(this).text().trim();
+								      const parts = fullPo.split('/');
+								      
+								      // Show only the first 4 or fewer
+								      let trimmed = '';
+								      if (parts.length > 1) {
+								        trimmed = parts.slice(0, 4).join('/');
+								      } else {
+								        trimmed = fullPo.split(); // just one number, no slash
+								      }
+
+								      // Set trimmed text and full string as title
+								      $(this).text(trimmed);
+								      $(this).attr("title", fullPo);
+							    });
+								$('.datepicker').datepicker({
+									autoclose : true,
+									format : 'dd/mm/yyyy'
+								});
+								
+								$('.auto-dismiss').each(function () {
+						            const alert = $(this);
+
+						            // Set a timeout to hide the alert after 5 seconds
+						            setTimeout(function () {
+						                alert.fadeOut(500, function () {
+						                    // Remove the element from the DOM after fading out
+						                    alert.remove();
+						                });
+						            }, 15000);
+						        });
+
+								$('#example')
+								.DataTable(
+										{
+											dom : 'lBfrtip',
+											buttons : [
+													{
+														extend : 'excel',
+														text : '<i class="fa fa-file-excel" style="color:green"> </i> EXCEL',
+														title : null,
+														filename : 'Download'
+													},
+													{
+														extend : 'pdf',
+														text : '<i class="fa fa-file-pdf" style="color:red"></i> PDF',
+														title : null
+													} ],
+
+											language : {
+												lengthMenu : '_MENU_ entries per page',
+												paginate : {
+													previous : '‹',
+													next : '›'
+												}
+											}
+
+										}
+
+								);
+
+							   
+							
+							});
+		</script>
+
+
+	</div>
+
+</body>
+</html>

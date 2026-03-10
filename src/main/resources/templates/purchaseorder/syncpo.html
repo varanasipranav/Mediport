@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html  xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/web/thymeleaf/layout"
+      xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity5"
+      layout:decorate="layout">
+	<head>
+	<meta charset="UTF-8">
+	<title>Sync Purchase Orders</title>
+	<script th:src="@{/resources/dist/js/utils.js}"></script>
+	</head>
+	<body>
+		<div layout:fragment="content">
+		<div th:if="${success!= null}" class="alert alert-success alert-dismissible">
+	   			<i class="icon fa fa-check"></i>
+	   			<span th:text="${success}" ></span>
+	   	</div>
+	   	<div th:if="${error!= null}" class="alert alert-danger alert-dismissible">
+	   			<i class="icon fa fa-check"></i>
+	   			<span th:text="${error}" ></span>
+	   	</div>
+			<div class="container-fluid">
+		        <div>
+		          <div class="col-md-6">
+		            <div class="card card-primary">
+		              <div class="card-header">
+		                <h3 class="card-title">Sync Po's</h3>
+		              </div>
+		              <form data-toggle="validator" enctype="multipart/form-data" role="form" name="myForm" id="myForm" th:object="${poSynchAdminInput}" th:action="@{/syncpo/save}" method="post" >
+		              	<div class="form-group col-md-6 mt-3">
+		              		<label>Start Date</label>
+		              		<input type="text" class="form-control" th:field="*{startDate}" id="startDate" max="new Date()" />
+		              	</div>
+		              	<div class="form-group col-md-6">
+		              		<label>End Date</label>
+		              		<input type="text" class="form-control" th:field="*{endDate}" id="endDate" max="new Date()" />
+		              	</div>
+		              	<div class="form-group col-md-6">
+		              		<button  type="submit" class="btn btn-primary" >Submit</button>
+		              	</div>
+		              </form>
+		            </div>
+		          </div>
+		        </div>
+		      </div>
+		 </div>
+		<div layout:fragment="scriptContent">
+			<script th:inline="javascript">
+				$(document).ready(function() {
+		            $('#startDate').attr('max', getTodaysDate());
+		            $('#endDate').attr('max', getTodaysDate());
+					
+					$('#submitBtn').click(() => {
+						event.preventDefault()
+						const payload = {
+								startDate: formatDate($("#startDate").val()),
+								endDate: formatDate($("#endDate").val()),
+								_csrf: $('input[name="_csrf"]').val()
+						}
+						console.log("payload =>", payload)
+                        $.ajax({
+                            url: '/syncPo',
+                            type: 'POST',
+                            headers: {
+                            	"X-CSRF-TOKEN": payload._csrf
+                            },
+                            contentType: 'application/json',
+                            data: JSON.stringify(payload),
+                            success: function (response) {
+                                console.log("RESPONSE =>",  response);
+                                $("#startDate").val("")
+                                $("#endDate").val("")
+                               
+                            },
+                            error: function (err) {
+                                console.error('Error:', err);
+                            }
+                        });
+					})
+				})
+			</script>
+		</div>
+	</body>
+</html>

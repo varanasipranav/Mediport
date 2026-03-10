@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/web/thymeleaf/layout"
+      layout:decorate="layout">
+<head>
+  <title>Dashboard</title>
+</head>
+<body>
+<section layout:fragment="header">
+</section>
+
+<div layout:fragment="content">
+
+  <div class="error-page">
+    <h2 class="headline text-red">403</h2>
+
+    <div class="error-content">
+      <p th:if="${errorMessage}">
+        <b>Error:</b> <span th:text="${errorMessage}">Error</span>
+      </p>
+      <p th:if="${url}">
+        <b>Page:</b> <a th:href="${url}">DASHBOARD</a>
+      </p>
+      <p> Please Click on the above link to go back to DASHBOARD</p>
+
+    </div>
+  </div>
+  <!-- /.error-page -->
+</div>
+
+
+</body>
+</html>

@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+	  xmlns:layout="http://www.ultraq.net.nz/web/thymeleaf/layout"
+	  layout:decorate="layout">
+
+<head>
+	<meta charset="ISO-8859-1">
+	<title>User Creation</title>
+
+	<!-- Bootstrap 5 CSS -->
+	<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+	<!-- Font Awesome -->
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+	<!-- Select2 -->
+	<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+
+	<style>
+		.has-error {
+            border-color: #dc3545 !important;
+        }
+
+        .card {
+            box-shadow: 0 0.75rem 1.5rem rgba(18, 38, 63, 0.03);
+            border-radius: 1rem;
+        }
+
+        .vendor-only {
+            display: none;
+        }
+
+        .form-label i {
+            margin-right: 5px;
+            color: #0d6efd;
+        }
+		.select2-container .select2-selection--single {
+			height: 38px !important;
+			padding: 5px 10px;
+		}
+		.vendor-only {
+			display: none;
+		}
+
+		/* Custom Dropdown Checkbox Styles */
+		.custom-dropdown {
+			position: relative;
+			width: 100%;
+		}
+
+		.custom-dropdown-toggle {
+			width: 100%;
+			padding: 8px 12px;
+			border: 1px solid #ced4da;
+			border-radius: 0.375rem;
+			background-color: #fff;
+			cursor: pointer;
+			display: flex;
+			justify-content: space-between;
+			align-items: center;
+			min-height: 38px;
+		}
+
+		.custom-dropdown-toggle:hover {
+			border-color: #86b7fe;
+		}
+
+		.custom-dropdown-toggle:focus {
+			outline: none;
+			border-color: #86b7fe;
+			box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
+		}
+
+		.custom-dropdown-menu {
+			position: absolute;
+			top: 100%;
+			left: 0;
+			right: 0;
+			background-color: #fff;
+			border: 1px solid #ced4da;
+			border-radius: 0.375rem;
+			box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+			z-index: 1050;
+			max-height: 200px;
+			overflow-y: auto;
+			display: none;
+		}
+
+		.custom-dropdown-menu.show {
+			display: block;
+		}
+
+		.custom-dropdown-item {
+			padding: 8px 12px;
+			cursor: pointer;
+			border-bottom: 1px solid #f1f3f4;
+		}
+
+		.custom-dropdown-item:hover {
+			background-color: #f8f9fa;
+		}
+
+		.custom-dropdown-item:last-child {
+			border-bottom: none;
+		}
+
+		.custom-dropdown-item input[type="checkbox"] {
+			margin-right: 8px;
+		}
+
+		.dropdown-placeholder {
+			color: #6c757d;
+		}
+
+		.selected-count {
+			background-color: #007bff;
+			color: #fff;
+			border-radius: 12px;
+			padding: 2px 8px;
+			font-size: 0.75rem;
+			margin-left: 8px;
+		}
+
+		.selected-items {
+			display: flex;
+			flex-wrap: wrap;
+			gap: 4px;
+			max-height: 60px;
+			overflow-y: auto;
+		}
+
+		.selected-item {
+			background-color: #e3f2fd;
+			color: #1976d2;
+			border-radius: 16px;
+			padding: 4px 8px;
+			font-size: 0.75rem;
+			display: inline-flex;
+			align-items: center;
+			max-width: 150px;
+		}
+
+		.selected-item-text {
+			overflow: hidden;
+			text-overflow: ellipsis;
+			white-space: nowrap;
+		}
+
+		.dropdown-arrow {
+			transition: transform 0.2s ease;
+		}
+
+		.dropdown-arrow.rotated {
+			transform: rotate(180deg);
+		}
+
+		/* For regular select2 single selects */
+		.select2-container {
+			width: 100% !important;
+		}
+	</style>
+</head>
+
+<body>
+
+<div layout:fragment="content">
+	<div class="container mt-4">
+		<div class="card p-4">
+			<form id="userForm" name="userForm" th:action="@{/user/UserCreation}" th:object="${userForm}" th:method="POST">
+				<div id="errorDIV"></div>
+
+				<div class="row g-3">
+					<div class="col-md-6">
+						<label class="form-label"><i class="fa fa-id-badge"></i> User Id</label>
+						<input th:field="*{userId}" type="text" class="form-control" placeholder="Enter User Id" th:errorclass="has-error" required>
+						<p th:if="${#fields.hasErrors('userId')}" th:errors="*{userId}" class="text-danger small" />
+					</div>
+
+					<div class="col-md-6">
+						<label class="form-label"><i class="fa fa-user"></i> First Name</label>
+						<input th:field="*{firstName}" type="text" class="form-control" placeholder="Enter First Name" th:errorclass="has-error" required>
+						<p th:if="${#fields.hasErrors('firstName')}" th:errors="*{firstName}" class="text-danger small" />
+					</div>
+
+					<div class="col-md-6">
+						<label class="form-label"><i class="fa fa-user"></i> Last Name</label>
+						<input th:field="*{lastName}" type="text" class="form-control" placeholder="Enter Last Name" th:errorclass="has-error" required>
+						<p th:if="${#fields.hasErrors('lastName')}" th:errors="*{lastName}" class="text-danger small" />
+					</div>
+
+					<div class="col-md-6">
+						<label class="form-label"><i class="fa fa-envelope"></i> Email</label>
+						<input th:field="*{email}" type="email" class="form-control" placeholder="Enter E-Mail" th:errorclass="has-error" required>
+						<p th:if="${#fields.hasErrors('email')}" th:errors="*{email}" class="text-danger small" />
+					</div>
+
+					<div class="col-md-6">
+						<label class="form-label"><i class="fa fa-user-shield"></i> Role</label>
+						<select class="form-select select2" id="roleDropdown" th:field="*{role}">
+							<option value="">-- Select Role --</option>
+							<option th:each="role : ${roles}" th:value="${role.roleId}" th:utext="${role.roleDesc}" />
+						</select>
+					</div>
+
+					<div class="col-md-6">
+						<label class="form-label"><i class="fa fa-location-dot"></i> Document Type</label>
+						<div class="custom-dropdown" id="locationDropdown">
+							<div class="custom-dropdown-toggle" tabindex="0">
+								<span class="dropdown-placeholder">-- Select Document Type --</span>
+								<i class="fa fa-chevron-down dropdown-arrow"></i>
+							</div>
+							<div class="custom-dropdown-menu">
+								<div th:each="valuemap : ${docType}" class="custom-dropdown-item">
+									<input type="checkbox" th:value="${valuemap.value1}" th:id="'docTYpe-' + ${valuemap.value1}">
+									<label th:for="'location-' + ${valuemap.value1}" th:text="${valuemap.value1 + '-' + valuemap.value2}"></label>
+								</div>
+							</div>
+						</div>
+						<input type="hidden" th:field="*{docType}" id="locationHidden">
+					</div>
+
+<!--					<div class="col-md-6">-->
+<!--						<label class="form-label"><i class="fa fa-briefcase"></i> Business Place</label>-->
+<!--						<select class="form-select select2" th:field="*{busPlace}">-->
+<!--							<option value="">&#45;&#45; Select Business Place &#45;&#45;</option>-->
+<!--							<option th:each="valuemap : ${busplaces}" th:value="${valuemap.value1}" th:text="${valuemap.value1}" />-->
+<!--						</select>-->
+<!--					</div>-->
+
+					<!-- Moved Vendor & Privileges to Bottom for Clean Alignment -->
+					<div class="vendor-only col-md-6">
+						<label class="form-label"><i class="fa fa-key"></i> Privileges</label>
+						<div class="custom-dropdown" id="privilegesDropdown">
+							<div class="custom-dropdown-toggle" tabindex="0">
+								<span class="dropdown-placeholder">-- Select Privileges --</span>
+								<i class="fa fa-chevron-down dropdown-arrow"></i>
+							</div>
+							<div class="custom-dropdown-menu">
+								<div th:each="valuemap : ${allPrivileges}" class="custom-dropdown-item">
+									<input type="checkbox" th:value="${valuemap.id}" th:id="'privilege-' + ${valuemap.id}">
+									<label th:for="'privilege-' + ${valuemap.id}" th:text="${valuemap.id + ' - ' + valuemap.desc}"></label>
+								</div>
+							</div>
+						</div>
+						<input type="hidden" th:field="*{privilegeIds}" id="privilegesHidden">
+					</div>
+
+					<div class="vendor-only col-md-6">
+						<label class="form-label"><i class="fa fa-industry"></i> Vendor</label>
+						<select class="form-select select2" th:field="*{vendorCode}">
+							<option value="">-- Select Vendor --</option>
+							<option th:each="valuemap : ${vendors}" th:value="${valuemap.value1}" th:text="${valuemap.value1 + '-' + valuemap.value2}" />
+						</select>
+					</div>
+				</div>
+
+				<div class="text-end mt-4">
+					<button type="button" class="btn btn-success px-4" id="submitBut"><i class="fa fa-paper-plane"></i> Submit</button>
+				</div>
+
+				<div id="exceptionDIV" class="mt-3"></div>
+			</form>
+		</div>
+	</div>
+</div>
+
+<div layout:fragment="scriptContent">
+	<script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+	<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+	<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
+	<script th:inline="javascript">
+		$(document).ready(function () {
+            function toggleVendorFields() {
+                const selectedRole = $('#roleDropdown option:selected').text().toLowerCase();
+                if (selectedRole.includes('vendor')) {
+                    $('.vendor-only').slideDown();
+                } else {
+                    $('.vendor-only').slideUp();
+                }
+            }
+
+            toggleVendorFields();
+
+            $('#roleDropdown').on('change', function () {
+                toggleVendorFields();
+            });
+
+            // Initialize Select2 for single selects only (no clear button)
+            $('.select2').select2({
+                allowClear: false
+            });
+
+            // Custom dropdown functionality
+            function initCustomDropdown(dropdownId, hiddenInputId, placeholder) {
+                const dropdown = $('#' + dropdownId);
+                const toggle = dropdown.find('.custom-dropdown-toggle');
+                const menu = dropdown.find('.custom-dropdown-menu');
+                const arrow = dropdown.find('.dropdown-arrow');
+                const hiddenInput = $('#' + hiddenInputId);
+                const placeholderSpan = toggle.find('span');
+
+                // Toggle dropdown
+                toggle.on('click', function(e) {
+                    e.stopPropagation();
+                    menu.toggleClass('show');
+                    arrow.toggleClass('rotated');
+                });
+
+                // Handle checkbox changes
+                menu.on('change', 'input[type="checkbox"]', function() {
+                    updateSelection();
+                });
+
+                // Prevent menu close when clicking inside
+                menu.on('click', function(e) {
+                    e.stopPropagation();
+                });
+
+                // Close dropdown when clicking outside
+                $(document).on('click', function() {
+                    menu.removeClass('show');
+                    arrow.removeClass('rotated');
+                });
+
+                function updateSelection() {
+                    const selectedValues = [];
+                    const selectedTexts = [];
+
+                    menu.find('input[type="checkbox"]:checked').each(function() {
+                        selectedValues.push($(this).val());
+                        selectedTexts.push($(this).next('label').text());
+                    });
+
+                    // Update hidden input
+                    hiddenInput.val(selectedValues.join(','));
+
+                    // Update display
+                    if (selectedValues.length === 0) {
+                        placeholderSpan.html('<span class="dropdown-placeholder">' + placeholder + '</span>');
+                    } else if (selectedValues.length <= 2) {
+                        const itemsHtml = selectedTexts.map(text =>
+                            '<span class="selected-item"><span class="selected-item-text">' + text + '</span></span>'
+                        ).join('');
+                        placeholderSpan.html('<div class="selected-items">' + itemsHtml + '</div>');
+                    } else {
+                        placeholderSpan.html(
+                            '<div class="selected-items">' +
+                            '<span class="selected-item"><span class="selected-item-text">' + selectedTexts[0] + '</span></span>' +
+                            '<span class="selected-count">+' + (selectedValues.length - 1) + ' more</span>' +
+                            '</div>'
+                        );
+                    }
+                }
+            }
+
+            // Initialize custom dropdowns
+            initCustomDropdown('locationDropdown', 'locationHidden', '-- Select Location --');
+            initCustomDropdown('privilegesDropdown', 'privilegesHidden', '-- Select Privileges --');
+
+            $('#submitBut').click(function (event) {
+                event.preventDefault();
+                const userId = $('#userId').val();
+                $.ajax({
+                    url: "/user/userByUserId/" + userId,
+                    type: "GET",
+                    contentType: "application/json",
+                    success: function (result) {
+                        if (result === 'Y') {
+                            $("#exceptionDIV").html("<div class='alert alert-danger'>User Id already exists.</div>");
+                        } else {
+                            $("#exceptionDIV").html("&nbsp;");
+                            $('#userForm').attr('action', "/user/UserCreation").attr("method", "POST").submit();
+                        }
+                    },
+                    error: function (jqXHR, exception) {
+                        let msg = 'Error occurred';
+                        switch (jqXHR.status) {
+                            case 0: msg = 'Not connected. Please verify your network.'; break;
+                            case 404: msg = 'Requested page not found [404].'; break;
+                            case 500: msg = 'Internal Server Error [500].'; break;
+                            default: msg = 'Uncaught Error: ' + jqXHR.responseText; break;
+                        }
+                        $('#errorDIV').html("<div class='alert alert-danger'>" + msg + "</div>");
+                    }
+                });
+            });
+        });
+	</script>
+</div>
+</body>
+</html>

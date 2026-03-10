@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+	  xmlns:layout="http://www.ultraq.net.nz/web/thymeleaf/layout"
+	  layout:decorate="layout">
+<head>
+	<meta charset="ISO-8859-1">
+	<title>List Users</title>
+	<link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/jquery.dataTables.min.css">
+	<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+	<style>
+		.card { box-shadow: 0 0.75rem 1.5rem rgba(18,38,63,0.03); border-radius: 1rem; margin-top: 30px; }
+        .table thead th { background-color: #f8f9fa; }
+        .breadcrumb { background: none; padding: 0; margin-bottom: 1rem; }
+        .action-btns .btn { margin-right: 0.5rem; }
+        .action-btns .btn:last-child { margin-right: 0; }
+	</style>
+</head>
+<body>
+<section layout:fragment="header" class="container mt-4">
+	<nav aria-label="breadcrumb">
+		<ol class="breadcrumb">
+			<li class="breadcrumb-item">
+				<a th:href="@{/dashboard/index.html}">
+					<i class="fa fa-dashboard"></i> Users
+				</a>
+			</li>
+			<li class="breadcrumb-item active" aria-current="page">List</li>
+		</ol>
+	</nav>
+</section>
+<div layout:fragment="content" class="container">
+	<form name="userForm" id="userForm">
+		<div class="card">
+			<div class="card-header bg-primary text-white">
+				<h5 class="mb-0"><i class="fa fa-table"></i> User Table</h5>
+			</div>
+			<div class="card-body">
+				<div class="table-responsive">
+					<table id="example" class="table table-striped table-bordered align-middle">
+						<thead>
+						<tr>
+							<th>User Id</th>
+							<th>First Name</th>
+							<th>Last Name</th>
+							<th>Email</th>
+							<th>Role</th>
+							<th>Actions</th>
+						</tr>
+						</thead>
+						<tbody>
+						<tr th:each="user, stat : ${usersList}">
+							<td><span th:text="${user.userId}">User Id</span></td>
+							<td><span th:text="${user.firstName}">First Name</span></td>
+							<td><span th:text="${user.lastName}">Last Name</span></td>
+							<td><span th:text="${user.email}">Email</span></td>
+							<td>
+								<div th:each="role, stat1 : ${user.roles}">
+									<span class="badge bg-info text-dark" th:text="${user.roles[__${stat1.index}__].name}"></span>
+								</div>
+							</td>
+							<td class="action-btns">
+								<button type="button"
+										th:onclick="'javascript:ezSubmit(\'edit\',\''+ ${user.id} + '\');'"
+										class="btn btn-success btn-sm" title="Edit">
+									<i class="fa fa-pen"></i>
+								</button>
+								<button type="button"
+										th:onclick="'javascript:ezSubmit(\'delete\',\''+ ${user.id} + '\');'"
+										class="btn btn-danger btn-sm" title="Delete">
+									<i class="fa fa-trash"></i>
+								</button>
+							</td>
+						</tr>
+						</tbody>
+					</table>
+				</div>
+			</div>
+		</div>
+	</form>
+	<!-- Modals -->
+	<div th:fragment="delete-user" id="deleteUserModalHolder"></div>
+	<!-- Modals End -->
+</div>
+<div layout:fragment="scriptContent">
+	<script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+	<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+	<script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
+	<script th:inline="javascript">
+		$(document).ready(function() {
+			$('#example').DataTable({
+				"pageLength": 10,
+				"lengthChange": false,
+				"dom": 'T<"clear">lfrtip'
+			});
+        });
+
+        function ezSubmit(transType, userId) {
+            if (transType == 'delete') {
+                $.ajax({
+                    url: "/modal/delete-user/" + userId,
+                    success: function(data) {
+                        $("#deleteUserModalHolder").html(data);
+                        $('#deleteUserModal').modal({
+                            backdrop: 'static'
+                        });
+                    }
+                });
+            }
+            if (transType == 'edit') {
+                $('#userForm').attr('action', "/user/editUser/" + userId);
+                $("#userForm").attr("method", "GET");
+                $("#userForm").submit();
+            }
+        }
+	</script>
+</div>
+</body>
+</html>

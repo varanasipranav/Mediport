@@ -1,0 +1,43 @@
+<!DOCTYPE html SYSTEM "http://www.thymeleaf.org/dtd/xhtml1-strict-thymeleaf-spring4-4.dtd">
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorator="layout">
+<head>
+    <title>Confirmation</title>
+</head>
+<body>
+<section layout:fragment="header"> 
+    <h1>Confirmation</h1>
+</section>
+<div layout:fragment="content">
+	
+    <div class="box">
+            <div class="box-body">
+    			<div th:if="${success!= null}" class="alert alert-success alert-dismissible">
+			   			<i class="icon fa fa-check"></i>
+			   			<span th:text="${success}" ></span>
+			   	</div>
+			   	<div th:if="${error!= null}" class="alert alert-danger alert-dismissible">
+			   			<i class="icon fa fa-check"></i>
+			   			<span th:text="${error}" ></span>
+			   	</div>        
+            </div>
+            <div class="box-footer">                
+                <button type="button" id="subBtn" class="btn btn-primary pull-right" style="margin-left:5px"><i class="fa fa-arrow-circle-right fa-lg"></i>&nbsp;Ok</button>
+            </div> 
+    </div>
+    
+    
+</div>
+<div layout:fragment="scriptContent">
+<script type="text/javascript">
+     
+    $(function () {
+		
+		$("#subBtn").click(function(){
+			location.href="../../index3.html";
+			});
+		});
+		
+   </script>
+</div>
+</body>
+</html>

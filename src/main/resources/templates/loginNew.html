@@ -1,0 +1,770 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+	<title>ARAGEN | Aragen Digita X</title>
+	<link rel="shortcut icon" type="image/png" th:href="@{/resources/images/logo.png}"/>
+	<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">
+	<!-- <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+		 <script src="http://code.jquery.com/ui/1.10.4/jquery-ui.js"></script>
+	 -->
+	<script th:src="@{/resources/plugins/jQuery/jquery-3.3.1.js}"></script>
+	<script th:src="@{/resources/plugins/jQueryUI/jquery-ui.js}"></script>
+	
+	<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
+	<link href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet" integrity="sha384-wvfXpqpZZVQGK6TAh5PVlGOfQNHSoD2xbE+QkPxCAFlNEevoEH3Sl0sibVcOQVnN" crossorigin="anonymous">
+	<style type="text/css">
+	label {
+	color: #b3b3b3;
+	}
+.cb-slideshow,
+.cb-slideshow:after {
+    position: fixed;
+    width: 100%;
+    height: 100%;
+    top: 0px;
+    left: 0px;
+    z-index: 0;
+}
+.cb-slideshow:after {
+    content: '';
+    background: transparent url(resources/images/pattern.png) repeat top left;
+}
+.cb-slideshow li span {
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    top: 0px;
+    left: 0px;
+    color: transparent;
+    background-size: cover;
+    background-position: 50% 50%;
+    background-repeat: none;
+    opacity: 0;
+    z-index: 0;
+	-webkit-backface-visibility: hidden;
+    -webkit-animation: imageAnimation 36s linear infinite 0s;
+    -moz-animation: imageAnimation 36s linear infinite 0s;
+    -o-animation: imageAnimation 36s linear infinite 0s;
+    -ms-animation: imageAnimation 36s linear infinite 0s;
+    animation: imageAnimation 36s linear infinite 0s;
+}
+.cb-slideshow li div {
+    z-index: 1000;
+    position: absolute;
+    bottom: 30px;
+    left: 0px;
+    width: 100%;
+    text-align: center;
+    opacity: 0;
+    color: #fff;
+    -webkit-animation: titleAnimation 36s linear infinite 0s;
+    -moz-animation: titleAnimation 36s linear infinite 0s;
+    -o-animation: titleAnimation 36s linear infinite 0s;
+    -ms-animation: titleAnimation 36s linear infinite 0s;
+    animation: titleAnimation 36s linear infinite 0s;
+}
+.cb-slideshow li div h3 {
+    font-family: 'BebasNeueRegular', 'Arial Narrow', Arial, sans-serif;
+    font-size: 240px;
+    padding: 0;
+    line-height: 200px;
+}
+.cb-slideshow li:nth-child(1) span {
+    background-image: url(resources/images/New-Project.png)
+}
+.cb-slideshow li:nth-child(2) span {
+    background-image: url(resources/images/IMG_5772.jpg);
+    -webkit-animation-delay: 6s;
+    -moz-animation-delay: 6s;
+    -o-animation-delay: 6s;
+    -ms-animation-delay: 6s;
+    animation-delay: 6s;
+}
+.cb-slideshow li:nth-child(3) span {
+    background-image: url(resources/images/6B5B5336.jpg);
+    -webkit-animation-delay: 12s;
+    -moz-animation-delay: 12s;
+    -o-animation-delay: 12s;
+    -ms-animation-delay: 12s;
+    animation-delay: 12s;
+}
+.cb-slideshow li:nth-child(4) span {
+    background-image: url(resources/images/New-Project-1.png);
+    -webkit-animation-delay: 18s;
+    -moz-animation-delay: 18s;
+    -o-animation-delay: 18s;
+    -ms-animation-delay: 18s;
+    animation-delay: 18s;
+}
+.cb-slideshow li:nth-child(2) div {
+    -webkit-animation-delay: 6s;
+    -moz-animation-delay: 6s;
+    -o-animation-delay: 6s;
+    -ms-animation-delay: 6s;
+    animation-delay: 6s;
+}
+.cb-slideshow li:nth-child(3) div {
+    -webkit-animation-delay: 12s;
+    -moz-animation-delay: 12s;
+    -o-animation-delay: 12s;
+    -ms-animation-delay: 12s;
+    animation-delay: 12s;
+}
+.cb-slideshow li:nth-child(4) div {
+    -webkit-animation-delay: 18s;
+    -moz-animation-delay: 18s;
+    -o-animation-delay: 18s;
+    -ms-animation-delay: 18s;
+    animation-delay: 18s;
+}
+/* Animation for the slideshow images */
+@-webkit-keyframes imageAnimation {
+    0% { opacity: 0;
+    -webkit-animation-timing-function: ease-in; }
+    8% { opacity: 1;
+         -webkit-animation-timing-function: ease-out; }
+    17% { opacity: 1 }
+    25% { opacity: 0 }
+    100% { opacity: 0 }
+}
+@-moz-keyframes imageAnimation {
+    0% { opacity: 0;
+    -moz-animation-timing-function: ease-in; }
+    8% { opacity: 1;
+         -moz-animation-timing-function: ease-out; }
+    17% { opacity: 1 }
+    25% { opacity: 0 }
+    100% { opacity: 0 }
+}
+@-o-keyframes imageAnimation {
+    0% { opacity: 0;
+    -o-animation-timing-function: ease-in; }
+    8% { opacity: 1;
+         -o-animation-timing-function: ease-out; }
+    17% { opacity: 1 }
+    25% { opacity: 0 }
+    100% { opacity: 0 }
+}
+@-ms-keyframes imageAnimation {
+    0% { opacity: 0;
+    -ms-animation-timing-function: ease-in; }
+    8% { opacity: 1;
+         -ms-animation-timing-function: ease-out; }
+    17% { opacity: 1 }
+    25% { opacity: 0 }
+    100% { opacity: 0 }
+}
+@keyframes imageAnimation {
+    0% { opacity: 0;
+    animation-timing-function: ease-in; }
+    8% { opacity: 1;
+         animation-timing-function: ease-out; }
+    17% { opacity: 1 }
+    25% { opacity: 0 }
+    100% { opacity: 0 }
+}
+/* Animation for the title */
+@-webkit-keyframes titleAnimation {
+    0% { opacity: 0 }
+    8% { opacity: 1 }
+    17% { opacity: 1 }
+    19% { opacity: 0 }
+    100% { opacity: 0 }
+}
+@-moz-keyframes titleAnimation {
+    0% { opacity: 0 }
+    8% { opacity: 1 }
+    17% { opacity: 1 }
+    19% { opacity: 0 }
+    100% { opacity: 0 }
+}
+@-o-keyframes titleAnimation {
+    0% { opacity: 0 }
+    8% { opacity: 1 }
+    17% { opacity: 1 }
+    19% { opacity: 0 }
+    100% { opacity: 0 }
+}
+@-ms-keyframes titleAnimation {
+    0% { opacity: 0 }
+    8% { opacity: 1 }
+    17% { opacity: 1 }
+    19% { opacity: 0 }
+    100% { opacity: 0 }
+}
+@keyframes titleAnimation {
+    0% { opacity: 0 }
+    8% { opacity: 1 }
+    17% { opacity: 1 }
+    19% { opacity: 0 }
+    100% { opacity: 0 }
+}
+/* Show at least something when animations not supported */
+.no-cssanimations .cb-slideshow li span{
+	opacity: 1;
+}
+
+@media screen and (max-width: 1140px) {
+    .cb-slideshow li div h3 { font-size: 140px }
+}
+@media screen and (max-width: 600px) {
+    .cb-slideshow li div h3 { font-size: 80px }
+}
+	body,
+html {
+	margin: 0;
+	padding: 0;
+	height: 100%;
+	background: #eaeef3 !important;
+}
+.user_card {
+	height: 400px;
+	width: 350px;
+	margin-top: 25%;
+	margin-bottom: auto;
+	position: relative;
+	display: flex;
+	flex-direction: column;
+	padding: 10px;
+	border-radius: 5px;
+	background-color: white !important;
+
+}
+
+
+
+<!--.form_container {-->
+<!--	margin-top: 100px;-->
+<!--}-->
+
+.login_btn {
+	width: 100%;
+	background: #0053ab !important;
+	color: white !important;
+}
+.login_btn:focus {
+	box-shadow: none !important;
+	outline: 0px !important;
+}
+.login_container {
+	padding: 0 2rem;
+}
+.input-group-text {
+	background: #0053ab !important;
+	color: white !important;
+	border: 0 !important;
+	border-radius: 0.25rem 0 0 0.25rem !important;
+}
+.input_user,
+.input_pass:focus {
+	box-shadow: none !important;
+	outline: 0px !important;
+	color: #b3b3b3;
+}
+.custom-checkbox .custom-control-input:checked~.custom-control-label::before {
+	background-color: #0053ab !important;
+}
+a
+{
+	color: #b3b3b3;
+}
+a:hover
+{
+	color: #182c7b;
+}
+h6
+{
+	color: #b3b3b3;
+}
+.custom-control-label
+{
+	color: #b3b3b3;
+}
+.headerImg {
+	border: 0;
+	height: 90px;
+	position: absolute;
+	top: 0;
+	left: 0;
+	bottom: 0;
+	background: none;
+}
+.flip {
+    -webkit-perspective: 800;
+
+    position: relative;
+}
+.flip .card.flipped {
+    -webkit-transform: rotatey(-180deg);
+}
+.flip .card {
+    width: 100%;
+    height: 100%;
+    -webkit-transform-style: preserve-3d;
+    -webkit-transition: 0.2s;
+}
+.flip .card .face {
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    -webkit-backface-visibility: hidden;
+    z-index: 2;
+
+}
+.flip .card .front {
+    position: absolute;
+    z-index: 1;
+
+}
+.flip .card .back {
+    -webkit-transform: rotatey(-180deg);
+
+}
+.card {
+	border: 0px;
+}
+ol,ul {
+	list-style:none;
+}
+.image-container {
+	height:
+	flex: 1;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+.fit-image {
+	margin-top: 10%;
+	width: 70%;
+	height: auto;
+	object-fit: cover;
+	margin-bottom: auto;
+	margin-right: 10px;
+}
+.main-body
+{
+	height: 100%!important;
+}
+.input-user-envelop
+{
+	margin-bottom: 1rem!important;
+}
+.input-key
+{
+	margin-bottom: .5rem!important;
+}
+.butDiv
+{
+	margin-top: 1rem!important;
+}
+
+#bizzbar{  
+background:#0053ab;
+  width:100%;
+  text-align:center;
+  color:#fff;
+  padding:8px;
+  overflow:hidden;
+  height:46px;
+  z-index:1000;
+  font-size:16px;
+  line-height:30px;
+  position:fixed;
+  top:0;
+  left:0;
+  border-bottom:1px solid rgb(255,255,255);
+  box-shadow:0 1px 5px rgba(0,0,0,.7)
+  }
+
+#bizzbar button{
+-webkit-box-shadow:rgba(0,0,0,0.278431) 1px 1px 3px;
+ background:#333;
+  border-bottom-left-radius:4px;
+  border-bottom-right-radius:4px;
+  border-top-left-radius:4px;
+  border-top-right-radius:4px;
+  border:none;
+  box-shadow:rgba(0,0,0,0.278431) 1px 1px 3px;
+  color:white;
+  cursor:pointer;
+  font-size:0.854em;
+  margin:0px 0px 0px 7px;
+  outline:none;
+  padding:2px 10px 1px;
+  position:relative;
+  text-decoration:initial
+  }
+
+
+
+close{ 
+width:20px;
+  height:19px;
+  bottom:12px;
+  right:20px;
+  background:url(resources/images/helloBarImg.png) no-repeat 0px -247px;
+  position:absolute
+  }
+
+close:hover{ 
+background:url(resources/images/helloBarImg.png) no-repeat 0px -228px;
+  cursor:pointer;
+  height:19px
+  }
+
+open{
+-webkit-box-shadow:rgba(0,0,0,0.34902) 0px 0px 5px;
+background-image:url(resources/images/helloBarImg.png);
+background-position:-3px -8px;
+background-repeat:no-repeat no-repeat;
+border-bottom-left-radius:5px;
+border-bottom-right-radius:5px;
+border:3px solid rgb(255,255,255);
+box-shadow:rgba(0,0,0,0.34902) 0px 0px 5px;
+display:block;
+height:0px;
+outline:none;
+overflow:hidden;
+padding:80px 0px 0px;
+position:fixed;
+right:15px;
+top:-50px;
+width:35px;
+z-index:100;
+background-color:#eb593c;
+display:none
+}
+
+open:hover{ 
+background-color:#ff5a3d;
+ cursor:pointer
+ }
+@media screen and (max-device-width: 640px){
+	body
+	{
+		background: #000;
+	}
+	.main-body
+	{
+		height: 100%!important;
+		min-height: 100%;
+		margin: 0;
+		padding: 0;
+		position: relative;
+		z-index: 0;
+		background-color: #0053ab;
+		color: #fff;
+	}
+	.cb-slideshow
+	{
+		display:none;
+	}
+	.headerImg {
+		width: 100%;
+		height: 200px;
+		position: relative;
+	}
+	.logoDiv
+	{
+
+		padding-top: 25px;
+		padding-left: 20px;
+		width: 55%;
+		height: 100%;
+	}
+	.login-body{
+		color: #333;
+		margin: 0 auto;
+		padding: 10% 5%;
+	}
+	.user_card{
+		min-height: 700px;
+		margin: 0;
+		padding: 20px 5% 30px;
+		width: 100%;
+		margin-right: 30px
+	}
+	.login-form
+	{
+		width: 100%;
+	}
+	.input-group .form-control
+	{
+
+		height: 120px;
+		font-size: 3rem;
+
+	}
+	.input-group-text
+	{
+		padding: 0.375rem 2.75rem;
+		font-size: 3rem;
+	}
+	.input-user-envelop {
+	    margin-bottom: 5rem!important;
+	}
+	.input-key
+	{
+		margin-bottom: 4rem!important;
+	}
+	.form-group
+	{
+		margin-bottom: 4rem;
+		/*transform: scale(3);*/
+		padding-left: 8.2%;
+	}
+	.butDiv {
+	    margin-top: 2rem!important;
+	}
+	.login_container
+	{
+		padding: 0;
+		height: 100px;
+	}
+	.login_btn
+	{
+		font-size: 50px;
+		font-weight: bold;
+	}
+	.remCheck
+	{
+		display:none;
+	}
+	.registerLinks
+	{
+		font-size: 3rem;
+		margin-top: 10rem !important;
+	}
+	.forgPassLink
+	{
+		font-size: 2rem;
+		justify-content: flex-end !important;
+	}
+	a
+	{
+		color: #fff;
+	}
+	a:hover
+	{
+		color: #fff;
+	}
+	.registLabel
+	{
+		color: #b3b3b3;
+	}
+
+
+
+}
+@media screen and (min-device-width: 768px) and (max-device-width: 1024px){
+
+
+
+}
+
+	</style>
+</head>
+<body style="background-image: url(resources/images/New-Project.PNG) !important;background-repeat: no-repeat !important;background-size: cover !important;background-position: center !important; background-color: #1f3370 !important;">
+<div>
+<div th:if="${param.message != null}"  style="z-index:9999" role="alert">
+<div class="container">
+<div class="row">
+<div class="col-12">
+<div id='bizzbar'>
+  <p class='bizztext'>
+<span  th:text="${param.message[0]}">message</span>
+</p>
+  <close></close>
+</div>
+<open></open>
+</div>
+</div>
+</div>
+<!-- <button type="button" class="close" data-dismiss="alert" aria-label="Close"> -->
+<!-- <span aria-hidden="true">X</span> -->
+<!-- </button> -->
+</div>
+	<!-- <ul class="cb-slideshow">
+		<li><span>Image 01</span></li>
+		<li><span>Image 02</span></li>
+		<li><span>Image 03</span></li>
+		<li><span>Image 04</span></li>
+	</ul> -->
+	<div class="main-body">
+		<div class="headerImg">
+				<img class="logoDiv" style="margin:10px" src="resources/images/ceatBluebg.jpg" alt="CEAT"/>
+		</div>
+		<div class="login-body d-flex justify-content-center">
+			<div class="image-container">
+				<img src="resources/images/ceat_tyres.png" alt="CEAT Tyres" class="fit-image">
+			</div>
+			<div class="d-flex justify-content-end mr-5" >
+				<div class="user_card">
+					<div class="flip">
+						<div class="card">
+							<div class="face front">
+								<div style="height: 80px; padding-top: 20px;">
+									<h3 class="text-center">Outsourcing Portal</h3>
+								</div>
+								<div class="d-flex justify-content-center form_container">
+									<form name='f' th:action="login" th:method='POST' onsubmit="return validate();" class="login-form">
+									<!-- <div th:if="${param.message != null}" class="callout callout-danger" th:text="${param.message[0]}">message</div> -->
+										<div class="input-group input-user-envelop">
+											<div class="input-group-append">
+												<span class="input-group-text"><i class="fa fa-user"></i></span>
+											</div>
+											<input type="text" name="username" class="form-control input_user" value="" placeholder="username">
+										</div>
+										<div class="input-group input-key">
+											<div class="input-group-append">
+												<span class="input-group-text"><i class="fa fa-key"></i></span>
+											</div>
+											<input type="password" name="password" class="form-control input_pass" value="" placeholder="password">
+										</div>
+										<!-- <div class="form-group remCheck" style="float: left;">
+											<div class="custom-control custom-checkbox">
+												<input type="checkbox" name="remember-me" class="custom-control-input">
+												<label class="custom-control-label" for="customControlInline">Remember me</label>
+											</div>
+										</div> -->
+										<div class="checkbox">
+										  <label><input type="checkbox" name="remember-me">&nbsp;&nbsp;Remember me</label>
+										</div>
+									</form>
+								</div>
+								<div class="d-flex justify-content-center butDiv login_container">
+									<button type="button" onclick="funSubmit()" name="login" class="btn login_btn">Login</button>
+								</div>
+								<div class="mt-4">
+									<div class="d-flex justify-content-center links forgPassLink">
+										<a href="#" class="forgPass">Forgot your password</a>
+									</div>
+
+									<!-- <div class="d-flex justify-content-center links registerLinks">
+										<label class="registLabel">Don't have an account?</label> <a href="#" class="ml-2">Register</a>
+									</div> -->
+									<div class="d-flex justify-content-center links registerLinks">
+										<div th:if="${param.error}">
+							            <div class="callout callout-danger">
+							                <p>Username or password invalid!</p>
+							            </div>
+							        </div>
+<!--         							<div th:if="${param.message != null}" class="callout callout-danger" th:text="${param.message[0]}">message</div> -->
+									<div th:if="${param.error != null}" class="callout callout-dangerr" th:text="${session[SPRING_SECURITY_LAST_EXCEPTION]}">error</div>
+									</div>
+
+								</div>
+								<div style="display: flex; justify-content: space-between; align-items: flex-end; margin-top: 50px;">
+									<img src="resources/images/rpg.png" alt="RPG" style="width: 50px; height: 20px;">
+									<img src="resources/images/happiness.png" alt="happiness" style="width: 100px; height: 20px;">
+								</div>
+							</div>
+							<div class="face back">
+									<div class="d-flex justify-content-center form_container">
+
+										<form name="forgPassForm" class="login-form">
+
+											<div class="input-group input-user-envelop">
+												<div class="input-group-append">
+													<span class="input-group-text"><i class="fa fa-envelope"></i></span>
+												</div>
+												<input type="text" id="email" name="email" class="form-control input_user" value="" placeholder="Enter Email">
+											</div>
+
+										</form>
+									</div>
+									<div class="d-flex justify-content-center butDiv login_container">
+										<button type="button" name="resetPassw" onclick="resetPass()"class="btn login_btn">Reset</button>
+										<input type="hidden" id="csrf" th:name="_csrf" th:value="${_csrf.token}">
+									</div>
+									<div class="d-flex justify-content-center butDiv login_container">
+										<button type="button" class="btn login_btn forgPass">Back</button>
+									</div>
+
+
+
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</body>
+
+<script th:inline="javascript">
+$('.forgPass').on('click', function() {
+    $('.flip .card').toggleClass('flipped');
+});
+	function validate() {
+        if (document.f.username.value == "" && document.f.password.value == "") {
+            alert(/*[[#{message.username} + #{message.password}]]*/);
+            document.f.username.focus();
+            return false;
+        }
+        if (document.f.username.value == "") {
+            alert(/*[[#{message.username}]]*/);
+            document.f.username.focus();
+            return false;
+        }
+        if (document.f.password.value == "") {
+            alert(/*[[#{message.password}]]*/);
+            document.f.password.focus();
+            return false;
+        }
+    }
+
+	var serverContext = [[@{/}]];
+
+		/* $(document).ready(function () {
+			$('f').submit(function(event) {
+				resetPass(event);
+		    });
+		}); */
+
+		function resetPass(){
+//		    event.preventDefault();
+		    var email = $("#email").val();
+		    var csrfToke = $("#csrf").val();
+		    $.post(serverContext + "user/resetPassword",{email: email,_csrf:csrfToke} ,function(data){
+		            window.location.href = serverContext + "login?message=" + data.message;
+		    })
+		    .fail(function(data) {
+		    	if(data.responseJSON.error.indexOf("MailError") > -1)
+		        {
+		            window.location.href = serverContext + "emailError.html";
+		        }
+		        else{
+		            window.location.href = serverContext + "login?message=" + data.responseJSON.message;
+		        }
+		    });
+		}
+
+
+
+  /*
+  $(document).ready(function () {
+    $('input').iCheck({
+      checkboxClass: 'icheckbox_square-blue',
+      radioClass: 'iradio_square-blue',
+      increaseArea: '20%' // optional
+    });
+  }); */
+  function funSubmit()
+  {
+  	document.f.submit();
+  }
+  $(document).ready(function(){
+		$("open").click(function(){
+			$("#bizzbar").show("blind","fast");
+			$("open").slideUp();
+		})
+		$("close").click(function(){
+			$("#bizzbar").slideUp();
+			$("open").slideDown();
+		})
+	})
+
+  </script>
+</html>

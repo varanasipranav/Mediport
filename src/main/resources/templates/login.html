@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<link rel="preload" as="image" href="AragenBackground.png">
+	<meta charset="UTF-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+	<title>ARAGEN | Aragen Digita X</title>
+	<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"/>
+	<link rel="shortcut icon" type="image/svg" href="resources/images/AragenLogo.svg"/>
+
+	<style>
+	<!--	body {
+          margin: 0;
+          padding: 0;
+          height: 100vh;
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          background: linear-gradient(135deg, #1C66A0, #603062, #EB3336);
+          background-size: 300% 300%;
+          animation: gradientBG 10s ease infinite;
+          font-family: 'Segoe UI', sans-serif;
+        }
+
+        @keyframes gradientBG {
+          0% { background-position: 0% 50%; }
+          50% { background-position: 100% 50%; }
+          100% { background-position: 0% 50%; }
+        }-->
+
+body {
+  margin: 0;
+  padding: 0;
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: radial-gradient(circle at top left, #1C66A0 0%, #1B178F 15%, #6B1B5E 50%, #EB3336 100%);
+  font-family: 'Segoe UI', sans-serif;
+}
+
+
+
+                .login-card {
+                  background: rgba(255, 255, 255, 0.1);
+                  backdrop-filter: blur(15px);
+                  -webkit-backdrop-filter: blur(15px);
+                  border-radius: 16px;
+                  padding: 2rem;
+                  width: 360px;
+                  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
+                  color: #fff;
+                }
+
+                .logo {
+                  display: flex;
+                  justify-content: center;
+                  margin-bottom: 1rem;
+                }
+
+                .logo img {
+                  height: 70px;
+                }
+
+                h3 {
+                  text-align: center;
+                  font-weight: bold;
+                  margin-bottom: 0.3rem;
+                }
+
+                p.subtitle {
+                  text-align: center;
+                  font-size: 0.9rem;
+                  color: #dcdcdc;
+                  margin-bottom: 1.5rem;
+                }
+
+                .form-control {
+                  background: rgba(255, 255, 255, 0.15);
+                  border: 1px solid rgba(255, 255, 255, 0.4);
+                  color: #fff;
+                }
+
+                .form-control::placeholder {
+                  color: rgba(255, 255, 255, 0.7);
+                }
+
+                .form-control:focus {
+                  background: rgba(255, 255, 255, 0.2);
+                  border-color: #EB8324;
+                  box-shadow: none;
+                }
+
+                .login-btn {
+                  background-color: #EB8324;
+                  border: none;
+                  width: 100%;
+                  font-weight: bold;
+                  font-size: 1rem;
+                  border-radius: 8px;
+                  transition: 0.3s ease-in-out;
+                }
+
+                .login-btn:hover {
+                  background-color: #d46e21;
+                }
+
+                .links {
+                  text-align: center;
+                  margin-top: 1rem;
+                }
+
+                .links a {
+                  color: #fff;
+                  font-size: 0.85rem;
+                  text-decoration: underline;
+                }
+
+                .links a:hover {
+                  color: #EB8324;
+                }
+
+
+                /* Container */
+        .aura-typewriter {
+          position: absolute;
+          top: 10%;  /* moved slightly upward */
+          left: 60px;
+          font-family: 'Aero', sans-serif;
+          color: #ffffff;
+        }
+
+        /* Each line */
+        .aura-line {
+          display: flex;
+          align-items: center;
+          font-size: 2rem;
+          font-weight: 600;
+          margin-bottom: 6px;  /* tighter spacing */
+        }
+
+        /* First letter (fixed, bold, big) */
+        .aura-line {
+          display: flex;
+          align-items: flex-end;  /* Align bottom of elements */
+          font-size: 2rem;
+          font-weight: 600;
+          margin-bottom: 4px;
+        }
+
+        .aura-letter {
+          font-size: 3.8rem;
+          font-weight: 600;11
+          color: #ffffff;
+          margin-right: 8px;
+          min-width: 40px;
+          line-height: 1;
+        }
+
+        .typewriter {
+          overflow: hidden;
+          white-space: nowrap;
+          border-right: 4px solid rgba(255,255,255,0.75); /* Increased to match text height */
+          font-size: 2.3rem;
+          font-weight: 700;
+          color: #DC402B;
+          display: inline-block;
+          width: 0;
+          opacity: 0;
+          line-height: 1;
+          padding-bottom: 4px; /* Pushes text down slightly */
+        }
+
+
+        /* Animations for each line */
+        .word1 {
+          animation: typewriter 1.5s steps(10) 0.2s forwards,
+                     blinkingCursor 0.5s steps(10) 6 forwards;
+        }
+        .word2 {
+          animation: typewriter 1.5s steps(12) 2s forwards,
+                     blinkingCursor 0.5s steps(10) 6 2s forwards;
+        }
+        .word3 {
+          animation: typewriter 1.5s steps(12) 4s forwards,
+                     blinkingCursor 0.5s steps(10) 6 4s forwards;
+        }
+        .word4 {
+          animation: typewriter 1.2s steps(8) 6s forwards,
+                     blinkingCursor 0.5s steps(10) 6 6s forwards;
+        }
+
+        /* Keyframes */
+        @keyframes typewriter {
+          from { width: 0; opacity: 1; }
+          to { width: 100%; opacity: 1; }
+        }
+
+        @keyframes blinkingCursor {
+          0% { border-right-color: rgba(255,255,255,0.75); }
+          100% { border-right-color: transparent; }
+        }
+
+		    .footer {
+  position: fixed;
+  bottom: 0;
+  width: 100%;
+  background: rgba(0, 0, 0, 0.4); /* semi-transparent dark background */
+  color: white;
+  text-align: center;
+  padding: 10px 0;
+  font-size: 14px;
+  letter-spacing: 0.5px;
+  font-family: 'Segoe UI', sans-serif;
+  backdrop-filter: blur(5px); /* subtle blur for glass effect */
+}
+#aragenLogo {
+    position: absolute;
+    top: 10px;
+    right: 20px;
+    height: 130px; /* Smaller height */
+    width: 220px; /* Wider width */
+    object-fit: contain; /* Keep aspect ratio */
+}
+
+	</style>
+</head>
+<body>
+
+<img id="aragenLogo" src="resources/images/ADxLogo.svg" alt="Aragen Logo">
+
+<div class="aura-typewriter">
+	<div class="aura-line line1">
+		<span class="aura-letter">A</span><span class="typewriter word1">mbitious</span>
+	</div>
+	<div class="aura-line line2">
+		<span class="aura-letter">U</span><span class="typewriter word2">nderstated</span>
+	</div>
+	<div class="aura-line line3">
+		<span class="aura-letter">R</span><span class="typewriter word3">esilient</span>
+	</div>
+	<div class="aura-line line4">
+		<span class="aura-letter">A</span><span class="typewriter word4">gile</span>
+	</div>
+</div>
+
+<div class="login-card">
+	<div class="logo">
+		<img src="resources/images/AragenLogo.svg" alt="Aragen Logo">
+	</div>
+
+	<h3>Welcome to Aragen</h3>
+	<p class="subtitle"></p>
+
+	<form name="f" th:action="@{/login}" th:method="POST" onsubmit="return validate();">
+        <input type="hidden"  th:name="${_csrf.parameterName}"  th:value="${_csrf.token}" />
+		<div class="mb-3">
+			<input type="text" name="username" class="form-control" placeholder="Username / Vendor Code">
+		</div>
+
+		<div class="mb-3">
+			<input type="password" name="password" class="form-control" placeholder="Password">
+		</div>
+
+		<div class="form-check mb-3">
+			<input type="checkbox" class="form-check-input" name="remember-me" id="rememberMe">
+			<label for="rememberMe" class="form-check-label">Remember me</label>
+		</div>
+
+		<button type="submit" class="btn login-btn">Login</button>
+	</form>
+
+	<div class="links">
+		<a href="#">Forgot Password?</a>
+	</div>
+</div>
+
+<footer class="footer">
+	Copyright © 2025 The Hackett Group. All rights reserved.
+</footer>
+
+<script>
+	function validate() {
+      let u = document.f.username.value.trim();
+      let p = document.f.password.value.trim();
+      if (!u || !p) {
+        alert("Please enter both Username and Password.");
+        return false;
+      }
+      return true;
+    }
+</script>
+
+</body>
+</html>

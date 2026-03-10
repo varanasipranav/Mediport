@@ -1,0 +1,324 @@
+<!-- Brand Logo -->
+<a href="../dashboard/index.html" class="brand-link"> <img
+        th:src="@{/resources/images/ArageDashboardLogo.png}" alt="">
+</a>
+
+<div class="sidebar custom-sidebar d-flex flex-column justify-content-between"
+     style="height: calc(100vh - 80px);">
+
+    <!-- Sidebar Menu -->
+    <nav class="mt-2">
+        <ul class="nav nav-pills nav-sidebar flex-column"
+            data-widget="treeview" role="menu" data-accordion="false">
+            <!-- Add icons to the links using the .nav-icon class
+               with font-awesome or any other icon font library -->
+            <li class="nav-item" sec:authorize="hasRole('ADMIN') "><a
+                    href="#" class="nav-link"> <i class="nav-icon fas fa-chart-pie"></i>
+                <p>
+                    User Creation <i class="right fas fa-angle-left"></i>
+                </p>
+            </a>
+                <ul class="nav nav-treeview">
+                    <li class="nav-item"><a th:href="@{/user/UserCreation}"
+                                            class="nav-link"> <i class="far fa-circle nav-icon"></i>
+                        <p>Add</p>
+                    </a></li>
+                    <li class="nav-item"><a th:href="@{/user/usersList}"
+                                            class="nav-link"> <i class="far fa-circle nav-icon"></i>
+                        <p>List</p>
+                    </a></li>
+                    <li class="nav-item"><a th:href="@{/user/bulkUserCreation}"
+                                            class="nav-link"> <i class="far fa-circle nav-icon"></i>
+                        <p>Bulk User Creation</p>
+                    </a></li>
+                </ul></li>
+            <li class="nav-item" sec:authorize="hasRole('ADMIN')"><a
+                    th:href="@{/syncMaster}" class="nav-link"> <i
+                    class="nav-icon fas fa-th"></i>
+                <p>Sync Master Data</p>
+            </a></li>
+            <!--  <li class="nav-item" sec:authorize="hasRole('ADMIN')"><a
+                      th:href="@{/syncPurGrp/save}" class="nav-link"> <i
+                      class="nav-icon fas fa-th"></i>
+                  <p>Sync Purcahse group</p>
+              </a></li>
+          -->	<li class="nav-item" sec:authorize="hasRole('ADMIN')"><a
+                th:href="@{/jobs}" class="nav-link"> <i
+                class="nav-icon fas fa-th"></i>
+            <p>Background Jobs</p>
+        </a></li>
+
+            <li class="nav-item"
+                sec:authorize="(hasRole('ROLE_REQ_CR')) ">
+                <a href="#" class="nav-link"> <!-- <i class="nav-icon fas fa-chart-pie"></i> -->
+                    <i class="nav-icon fas fa-solid fa-industry"></i>
+                    <p>
+                        Purchase Requisition <i class="right fas fa-angle-left"></i>
+                    </p>
+                </a>
+                <ul class="nav nav-treeview">
+                    <li class="nav-item" sec:authorize="hasAnyRole('ROLE_REQ_CR')"><a
+                            th:href="@{/prCreate/add}" class="nav-link"> <i
+                            class="far fas fa-plus nav-icon"></i>
+                        <p>Create PR</p>
+                    </a></li>
+                    <li class="nav-item" sec:authorize="hasAnyRole('ROLE_REQ_CR')"><a
+                            th:href="@{/prCreate/addService}" class="nav-link"> <i
+                            class="far fas fa-plus nav-icon"></i>
+                        <p>Create Service PR</p>
+                    </a></li>
+                    <li class="nav-item"><a th:href="@{/prCreate/list}"
+                                            class="nav-link"> <i class="fas fa-list nav-icon"></i>
+                        <p>PR List</p>
+                    </a></li>
+                    <li class="nav-item"><a th:href="@{/pending/last15days}"
+                                            class="nav-link"> <i class="fas fa-list nav-icon"></i>
+                        <p>PR Status Sync</p>
+                    </a></li>
+
+
+                </ul>
+            </li>
+            <li class="nav-item"
+                sec:authorize="(hasRole('ROLE_REQ_CR')) ">
+                <a href="#" class="nav-link"> <!-- <i class="nav-icon fas fa-chart-pie"></i> -->
+                    <i class="nav-icon fas fa-solid fa-industry"></i>
+                    <p>
+                        Service Entry <i class="right fas fa-angle-left"></i>
+                    </p>
+                </a>
+                <ul class="nav nav-treeview">
+                    <li class="nav-item"><a th:href="@{/ses/sync}"
+                                            class="nav-link"> <i class="fas fa-list nav-icon"></i>
+                        <p>Service Entry Sync</p>
+                    </a></li>
+                    <li class="nav-item"><a th:href="@{/ses/list}"
+                                            class="nav-link"> <i class="fas fa-list nav-icon"></i>
+                        <p>Service Entry List</p>
+                    </a></li>
+                </ul>
+            </li>
+            <li class="nav-item"
+                sec:authorize="(hasRole('ROLE_REQ_CR')) ">
+                <a href="#" class="nav-link"> <!-- <i class="nav-icon fas fa-chart-pie"></i> -->
+                    <i class="nav-icon fas fa-solid fa-industry"></i>
+                    <p>
+                        Reservation <i class="right fas fa-angle-left"></i>
+                    </p>
+                </a>
+                <ul class="nav nav-treeview">
+
+                    <li class="nav-item"><a th:href="@{/reservation/createReservation}"
+                                            class="nav-link"> <i class="fas fa-list nav-icon"></i>
+                        <p>Create Reservation</p>
+                    </a></li>
+                    <li class="nav-item"><a th:href="@{/reservation/list}"
+                                            class="nav-link"> <i class="fas fa-list nav-icon"></i>
+                        <p>Reservation List</p>
+                    </a></li>
+
+                </ul>
+            </li>
+
+            <!--			<li class="nav-item"-->
+            <!--				sec:authorize="(hasRole('ROLE_VEND') and hasAuthority('PPAP')) or-->
+            <!--			   (!hasRole('ROLE_VEND') and hasAnyRole('ROLE_CPT','ROLE_OS_TECH_CEAT','ROLE_OS_OP_CEAT',-->
+            <!--			   'ROLE_CP_QT','ROLE_CP_TT','ROLE_OS_QA_VEND','ROLE_OS_CQA_CEAT','ROLE_OS_QA_CEAT','ROLE_OS_HOS_CEAT'))">-->
+            <!--				<a href="#" class="nav-link"> &lt;!&ndash; <i class="nav-icon fas fa-chart-pie"></i> &ndash;&gt;-->
+            <!--					<i class="nav-icon fas fa-solid fa-people-arrows"></i>-->
+            <!--					<p>-->
+            <!--						PPAP <i class="right fas fa-angle-left"></i>-->
+            <!--					</p>-->
+            <!--			</a>-->
+            <!--				<ul class="nav nav-treeview">-->
+            <!--					<li class="nav-item"-->
+            <!--						sec:authorize="hasAnyRole('ROLE_CPT','ROLE_OS_OP_CEAT')"><a-->
+            <!--						th:href="@{/ppap/createReq}" class="nav-link"> <i-->
+            <!--							class="far fas fa-plus nav-icon"></i>-->
+            <!--							<p>Initiate Request</p>-->
+            <!--					</a></li>-->
+            <!--					<li class="nav-item"><a th:href="@{/ppap/docList}"-->
+            <!--						class="nav-link"> <i class="fas fa-list nav-icon"></i>-->
+            <!--							<p>List</p>-->
+            <!--					</a></li>-->
+            <!--				</ul>-->
+            <!--			</li>-->
+            <!--			<li class="nav-item"-->
+            <!--				sec:authorize="(hasRole('ROLE_VEND') and hasAuthority('QMIS'))  or-->
+            <!--               (!hasRole('ROLE_VEND') and hasAnyRole('CPTTEAM', 'ROLE_CPT','ROLE_OS_TECH_CEAT','ROLE_OS_OP_CEAT',-->
+            <!--               'ROLE_CP_QT','ROLE_CP_TT','ROLE_OS_QA_VEND','ROLE_OS_CQA_CEAT','ROLE_OS_QA_CEAT','ROLE_OS_HOS_CEAT'))">-->
+            <!--				<a href="#" class="nav-link"> <i-->
+            <!--					class="nav-icon fas fa-chart-pie"></i>-->
+            <!--					<p>-->
+            <!--						QMIS <i class="right fas fa-angle-left"></i>-->
+            <!--					</p>-->
+            <!--			</a>-->
+            <ul class="nav nav-treeview">
+                <li class="nav-item"
+                    sec:authorize="hasAnyRole('CPTTEAM', 'ROLE_VEND','ROLE_OS_CQA_CEAT','ROLE_OS_QA_CEAT')">
+                    <a th:href="@{/qmis/Dashboard}" class="nav-link"> <i
+                            class="far fa-circle nav-icon"></i>
+                        <p>Dashboard</p>
+                    </a>
+                </li>
+            </ul>
+            <ul class="nav nav-treeview">
+                <li class="nav-item"
+                    sec:authorize="hasAnyRole('ROLE_OS_QA_CEAT')">
+                    <a th:href="@{/qmis/budget}" class="nav-link"> <i
+                            class="far fa-circle nav-icon"></i>
+                        <p>Budget</p>
+                    </a>
+                </li>
+            </ul>
+            </li>
+
+
+            <li class="nav-item"
+                sec:authorize="(hasRole('ROLE_VEND') and hasAuthority('INVOICE')) or
+			   (!hasRole('ROLE_VEND') and hasAnyRole('ROLE_CPT', 'ROLE_FIN'))">
+                <a href="#" class="nav-link"> <i
+                        class="nav-icon fas fa-file-invoice"></i>
+                    <p>
+                        Invoice <i class="right fas fa-angle-left"></i>
+                    </p>
+                </a>
+                <ul class="nav nav-treeview">
+
+                    <li class="nav-item"><a th:href="@{/purchase-orders/list}"
+                                            class="nav-link"> <i class="far fas fa-plus nav-icon"></i>
+                        <p>Upload New</p>
+                    </a></li>
+                    <li class="nav-item"><a th:href="@{/invoice/list}"
+                                            class="nav-link"> <i class="fas fa-list nav-icon"></i>
+                        <p>Uploaded List</p>
+                    </a></li>
+                    <li class="nav-item" sec:authorize="hasAnyRole('ROLE_VEND')">
+                        <a th:href="@{/invoice/report}" class="nav-link"> <!-- <i class="far fa-circle nav-icon"></i> -->
+                            <i class="nav-icon fas fa-solid fa-cash-register"></i>
+                            <p>Pending For Payment</p>
+                        </a>
+                    </li>
+                    <li class="nav-item" sec:authorize="hasAnyRole('ROLE_VEND')">
+                        <a th:href="@{/invoice/account-statement}" class="nav-link"> <i
+                                class="nav-icon fas fa-solid fa-file-invoice-dollar"></i>
+                            <p>Account Statement</p>
+                        </a>
+                    </li>
+                </ul>
+            </li>
+
+
+            <!--			<li class="nav-item"-->
+            <!--				sec:authorize="(hasRole('ROLE_VEND') and hasAuthority('EHS')) or-->
+            <!--			   (!hasRole('ROLE_VEND') and hasAnyRole( 'EHS_ADMIN'))">-->
+            <!--				<a href="#" class="nav-link">-->
+            <!--					<i class="nav-icon fas fa-chart-pie"></i>-->
+            <!--					<p>-->
+            <!--						EHS <i class="right fas fa-angle-left"></i>-->
+            <!--					</p>-->
+            <!--				</a>-->
+            <!--			-->
+            <!--			-->
+            <!--			    <ul class="nav nav-treeview"-->
+            <!--					sec:authorize="hasAnyRole('ROLE_VEND', 'EHS_ADMIN')">-->
+            <!--					&lt;!&ndash; Create &ndash;&gt;-->
+
+            <!--					<li class="nav-item"><a-->
+            <!--						th:href="@{/ehs/monthlyPerformanceReport}" class="nav-link"> <i-->
+            <!--							class="far fa-circle nav-icon"></i>-->
+            <!--							<p>Monthly Report</p>-->
+            <!--					</a></li>-->
+            <!--				</ul>-->
+            <!--			    -->
+
+            <!--				<ul class="nav nav-treeview" sec:authorize="hasAnyRole('ROLE_VEND')">-->
+            <!--					&lt;!&ndash; Create &ndash;&gt;-->
+
+            <!--					<li class="nav-item"><a th:href="@{/ehs/reports}"-->
+            <!--						class="nav-link"> <i class="far fa-circle nav-icon"></i>-->
+            <!--							<p>EHS Observation</p>-->
+            <!--					</a></li>-->
+
+            <!--				</ul>-->
+
+            <!--				<ul class="nav nav-treeview"-->
+            <!--					sec:authorize="hasAnyRole('ROLE_VEND', 'EHS_ADMIN')">-->
+            <!--					&lt;!&ndash; Create &ndash;&gt;-->
+
+            <!--					<li class="nav-item"><a th:href="@{/ehs/list}"-->
+            <!--						class="nav-link"> <i class="far fa-circle nav-icon"></i>-->
+            <!--							<p>Observation List</p>-->
+            <!--					</a></li>-->
+            <!--				</ul>-->
+            <!--				-->
+            <!--						-->
+            <!--				<ul class="nav nav-treeview" sec:authorize="hasAnyRole('EHS_ADMIN')">-->
+
+            <!--					<li class="nav-item"><a th:href="@{/ehs/ActionResponse}"-->
+            <!--						class="nav-link"> <i class="far fa-circle nav-icon"></i>-->
+            <!--							<p>Action Table</p>-->
+            <!--					</a></li>-->
+            <!--				</ul>-->
+
+            <!--				<ul class="nav nav-treeview" sec:authorize="hasAnyRole('EHS_ADMIN','ROLE_VEND')">-->
+
+            <!--					<li class="nav-item"><a th:href="@{/ehs/ehsDashboard}"-->
+            <!--						class="nav-link"> <i class="far fa-circle nav-icon"></i>-->
+            <!--							<p>EHS Dashboard</p>-->
+            <!--					</a></li>-->
+            <!--				</ul>-->
+
+            <!--				-->
+
+            <!--					<ul class="nav nav-treeview"-->
+            <!--						sec:authorize="hasAnyRole('ROLE_VEND')">-->
+
+
+            <!--						<li class="nav-item"><a-->
+            <!--							th:href="@{'/ehs-compliance/conscent-form/'+ ${#authentication.principal.vendorCode}}"-->
+            <!--							class="nav-link"> <i class="far fa-circle nav-icon"></i>-->
+            <!--								<p>Compliance List</p>-->
+            <!--						</a></li>-->
+            <!--					</ul>-->
+            <!--					-->
+            <!--					<ul class="nav nav-treeview"-->
+            <!--						sec:authorize="hasAnyRole('ROLE_VEND')">-->
+
+            <!--						<li class="nav-item"><a-->
+            <!--							th:href="@{'/ehs/requirements/'+ ${#authentication.principal.vendorCode}}"-->
+            <!--							class="nav-link"> <i class="far fa-circle nav-icon"></i>-->
+            <!--								<p>Statutory Compliance</p>-->
+            <!--						</a></li>-->
+            <!--					</ul>-->
+            <!--					-->
+            <!--					<ul class="nav nav-treeview" sec:authorize="hasRole('EHS_ADMIN')">-->
+            <!--						&lt;!&ndash; Create &ndash;&gt;-->
+
+            <!--						<li class="nav-item"><a-->
+            <!--							th:href="@{/ehs/statutory-matrix}" class="nav-link"> <i-->
+            <!--								class="far fa-circle nav-icon"></i>-->
+            <!--								<p>Statutory Matrix</p>-->
+            <!--						</a></li>-->
+
+            <!--					</ul>-->
+
+            <!--					<ul class="nav nav-treeview" sec:authorize="hasRole('EHS_ADMIN')">-->
+            <!--						&lt;!&ndash; Create &ndash;&gt;-->
+
+            <!--						<li class="nav-item"><a-->
+            <!--							th:href="@{/ehs-compliance/vendor-list}" class="nav-link"> <i-->
+            <!--								class="far fa-circle nav-icon"></i>-->
+            <!--								<p>Compliance Action</p>-->
+            <!--						</a></li>-->
+
+            <!--					</ul></li>-->
+        </ul>
+    </nav>
+    <!-- /.sidebar-menu -->
+    <div
+            style="display: flex; justify-content: space-between; align-items: flex-end; bottom: 0;">
+    </div>
+</div>
+<!-- /.sidebar -->
+<!--</body>-->

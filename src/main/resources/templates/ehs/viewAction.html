@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+	xmlns:layout="http://www.ultraq.net.nz/web/thymeleaf/layout"
+	xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity5"
+	layout:decorate="layout">
+<head>
+<link rel="stylesheet"
+	href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css">
+<link rel="stylesheet"
+	href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+<meta charset="UTF-8">
+<title>View Incident</title>
+
+<style>
+/* Custom Styling */
+.incident-table {
+	margin-bottom: 20px; /* Added spacing below the table */
+}
+
+.incident-table th {
+	width: 25%;
+	background-color: #007bff;
+	color: white;
+	text-align: left;
+	padding: 12px;
+}
+
+.incident-table td {
+	padding: 12px;
+}
+
+/* Button Group Styling */
+.button-group {
+	display: flex;
+	justify-content: space-between;
+	/* Align Back & Submit button on same line */
+	gap: 10px;
+	margin-top: 20px;
+}
+
+/* Hide CAPA button initially */
+.capa-button {
+	display: none;
+}
+</style>
+
+<script>
+function showUploadModal() {
+    // Clear any previously selected file
+    document.getElementById('incidentFile').value = '';
+    
+    // Show the modal using Bootstrap 5 method
+    const myModal = new bootstrap.Modal(document.getElementById('uploadExcelFrag'));
+    myModal.show();
+}
+
+function enableSubmitButton() {
+	let submitButton = document.getElementById("submitButton");
+	submitButton.disabled = false;
+}
+
+document.addEventListener("DOMContentLoaded", function () {
+	const status = document.getElementById("actionStatus")?.value?.trim();
+	const commentSection = document.getElementById("commentSection");
+	const fileUploadSection = document.getElementById("fileUploadSection");
+	const submitButton = document.getElementById("submitButton");
+
+	// Hide elements if status is Completed
+	if (status === "Completed") {
+		commentSection.style.display = "none";
+		fileUploadSection.style.display = "none";
+		submitButton.style.display = "none";
+	} else {
+		// Otherwise disable the submit button by default
+		submitButton.disabled = true;
+	}
+});
+
+	
+</script>
+</head>
+<body>
+	<section layout:fragment="header">
+		<div class="container-fluid">
+			<div class="row mb-2">
+				<div class="col-sm-6">
+					<h1>Corrective Action</h1>
+				</div>
+				<div class="col-sm-6">
+					<ol class="breadcrumb float-sm-right">
+						<li class="breadcrumb-item"><a href="#">EHS</a></li>
+						<li class="breadcrumb-item active">CAPA</li>
+					</ol>
+				</div>
+			</div>
+		</div>
+		<!-- /.container-fluid -->
+	</section>
+	<div class="container-fluid" layout:fragment="content">
+		<div class="container incident-container">
+			<div class="card shadow">
+				<div class="card-header bg-primary text-white">
+					<h3>Corrective Action</h3>
+				</div>
+				<div class="card-body">
+					<table class="table table-bordered incident-table">
+						<tr>
+							<th>CAPA ID:</th>
+							<td th:text="${action.actionId + '-' + action.capa.capaId}"></td>
+						</tr>
+						<tr>
+							<th>Action:</th>
+							<td th:text="${action.action}"></td>
+						</tr>
+						<tr>
+							<th>Responsibility:</th>
+							<td th:text="${action.responsibility}"></td>
+						</tr>
+						<tr>
+							<th>Due Date:</th>
+							<td
+								th:text="${#temporals.format(action.completionDate, 'dd-MM-yyyy')}"></td>
+						</tr>
+						 <tr>
+					        <th>Comment</th>
+					        <td th:text="${action.comments != null} ? ${action.comments} : 'No comments added'"></td>
+					    </tr>
+				
+					</table>
+					
+					<br>
+					
+					<div class="form-group">
+						<div class="card card-info">
+							<div class="card-header">
+								<h3 class="card-title">SUPPORTING IMAGES</h3>
+								<div class="card-tools">
+									<button type="button" class="btn btn-tool"
+										data-card-widget="collapse" title="Collapse">
+										<i class="fas fa-minus"></i>
+									</button>
+								</div>
+							</div>
+							<div class="card-body p-0">
+								<table class="table table-striped"
+									id="uploadManufacturabilityTable">
+									<thead class="thead-light">
+										<tr>
+											<th>Image Name</th>
+											<th></th>
+										</tr>
+									</thead>
+									<tbody>
+										<tr th:each="file : ${files}">
+											<td><a th:text="${file.fileName}"></a></td>
+											<td class="text-right py-0 align-middle">
+												<div class="btn-group btn-group-sm">
+													<a
+														th:href="@{'/view/' + ${file.fileName} + '/' + *{action.actionId} + '/' + ${file.docType} + '/'+ ${file.itemNo}}"
+														class="btn btn-info" target="_blank"> <i
+														class="fas fa-eye"></i>
+													</a>
+												</div>
+											</td>
+										</tr>
+
+									</tbody>
+								</table>
+							</div>
+						</div>
+					
+					<!-- Form for updating comment & uploading image -->
+					<form th:action="@{/ehs/addActionComment}" method="post">
+					    <input type="hidden" name="actionId" id = "actionId" th:value="${action.actionId}" />
+					    <input type="hidden" id="actionStatus" th:value="${action.status}" />
+					    
+					    <!-- Comment Section -->
+					    <div id="commentSection">
+					        <label for="comment" class="form-label">Add Comment:</label>
+					        <textarea class="form-control" id="comment" name="comment" required></textarea>
+					    </div>
+					    
+					    <br> 
+					    
+
+						<!-- File Upload (Required for All Observations) -->
+							<div class="form-group" id="fileUploadSection"
+							>
+								<!-- Hidden Fields for CSRF and UUID -->
+								<input type="hidden" name="uuid" id="uuid" th:value="${uuid}">
+								<input type="hidden" name="_csrf" th:value="${_csrf.token}" />
+
+								<!-- Upload Button Triggering Modal -->
+								<div class="input-group">
+									<a onclick="showUploadModal(this)" class="btn btn-warning">
+										<i class="fa fa-upload" style="color: green"></i> Upload
+										After Image
+									</a>
+								</div>
+							</div>
+							<div class="form-group">
+
+								<table id="uploadManufacturabilityFile"></table>
+
+
+
+							</div>
+					
+					    <!-- Button Group -->
+					    <div class="button-group">
+					        <a th:href="@{/ehs/ActionResponse}" class="btn btn-secondary">Back</a>
+					        <button type="submit" class="btn btn-primary" id ="submitButton">Submit</button>
+					    </div>
+					</form>
+
+
+					
+				</div>
+			</div>
+		</div>
+	</div>
+	
+		<!-- Modal for Upload -->
+		<div class="modal fade" id="uploadExcelFrag" tabindex="-1"
+			aria-labelledby="modalLabel" aria-hidden="true">
+			<div class="modal-dialog">
+				<div class="modal-content">
+					<form id="modalForm" th:action="@{/files/upload-temp}"
+						method="post" enctype="multipart/form-data">
+						<div class="modal-header bg-primary">
+							<h5 class="modal-title" id="modalLabel">Upload File</h5>
+							<button type="button" class="btn-close" data-dismiss="modal"
+								aria-label="Close"></button>
+						</div>
+
+						<div class="modal-body">
+							<!-- File input with the same ID as your original -->
+							<input type="file" name="file" id="incidentFile"
+								class="form-control" style="border: 0px;" /> <input
+								type="hidden" name="_csrf" th:value="${_csrf.token}" /> <input
+								type="hidden" name="uuid" id="uuid" th:value="${uuid}">
+						</div>
+
+						<div class="modal-footer">
+							<button type="button" id="closeModal" class="btn btn-secondary"
+								data-dismiss="modal">Close</button>
+							<button type="submit" class="btn btn-primary">Submit</button>
+						</div>
+					</form>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<!-- Bootstrap JS -->
+	<script
+		src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js">
+	</script>
+	
+	<div layout:fragment="scriptContent">
+<script th:inline="javascript">
+
+$('#uploadExcelFrag').on('submit', function (event) {
+    event.preventDefault(); // Prevent default form submission
+    const form = document.getElementById('modalForm');
+    const formData = new FormData(form); // Create a FormData object
+    
+    const fileInput = form.querySelector('input[type="file"]');
+    if (!fileInput || !fileInput.files || fileInput.files.length === 0) {
+        alert("Please select a file before uploading.");
+        return;
+    }
+ 	// Restrict file size to 30MB (30 * 1024 * 1024 bytes)
+    const fileSize = fileInput.files[0].size;
+    const maxSize = 30 * 1024 * 1024;
+
+    if (fileSize > maxSize) {
+        alert("File size exceeds the 30MB limit. Please upload a smaller file.");
+        return;
+    }
+    
+    
+    
+    var csrfToken = document.querySelector('input[name="_csrf"]').value;
+    const docNo = document.getElementById('actionId').value.trim(); 
+    const eventForm = event.target; 
+   
+    
+   const docType = 'Corrective Action';
+   const docItemType = 'CAPA';
+    
+
+    
+    const baseUrl = '/download/';   
+
+    // Perform AJAX request
+    $.ajax({
+        url: `/fileUpload/handle/${docNo}/${docType}/${docItemType}`, // Replace with your server endpoint
+        type: 'POST',
+        headers: {  
+        	"X-CSRF-TOKEN": csrfToken
+        },	
+        data: formData,
+        processData: false, 
+        contentType: false, 
+        success: function (response) {   
+            alert(response.message); 
+            let fileHtml = `<tr><td align="left" width="65%"><input type="hidden" id="fileItem" name="fileItem" value="${response.fileName}"><a href="${baseUrl}${response.fileName}/${docNo}"  target="_blank">${response.fileName}</a></td><td></td><td><span onclick="deleteFile(this,'${response.fileName}', '${docNo}','${docType}','${docItemType}')"  class="fa fa-trash fa-lg"  ></span></td></tr>`;
+            $('#uploadManufacturabilityFile').append(fileHtml);
+            enableSubmitButton();
+            document.getElementById("submitButton").disabled = false;
+
+            
+            $('#uploadExcelFrag').modal('hide'); // Hide the modal  
+        },
+        error: function (xhr, status, error) { 
+            alert('An error occurred: ' + error);
+        }
+    });
+});
+function deleteFile(element, fileName,docNo,docType,docItemType)
+{
+	 if (!confirm("Are you sure you want to delete this file?")){
+         return;
+     }
+	  var csrfToken = document.querySelector('input[name="_csrf"]').value; 
+     fetch(`/delete/${fileName}/${docNo}/${docType}/${docItemType}`, {
+         method: 'DELETE',
+         headers: { 
+         	"X-CSRF-TOKEN": csrfToken
+         },	
+     })
+     .then(response => {
+         if (response.ok) {
+             // Remove the file entry from the list
+            const tdToDelete = $(element).closest("td"); // The <td> containing the delete button
+        	const fileTypeTd = tdToDelete.prev("td");   // The <td> containing the file name
+        	const fileNameTd = fileTypeTd.prev("td");
+        	const commentTd = fileNameTd.prev("td");
+        
+	        // Remove both <td> elements
+	        tdToDelete.remove();
+	        fileTypeTd.remove(); 
+	        fileNameTd.remove();
+	        if("PPAP_INITIATION" === docType){
+	        	commentTd.remove();
+	        }
+            alert("File deleted successfully!");
+         } else {
+             alert("Failed to delete the file.");
+         }
+     })
+     .catch(error => {
+         console.error("Error:", error);
+         alert("An error occurred while deleting the file.");
+     });
+     
+ }
+
+
+
+</script>
+</div>	
+</body>
+</html>

@@ -1,0 +1,375 @@
+<!DOCTYPE html SYSTEM "http://www.thymeleaf.org/dtd/xhtml1-strict-thymeleaf-spring4-4.dtd">
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorator="layout">
+<head>
+    <title>Price Approval</title>
+</head>
+<body>
+<section layout:fragment="header"> 
+    <h1>Create Request</h1>
+    <ol class="breadcrumb">
+        <li><a href="/"><i class="fa fa-dashboard"></i> Price Approval</a></li>
+        <li class="active">Create Request</li>
+    </ol>
+</section>
+<div layout:fragment="content">
+	<div th:if="${success!= null}" class="alert alert-success alert-dismissible">
+   			<i class="icon fa fa-check"></i>
+   			<span th:text="${success}" ></span>
+   	</div>
+   	<div th:if="${error!= null}" class="alert alert-danger alert-dismissible">
+   			<i class="icon fa fa-check"></i>
+   			<span th:text="${error}" ></span>
+   	</div>
+    <div class="box">
+    	     <form data-toggle="validator" enctype="multipart/form-data" role="form" name="myForm" id="myForm" th:object="${priceReqInput}" th:action="@{/priceapr/submitReqInput}" method="post" >
+            <div class="box-body">
+            	<div class="table-responsive" style="margin-top:2%"> 
+                <table class="col-sm-12 table table-bordered table-condensed">
+            	<tr>
+            	<th>Select Condition Type</th>
+                <td colspan=3>
+                    <select class="form-control validate[required]" data-toggle="tooltip"  data-placement="bottom" title="Select To Proceed"  th:field="*{selCondTypes}"  id="selCondTypes">
+					    <option value="">--Select Condition--</option>
+					    <option th:each="option : *{condTypes}" th:value="${option.value1+'##'+option.value2}" th:text="${option.value1+'-'+option.value2}"></option>
+					</select>
+				</td>
+                </tr>
+                </table>
+                <table class="col-sm-12 table table-bordered table-condensed" th:if="*{showFormDet}">
+                <tr>
+                <th>Select Sequence</th>
+                <td colspan=3>
+			        <div class="radio" th:each="priceSeqList : ${priceReqInput.priceSeqList}">
+                    <label>
+                      <input type="radio" class="selSeq" th:field="${priceReqInput.seqId}" th:value="${priceSeqList.id}"/>
+                      <p th:text="${priceSeqList.description}"></p>
+                    </label>
+                  </div>
+			        
+                </td>
+                </tr>
+                <tr>
+                	<th>Sales Org</th>
+                	<td>
+						<select class="form-control  validate[required]" th:field="*{selSalesOrg}"  id="selSalesOrg" style="width:100%">
+						    <option value="">--Select Sales Org--</option>
+						    <option th:each="option : *{salesOrg}" th:value="${option.value1}" th:text="${option.value1+'-'+option.value2}"></option>
+						</select>
+				</td>
+				<th>Division</th>
+				<td>	
+					<select class="form-control" th:field="*{selDivision}"  id="selDivision" style="width:100%">
+					    <option value="">--Select Division--</option>
+					    <option th:each="option : *{Division}" th:value="${option.value1}" th:text="${option.value1+'-'+option.value2}"></option>
+					</select>
+				</td>
+				</tr>
+				<tr>
+				<th>Dist Chnl</th>
+				<td>	
+					<select class="form-control validate[required]" th:field="*{selDistChnl}"  id="selDistChnl" style="width:100%">
+					    <option value="">--Select Dist Chnl--</option>
+					    <option th:each="option : *{distChnl}" th:value="${option.value1}" th:text="${option.value1+'-'+option.value2}"></option>
+					</select>
+				</td>
+				<th>Main Chnl</th>
+				<td>	
+					<select class="form-control" th:field="*{selMainChnl}"  id="selMainChnl" style="width:100%">
+					    <option value="">--Select Main Chnl--</option>
+					    <option th:each="option : *{mainChnl}" th:value="${option.value1}" th:text="${option.value1+'-'+option.value2}"></option>
+					</select>
+				</td>
+				</tr>
+				<tr>
+				<th>Sub Chnl</th>
+				<td>	
+					<!-- <select class="form-control" th:field="*{selSubChnl}"  id="selSubChnl" style="width:100%">
+					    <option value="">--Select Sub Chnl--</option>
+					    <option th:each="option : *{subChnl}" th:value="${option.value1}" th:text="${option.value1+'-'+option.value2}"></option>
+					</select> -->
+					<select class="form-control" th:field="*{selSubChnl}"  id="selSubChnl" style="width:100%">
+					    <option value="">--Select Sub Chnl--</option>
+					    
+					</select>
+					<input type="hidden" id="tempSelSubChnl" th:value="*{selSubChnl}">
+				</td>
+                <th>
+                    Select Area
+                </th>
+                <td>
+                      <select class="form-control" th:field="*{valArea}" id="valArea" style="width:100%">
+						<!-- <option  value="">---Select Area---</option> -->
+						<option value="ALL##ALL">ALL</option>
+						<option value="2PML##Bangladesh Mfg Unit 2">2PML--Bangladesh Mfg Unit 2</option>
+						<option value="3PML##Bangladesh Mfg Unit 3">3PML--Bangladesh Mfg Unit 3</option>
+						<option value="4PML##Bangladesh Mfg Unit 4">4PML--Bangladesh Mfg Unit 4</option>
+						<option value="5PML##Bangladesh Mfg Unit 5">5PML--Bangladesh Mfg Unit 5</option>
+						<option value="6PML##Bangladesh Mfg Unit 6">6PML--Bangladesh Mfg Unit 6</option>
+						<option value="DCWH##Central Warehouse Nava Shiva">DCWH--Central Warehouse Nava Shiva</option>
+						<option value="DGZD##RDC - Ghaziabad">DGZD--RDC - Ghaziabad</option>
+						<option value="DHDW##Haridwar Depot">DHDW--Haridwar Depot</option>
+						<option value="DMKO##Kolkatta East Zone Plant">DMKO--Kolkatta East Zone Plant</option>
+						<option value="DRDC##Sinnar - DRDC plant">DRDC--Sinnar - DRDC plant</option>
+						<option value="DSNR##Sinnar - Depot">DSNR--Sinnar - Depot</option>
+						<option value="DSRD##Central Warehouse Nava Shiva">DSRD--Central Warehouse Nava Shiva</option>
+						<option value="DUMY##Dummy Plant">DUMY--Dummy Plant</option>
+						<option value="DVIL##Vilholi-Depot">DVIL--Vilholi-Depot</option>
+						<option value="PHDW##Haridwar-Manufacturing Plant">PHDW--Haridwar-Manufacturing Plant</option>
+						<option value="PJAL##Jalgaon Plant - No Operation">PJAL--Jalgaon Plant - No Operation</option>
+						<option value="PMGL##Bangladesh Mfg Unit">PMGL--Bangladesh Mfg Unit</option>
+						<option value="PMLC##VIP Acc BD Pvt Ltd.">PMLC--VIP Acc BD Pvt Ltd.</option>
+						<option value="PNAG##Nagpur Plant - No Operations">PNAG--Nagpur Plant - No Operations</option>
+						<option value="PNSK##Nasik-Manufacturing Plant">PNSK--Nasik-Manufacturing Plant</option>
+						<option value="PSNR##Sinnar-Manufacturing Plant">PSNR--Sinnar-Manufacturing Plant</option>
+						<option value="VAGT##Agartala-Branch">VAGT--Agartala-Branch</option>
+						<option value="VAMD##Ahmedabad-Branch">VAMD--Ahmedabad-Branch</option>
+						<option value="VBGR##Bangalore-Branch">VBGR--Bangalore-Branch</option>
+						<option value="VCHD##Chandigarh-Branch">VCHD--Chandigarh-Branch</option>
+						<option value="VCHI##CHINA-Branch">VCHI--CHINA-Branch</option>
+						<option value="VCHN##Chennai-Branch">VCHN--Chennai-Branch</option>
+						<option value="VCOC##Cochin-Branch">VCOC--Cochin-Branch</option>
+						<option value="VCTK##Cuttack-Branch">VCTK--Cuttack-Branch</option>
+						<option value="VDDN##Dehradun-Branch">VDDN--Dehradun-Branch</option>
+						<option value="VDEL##Delhi-Branch">VDEL--Delhi-Branch</option>
+						<option value="VDUB##DUBAI-Branch">VDUB--DUBAI-Branch</option>
+						<option value="VFRD##Faridabad-Branch">VFRD--Faridabad-Branch</option>
+						<option value="VGHT##Guwahati-Branch">VGHT--Guwahati-Branch</option>
+						<option value="VGOA##Goa-Branch">VGOA--Goa-Branch</option>
+						<option value="VGZD##Gaziabad-Branch">VGZD--Gaziabad-Branch</option>
+						<option value="VHKG##HONGKONG-Branch">VHKG--HONGKONG-Branch</option>
+						<option value="VHOF##Mumbai-HO">VHOF--Mumbai-HO</option>
+						<option value="VHYD##Secunderabad-Branch">VHYD--Secunderabad-Branch</option>
+						<option value="VIDR##Indore-Branch">VIDR--Indore-Branch</option>
+						<option value="VJMU##Jammu-Branch">VJMU--Jammu-Branch</option>
+						<option value="VJPR##Jaipur-Branch">VJPR--Jaipur-Branch</option>
+						<option value="VKOL##Kolkatta-Branch">VKOL--Kolkatta-Branch</option>
+						<option value="VLKW##Lucknow -Branch">VLKW--Lucknow -Branch</option>
+						<option value="VMUM##Mumbai-Branch">VMUM--Mumbai-Branch</option>
+						<option value="VNAG##Nagpur-Branch">VNAG--Nagpur-Branch</option>
+						<option value="VPNA##Pune-Branch">VPNA--Pune-Branch</option>
+						<option value="VPRW##Parwanoo-Branch">VPRW--Parwanoo-Branch</option>
+						<option value="VPTN##Patna-Branch">VPTN--Patna-Branch</option>
+						<option value="VRAI##Raipur-Branch">VRAI--Raipur-Branch</option>
+						<option value="VRAN##Ranchi-Branch">VRAN--Ranchi-Branch</option>
+						<option value="VVIJ##Vijaywada-Branch">VVIJ--Vijaywada-Branch</option>
+						<option value="VZIR##Zirakpur-Branch">VZIR--Zirakpur-Branch</option>
+						<option value="VZIR##Zirakpur-Branch">VZIR--Zirakpur-Branch</option>
+						<option value="RDW1##RDC Mumbai">RDW1--RDC Mumbai</option>
+						<option value="RDE1##RDC Kolkata">RDE1--RDC Kolkata</option>
+						<option value="MDC1##KOLKATTA">MDC1--KOLKATTA</option>
+						<option value="MDC2##NASHIK">MDC2--NASHIK</option>
+						<option value="MDC3##BHIWANDI">MDC3--BHIWANDI</option>
+						<option value="MDC4##Nashik">MDC4--Nashik</option>
+						<option value="MDC5##Bhiwandi">MDC5--Bhiwandi</option>
+						<option value="MDC6##Dohale">MDC6--Dohale</option>
+						<option value="MDC7##THANE">MDC7--THANE</option>
+						<option value="MDC8##Malegaon">MDC8--Malegaon</option>
+						<option value="MDC9##Malegaon">MDC9--Malegaon</option>	
+	                </select>
+               </td>
+               </tr>
+               <tr>
+				<th>Brand</th>
+				<td>	
+					<select class="form-control" th:field="*{selBrand}"  id="selBrand" style="width:100%">
+					    <option value="">--Select Brand--</option>
+					    <option th:each="option : *{brands}" th:value="${option.value1}" th:text="${option.value1+'-'+option.value2}"></option>
+					</select>
+				</td>
+				<th>Dist Cat</th>
+				<td>	
+					<select class="form-control" th:field="*{selDistCat}"  id="selDistCat" style="width:100%">
+					    <option value="">--Select Dist Cat--</option>
+					    <option th:each="option : *{distCat}" th:value="${option.value1}" th:text="${option.value1}"></option>
+					</select>
+				</td>
+				</tr>
+               <tr>
+               	<th>
+                    Upload File
+                </th>
+                <td colspan=3>
+                	<input type="file" id="inputFile" th:field="*{file}">
+                </td>
+                <td>
+               </tr>
+               <tr>
+               <td colspan=4>
+                
+                	<textarea cols=100 class="form-control" th:field="*{comments}" placeholder="Enter Comments" rows="2"></textarea>
+                </td>
+                </tr>
+                </table>
+            </div>
+            </div>
+            <div class="box-footer" th:if="*{showFormDet}">                
+                <button type="button" id="subBtn" class="btn btn-primary pull-right" style="margin-left:5px"><i class="fa fa-arrow-circle-right fa-lg"></i>&nbsp;Continue</button>
+                <button type="button" id="downloadBtn" class="btn btn-primary pull-left" style="margin-left:5px"><i class="fa fa-download fa-lg"></i>&nbsp;Download Sample</button>
+                <button type="button" id="uploadBtn" class="btn btn-primary pull-left" style="margin-left:5px"><i class="fa fa-upload fa-lg"></i>&nbsp;Upload Excel</button>
+            </div> 
+        </form>
+    </div>
+    
+    
+</div>
+<div layout:fragment="scriptContent">
+<script type="text/javascript">
+     
+    $(function () {
+		$('.select2').select2();
+		//$("#uploadBtn").hide();
+		//$("#downloadBtn").hide();
+		$("#subBtn").click(function(){
+			//alert($("#myForm").validationEngine('validate'))
+			
+			if($("#myForm").validationEngine('validate'))
+			{
+				var selCondTypes=$("#selCondTypes").val().split("##")[0];
+				var seqId=$("input:radio.selSeq:checked").val();
+				var selDistChnl=$("#selDistChnl").val();
+				//alert("seqId::"+seqId);
+				
+				if(selCondTypes  != 'ZMRP' && selCondTypes  != 'ZLP')
+				{
+					if($('#valArea').val() == "")
+					{
+						$('#valArea').validationEngine('showPrompt', 'Please select area', '');
+						return ;
+					}
+				}
+				if(selDistChnl  == 'TT' || selDistChnl  == 'EB')
+				{
+					if($('#selDistCat').val() == "")
+					{
+						$('#selDistCat').validationEngine('showPrompt', 'Please select Dist Cat', '');
+						return ;
+					}
+				}
+				if(typeof seqId == "undefined" || seqId == "")
+				{
+					//alert("Please select the sequence");
+					$('.selSeq').validationEngine('showPrompt', 'Please select the sequence', '')
+				}
+				else
+				{
+					$('#pleaseWaitDialog').modal('show');
+					$("#myForm").attr("action", "/priceapr/submitReqInput");
+					$("#myForm").submit();
+				}
+				
+				//Pace.restart();
+			}
+		});
+		$("#uploadBtn").click(function(){
+			//alert($("#myForm").validationEngine('validate'))
+			if($("#myForm").validationEngine('validate'))
+			{
+				var selCondTypes=$("#selCondTypes").val().split("##")[0];
+				var seqId=$("input:radio.selSeq:checked").val();
+				//alert("seqId::"+seqId);
+				
+				if(selCondTypes  != 'ZMRP' && selCondTypes  != 'ZLP')
+				{
+					if($('#valArea').val() == "")
+					{
+						$('#valArea').validationEngine('showPrompt', 'Please select area', '');
+						return ;
+					}
+				}
+				
+				if(typeof seqId == "undefined" || seqId == "")
+				{
+					//=alert("Please select the sequence");
+					$('.selSeq').validationEngine('showPrompt', 'Please select the sequence', '')
+					return ;
+				}
+				
+				//alert("test")
+				if($('#inputFile').val() == '')
+				{
+					alert("Please upload file");
+					return ;
+				}
+				var ext = $('#inputFile').val().split('.').pop().toLowerCase();
+				if($.inArray(ext, ['xls','xlsx']) == -1) {
+				    alert('Please upload file format xls or xlsx');
+				    return ;
+				}
+				$('#pleaseWaitDialog').modal('show');
+				$("#myForm").attr("action", "/priceapr/submitReqUpload");
+				$("#myForm").submit();
+				//Pace.restart();
+			}
+		});
+		$("#downloadBtn").click(function(){
+			var seqId=$("input:radio.selSeq:checked").val();
+			//alert("seqId::"+seqId);
+			if(typeof seqId == "undefined" || seqId == "")
+			{
+				//=alert("Please select the sequence");
+				$('.selSeq').validationEngine('showPrompt', 'Please select the sequence', '')
+			}
+			else
+			{
+				location.href="/priceapr/sampExcel/"+seqId+"/"+$("#selCondTypes").val().split("##")[0];
+			}
+		});
+		$("#selCondTypes").change(function(){
+			$("#myForm").attr("action", "/priceapr/onChangeCondType");
+			$("#myForm").submit();
+			Pace.restart();
+		});
+		 /* $('input[type="radio"]').click(function(){
+		        var inputValue = $(this).attr("value");
+		        if(inputValue == 3)
+		        {
+		        	$("#uploadBtn").show();
+		        	$("#downloadBtn").show();
+		        }
+		        else
+		        {
+		        	$("#uploadBtn").hide();
+		        	$("#downloadBtn").hide();
+		        }
+		    }); */
+		$.each($(".select2-container"), function (i, n) {
+		    $(n).next().show().fadeTo(0, 0).height("0px").css("left", "auto"); // make the original select visible for validation engine and hidden for us
+		    $(n).prepend($(n).next());
+		    $(n).delay(500).queue(function () {
+		        $(this).removeClass("validate[required]"); //remove the class name from select2 container(div), so that validation engine dose not validate it
+		        $(this).dequeue();
+		    });
+		});
+		 $('#selMainChnl').change(
+			        function() {
+			            $.getJSON("/priceapr/getSubChannel", {
+			            	mainChannel : $(this).val(),
+			                ajax : 'true'
+			            }, function(data) {
+			                var html = '<option value="">--Select Sub Channel--</option>';
+			                var len = data.length;
+			                for ( var i = 0; i < len; i++) {
+			                    html += '<option value="' + data[i].value1 + '">'
+			                            + data[i].value1+'-'+data[i].value2 + '</option>';
+			                }
+			                html += '</option>';
+			                $('#selSubChnl').html(html);
+			                if($('#tempSelSubChnl').val() != "")
+			                	$("#selSubChnl").val($('#tempSelSubChnl').val());
+			                else
+			                	$('#tempSelSubChnl').val("");
+			                
+			            });
+			        }); 
+		
+		if($('#selMainChnl').val() != "")
+		{
+			$('#selMainChnl').val($('#selMainChnl').val()).trigger("change");
+			//debugger;
+	 
+		}
+	 });
+   </script>
+</div>
+</body>
+</html>

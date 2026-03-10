@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/web/thymeleaf/layout"
+      xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity5"
+      layout:decorate="layout">
+<head>
+    <title>QMIS Dashboard</title>
+    <style type="text/css">
+        #rejectModal {
+            width: 50%;
+            height: 40%;
+            margin-left: 35%;
+            padding: 0;
+        }
+
+        #apprModal {
+            width: 90%;
+            height: 90%;
+            margin-left: 5%;
+            padding: 0;
+        }
+
+        .modal-content {
+            height: auto;
+            min-height: 100%;
+            border-radius: 0;
+        }
+
+        .group {
+            /* background: #eeeeee; */
+
+        }
+
+        #nullifyModal {
+            z-index: 1080 !important;
+        }
+    </style>
+    <style>
+    .dataTables_filter {
+        display: inline;
+        float: right;
+    }
+
+    .dataTables_length {
+        display: inline;
+    }
+
+    .dt-buttons {
+        margin-left: 25%;
+    }
+
+    .input-group-addon {
+        padding: 2px 12px !important;
+    }
+    .bg-pending{
+        background-color: #f8d7da !important;
+    }
+    .bg-approved{
+        background-color: #d4edda !important;
+    }
+</style>
+
+    <link rel="stylesheet" type="text/css"
+          href="../../../../resources/dist/css/table.css">
+</head>
+<body>
+<section layout:fragment="header">
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-sm-6">
+                <h1 class="text-primary text-bold text-lg ml-2">List of Documents</h1>
+            </div>
+            <div class="col-sm-6">
+                <ol class="breadcrumb float-sm-right">
+                    <li class="breadcrumb-item"><a href="#">QMIS</a></li>
+                    <li class="breadcrumb-item active">List of Documents</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+</section>
+<div th:if="${success!= null}"
+     class="alert alert-success alert-dismissible">
+    <i class="icon fa fa-check"></i> <span th:text="${success}"></span>
+</div>
+<div th:if="${error!= null}"
+     class="alert alert-danger alert-dismissible">
+    <i class="icon fa fa-check"></i> <span th:text="${error}"></span>
+</div>
+<div class="container-fluid" layout:fragment="content">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <form role="form" th:object="${listSelector}"
+                          th:action="@{/qmis/Dashboard}" method="get" name="myForm">
+                        <div class="table-responsive hidden-xs">
+                            <table class="table table-striped" style="margin-bottom: 1%;">
+                                <tbody>
+                                <tr>
+                                    <td><label>From Date:</label>
+
+                                        <div class="input-group mb-3">
+													<span class="input-group-text border-right-0"
+                                                          id="basic-addon1"> <i class="fa fa-calendar"></i>
+													</span> <input type="text" class="form-control datepicker"
+                                                                   placeholder="Start Date" aria-label="Start Date"
+                                                                   aria-describedby="basic-addon1" id="fromDate"
+                                                                   name="fromDate" th:field="*{fromDate}">
+                                        </div></td>
+                                    <td><label>To Date:</label>
+
+
+                                        <div class="input-group mb-3">
+													<span class="input-group-text border-right-0"
+                                                          id="basic-addon2"> <i class="fa fa-calendar"></i>
+													</span> <input type="text" class="form-control datepicker"
+                                                                   placeholder="Start Date" aria-label="Start Date"
+                                                                   aria-describedby="basic-addon1" id="toDate"
+                                                                   name="fromDate" th:field="*{toDate}">
+                                        </div></td>
+                                    <td><label>Status</label><br>
+                                        <div class="input-group">
+                                            <select class="form-control input-sm" th:field="*{status}">
+                                                <option value="" th:selected="*{status==''}">All</option>
+                                                <option value="PENDING"
+                                                        th:selected="*{status=='PENDING'}">PENDING</option>
+                                                <option value="SUBMITTED"
+                                                        th:selected="*{status=='SUBMITTED'}">SUBMITTED</option>
+                                                <option value="APPROVED"
+                                                        th:selected="*{status=='APPROVED'}">APPROVED</option>
+                                            </select>
+                                        </div></td>
+
+                                    <td>
+                                        <div
+                                                class="d-flex align-items-center justify-content-center mt-3">
+                                            <button type="submit"
+                                                    class="btn btn-primary pull-right mt-3 w-100">
+                                                Apply
+                                                <!-- <i class="fa fa-paper-plane"></i> -->
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+
+                                </tbody>
+                            </table>
+                        </div>
+                    </form>
+                    <div class="table-responsive">
+                        <table id="example" class="table styled-table table-bordered nowrap " cellspacing="0" width="100%">
+                            <thead>
+                            <tr>
+                                <th>Document Id</th>
+                                <th>Type1</th>
+                                <th>Month</th>
+                                <th>Year</th>
+                                <th>Vendor ID</th>
+                                <th>Vendor</th>
+                                <th>Plant</th>
+                                <th>Pending At</th>
+                                <th>Status</th>
+<!--                                <th>Next Participant</th>-->
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr th:each="item : ${pendingItems}"
+                                th:classappend="
+                                            ${userRoles.contains('ROLE_VEND')} ?
+                                                (${#strings.toString(item.eqhVendorStatus) == 'PENDING'} ? 'bg-pending' :
+                                                 (${#strings.toString(item.eqhVendorStatus) == 'SUBMITTED'} ? 'bg-approved' : '')) :
+                                            (${userRoles.contains('ROLE_OS_QA_CEAT')} ?
+                                                (${#strings.toString(item.eqhQaStatus) == 'PENDING'} ? 'bg-pending' :
+                                                 (${#strings.toString(item.eqhQaStatus) == 'SUBMITTED'} ? 'bg-approved' : '')) :
+                                            (${userRoles.contains('ROLE_OS_CQA_CEAT')} ?
+                                                (${#strings.toString(item.eqhStatus) == 'PENDING'} ? 'bg-pending' :
+                                                 (${#strings.toString(item.eqhStatus) == 'APPROVED'} ? 'bg-approved' : '')) :
+                                            ''))
+                                        ">
+                                <td><a th:text="${item.eqhdocId}"
+                                       th:href="@{'/qmis/chartData?type1=' + ${item.eqhType1}   +'&amp;currentMonth='
+                                        + ${item.eqhMonth} + '&amp;currentYear=' + ${item.eqhYear} + '&amp;docId=' + ${item.eqhdocId}
+                            + '&amp;vendor=' + ${item.eqhVendor} }">Document Id </a></td>
+                                <td><span th:text="${item.eqhType1}">Type1 </span></td>
+                                <td><span  th:text="${item.eqhMonthName}">Month</span></td>
+                                <td><span th:text="${item.eqhYear}">Year </span></td>
+                                <td><span th:text="${item.eqhVendor}">Vendor</span></td>
+                                <td><span th:text="${item.eqhVendorName}">Vendor Name</span></td>
+                                <td><span th:text="${item.eqhPlantName}"> Plant </span></td>
+                                <td><span th:text="${item.eqhCurrentStep}"> Current Stage </span></td>
+                                <td>
+                                    <th:block th:if="${userRoles.contains('ROLE_VEND')}">
+                                        <span th:text="${item.eqhVendorStatus}">Vendor Status</span>
+                                    </th:block>
+                                    <th:block th:if="${userRoles.contains('ROLE_OS_QA_CEAT')}">
+                                        <span th:text="${item.eqhQaStatus}">QA Status</span>
+                                    </th:block>
+                                    <th:block th:if="${userRoles.contains('ROLE_OS_CQA_CEAT')}">
+                                        <span th:text="${item.eqhStatus}">Final Status</span>
+                                    </th:block>
+                                </td>
+<!--                                <td><span th:text="${item.eqhNextParticipant}"> Next Participant </span></td>-->
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<div layout:fragment="scriptContent">
+
+    <script th:inline="javascript">
+        $(document)
+                .ready(
+                        function() {
+
+                            $('.datepicker').datepicker({
+                                autoclose : true,
+                                format : 'dd/mm/yyyy'
+                            });
+
+                            $('#example')
+                                    .DataTable(
+                                            {
+                                                dom : 'lBfrtip',
+                                                stripeClasses: [],
+                                                buttons : [
+                                                        {
+                                                            extend : 'excel',
+                                                            text : '<i class="fa fa-file-excel" style="color:green"> </i> EXCEL',
+                                                            title : null,
+                                                            filename : 'Download'
+                                                        },
+                                                        {
+                                                            extend : 'pdf',
+                                                            text : '<i class="fa fa-file-pdf" style="color:red"></i> PDF',
+                                                            title : null
+                                                        } ],
+
+                                                language : {
+                                                    lengthMenu : '_MENU_ entries per page',
+                                                    paginate : {
+                                                        previous : '‹',
+                                                        next : '›'
+                                                    }
+                                                }
+
+                                            }
+
+                                    );
+
+                        });
+    </script>
+</div>
+</body>
+</html>

@@ -1,0 +1,1101 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+	xmlns:layout="http://www.ultraq.net.nz/web/thymeleaf/layout"
+	xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity5"
+	layout:decorate="layout">
+<head>
+<meta charset="UTF-8">
+
+<title>Upload Invoice</title>
+
+<script type="text/javascript"
+	src="https://cdn.jsdelivr.net/jquery/latest/jquery.min.js"></script>
+<script type="text/javascript"
+	src="https://cdn.jsdelivr.net/momentjs/latest/moment.min.js"></script>
+<script type="text/javascript"
+	src="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.min.js"></script>
+<link rel="stylesheet" type="text/css"
+	href="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.css" />
+
+<style>
+.h-15 {
+	height: 15px;
+}
+
+.styled-table td {
+	font-size: 0.85rem;
+}
+
+.w-15 {
+	width: 15px;
+}
+
+.text-primary {
+	color: #2B56A5 !important;
+}
+
+#poItemTable thead.background-primary {
+	background-color: #2B56A5 !important;
+}
+
+.max-height {
+	max-height: 1000px;
+	overflow-y: auto;
+	position: relative;
+}
+
+.highlight-orange {
+	background-color: orange !important;
+}
+
+.highlight-red {
+	background-color: #d95858 !important;
+}
+
+thead th {
+	position: sticky;
+	top: 0;
+	z-index: 1;
+	border-bottom: 2px solid #ddd;
+}
+
+input::-webkit-outer-spin-button, input::-webkit-inner-spin-button {
+	-webkit-appearance: none;
+	margin: 0;
+}
+
+/* Firefox */
+input[type=number] {
+	-moz-appearance: textfield;
+}
+
+.bg-ee4e4e {
+	background-color: #ee4e4e
+}
+</style>
+
+<link rel="stylesheet" type="text/css"
+	href="../../../../resources/dist/css/table.css">
+
+
+<script th:inline="javascript" defer>
+	const invoiceNos = /*[[${ezInvoiceInputDto.invoiceNoList}]]*/ [];
+	
+	let hasErrors = false;
+	let scrollTo = null;
+	
+	function onInvoiceNo(invNo) {
+		
+		$("#duplicateInvErr").addClass("d-none");
+	  $("#invoiceNumber").removeClass("border border-danger border-3");
+       invoiceNos.forEach(invoice => {
+    	   hasErrors = false;
+    	   scrollTo = null;
+           if(invNo.toLowerCase() == invoice.toLowerCase()) {
+        	  	$("#invoiceNumber").addClass("border border-danger border-3");
+        	  	$("#duplicateInvErr").text("Invoice number already exists");
+        	  	$("#duplicateInvErr").removeClass("d-none");
+        	  	hasErrors = true;
+        	  	scrollTo = $("#invoiceNumber");
+        	  	scrollTo = $("#invoiceNumber");
+           }
+       });
+		
+	}
+	
+	function validateForm(event) {
+;	
+		
+		$("#invoiceValue").removeClass("border border-danger border-3");
+		$("#invoiceValueErr").addClass("d-none");
+		$("#invoiceDate").removeClass("border border-danger border-3");
+		$("#invoiceDateErr").addClass("d-none");
+		$("#invoiceNumber").removeClass("border border-danger border-3");
+	  	$("#duplicateInvErr").addClass("d-none");
+		
+		
+		
+		if(!($("#invoiceNumber").val())) {
+			$("#invoiceNumber").addClass("border border-danger border-3");
+			$("#duplicateInvErr").text("Please enter invoice number");	
+			// $("#duplicateInvErr").removeClass("d-none");
+			scrollTo = $("#invoiceNumber");
+			hasErrors = true;
+		}
+		onInvoiceNo($("#invoiceNumber").val())
+		
+		
+		if(!($("#invoiceDate").val())) {
+			$("#invoiceDate").addClass("border border-danger border-3");
+			$("#invoiceDateErr").removeClass("d-none");
+			scrollTo = $("#invoiceDate");
+			hasErrors = true;
+		}
+		
+ 		if(!($("#invoiceValue").val())) {
+			$("#invoiceValue").addClass("border border-danger border-3");
+			$("#invoiceValueErr").removeClass("d-none");
+			scrollTo = $("#invoiceValue");
+			hasErrors = true;
+		}
+		
+  		if(scrollTo) {
+			scrollToElement(scrollTo);
+		}
+ 		
+/*  		if(hasErrors) event.preventDefault();
+ */
+		return !hasErrors;
+	}
+	
+	function scrollToElement(selector) {
+	    $("html, body").animate({
+	        scrollTop: $(selector).offset().top - ($(window).height() / 2) + ($(selector).outerHeight() / 2)
+	    }, 500);
+	}
+	
+	
+    var materialData = /*[[${ezInvoiceInputDto.warningMaterials}]]*/ {}; 
+
+    function showModal(material) {
+        var modal = document.getElementById("materialModal");
+        var modalBody = document.getElementById("modalBody");
+        modalBody.innerHTML = '';
+		const filteredData = materialData.filter(item => item.material === material);
+		
+		if (filteredData.length > 0) {
+		    modalBody.innerHTML = ""; // Clear previous content
+		
+		    filteredData.forEach(item => {		        
+		        modalBody.innerHTML += `<tr>
+		        	<td>${item.material}</td>
+		            <td>${item.poNo}</td>
+		            <td>${item.quantity ?? "N/A"}</td>
+		            <td>${item.openQty ?? "N/A"}</td>
+		        </tr>`;
+		    });
+		}
+
+        modal.style.display = "block";
+    }
+
+    function closeModal() {
+        document.getElementById("materialModal").style.display = "none";
+    }
+
+    window.onclick = function(event) {
+        var modal = document.getElementById("materialModal");
+        if (event.target === modal) {
+            closeModal();
+        }
+    }
+
+</script>
+</head>
+<body>
+	<section layout:fragment="header">
+		<div class="container-fluid">
+			<div class="row">
+				<div class="col-sm-6">
+					<h1 class="text-primary text-bold text-lg ml-2">
+						Upload Invoice for <span th:text="${ezInvoiceInputDto.poNo}"></span>
+					</h1>
+				</div>
+				<div class="col-sm-6">
+					<ol class="breadcrumb float-sm-right">
+						<li class="breadcrumb-item"><a href="#">Invoice</a></li>
+						<li class="breadcrumb-item active">Upload Invoice</li>
+					</ol>
+				</div>
+			</div>
+		</div>
+	</section>
+	<div class="container-fluid" layout:fragment="content">
+		<div class="row">
+			<div class="col-12">
+				<div class="card">
+					<div class="card-body">
+						<form enctype="multipart/form-data" role="form" name="invoiceForm"
+							id="invoiceForm" method="POST" action="/submitInvoice"
+							th:object="${ezInvoiceInputDto}"
+							onsubmit="return validateForm(event);">
+
+							<input type="hidden" name="uuid" id="uuid" th:value="${uuid}">
+							<input type="hidden" th:field="${ezInvoiceInputDto.vendor}" /> <input
+								type="hidden" th:field="${ezInvoiceInputDto.poNo}" /> <input
+								type="hidden" name="startDate" id="startDate"> <input
+								type="hidden" name="endDate" id="endDate"> <input
+								type="hidden" id="plant-no"
+								th:field="${ezInvoiceInputDto.plantNo}">
+
+							<div>
+								<!-- <h1 class="text-primary text-bold text-lg ml-2">
+									Upload Invoice for <span th:text="${ezInvoiceInputDto.poNo}"></span>
+								</h1> -->
+
+								<div class="container-fluid">
+									<div class="row">
+										<div class="col-md-12">
+											<div class="card card-primary">
+												<div class="card-header background-primary">
+													<h3 class="card-title mt-2 text-semibold">Invoice
+														Details</h3>
+													<div class="text-right mr-2">
+														<button class="btn btn-sm btn-warning px-4"
+															data-toggle="modal" data-target="#uploadFile"
+															type="button" id="uploadinvbtn">
+															<i class="fa fa-upload me-2" aria-hidden="true"></i>
+															Upload Invoice
+														</button>
+														<a id="downloadFile" style="display: none;">
+															<button class="btn btn-sm btn-success px-2" type="button">Download
+																Uploaded File!</button>
+														</a>
+
+														<button class="btn btn-sm btn-danger px-2" type="button"
+															id="removeFileBtn" style="display: none;">
+															<i class="fas fa-trash"></i>
+														</button>
+													</div>
+												</div>
+												<input type="hidden" th:name="${_csrf.parameterName}"
+													th:value="${_csrf.token}" />
+												<div class="card-body row">
+													<div class="form-group col-md-6">
+														<label for="selVendor">Invoice Number*</label> <input
+															type="text" autocomplete="off" readonly
+															placeholder="Please enter invoice no"
+															onchange="onInvoiceNo(this.value)"
+															oninput="this.value = this.value.replace(/\s/g, '')"
+															class="form-control input-group-sm validate[required]"
+															id="invoiceNumber" name="invoiceNumber"> <span
+															id="duplicateInvErr" class="d-none text-danger text-sm">Invoice
+															number already exists</span>
+													</div>
+
+													<div class="form-group col-md-6">
+														<label for="">Invoice Date*</label> <input type="date"
+															autocomplete="off"
+															class="form-control validate[required]" id="invoiceDate"
+															name="invoiceDate"> <span id="invoiceDateErr"
+															class="d-none text-danger text-sm">Please enter
+															invoice date</span>
+
+													</div>
+
+													<div class="form-group col-md-6">
+														<label for="">Invoice Value*</label> <input type="number"
+															placeholder="Please enter invoice value"
+															class="form-control" id="invoiceValue" step="0.01"
+															name="invoiceValue"> <span id="invoiceValueErr"
+															class="d-none text-danger text-sm">Please enter
+															invoice value</span>
+													</div>
+
+													<div class="form-group col-md-6 position-relative">
+														<label for="">Start Date - End Date*</label>
+														<div class="input-group">
+															<input type="text"
+																class="form-control validate[required] pe-5"
+																name="daterange" value="">
+
+															<button
+																class="btn btn-primary px-4 btn-sm position-absolute btn-sm end-0 mr-2 mt-1"
+																style="right: 0" type="button" id="getSubmittedQty">Go</button>
+														</div>
+													</div>
+												</div>
+											</div>
+										</div>
+									</div>
+								</div>
+							</div>
+							<div class="d-flex justify-content-between align-items-center my-2">
+								<div class="d-flex font-italic">
+									<div class="d-flex gap-2 align-items-center mr-3">
+										<div class="h-15 w-15 bg-orange border"></div>
+										<span class="ml-1">Quantity mismatch</span>
+									</div>
+									<div class="d-flex gap-2 align-items-center">
+										<div class="h-15 w-15 bg-ee4e4e border"></div>
+										<span class="ml-1">Value mismatch</span>
+									</div>
+								</div>
+								<button id="exportBtn" type="button"
+									class="btn btn-sm btn-warning px-4">Export to Excel</button>
+							</div>
+
+							<div class="table-container">
+								<!-- 			<table class="table align-middle mb-0 bg-white">
+ -->
+								<table id="poItemTable"
+									class="styled-table table table-responsive-md text-center table-striped table-bordered w-100 table-flush">
+									<thead class="background-primary"
+										style="background-color: #2B56A5 !important; color: white;">
+										<tr>
+											<th>Material</th>
+											<th>Short Text</th>
+											<th>UOM</th>
+											<th>Open Qty</th>
+											<th>Submitted Qty</th>
+											<th>Net Weight</th>
+											<th>Quantity</th>
+											<th>Price [EA]</th>
+											<th>Price [KG]</th>
+											<th>Value</th>
+											<th>Taxes</th>
+											<th>Total Value</th>
+										</tr>
+									</thead>
+									<tbody>
+										<tr th:each="item, itemStat : *{invoiceItems}">
+
+
+											
+											   <td class="material-code">
+											<input type="hidden"
+												th:field="*{invoiceItems[__${itemStat.index}__].poNo}" />
+											<input type="hidden"
+												th:field="*{invoiceItems[__${itemStat.index}__].material}" />
+											<input type="hidden"
+												th:field="*{invoiceItems[__${itemStat.index}__].matDesc}" />
+											<input type="hidden"
+												th:field="*{invoiceItems[__${itemStat.index}__].uom}" />
+											<input type="hidden"
+												th:field="*{invoiceItems[__${itemStat.index}__].totalQty}" />
+											<input type="hidden" class="hidden-submitted-qty"
+												th:field="*{invoiceItems[__${itemStat.index}__].submittedQty}" />
+											<input type="hidden"
+												th:field="*{invoiceItems[__${itemStat.index}__].price}" />
+											<input type="hidden" class="amount-cell-input"
+												th:field="*{invoiceItems[__${itemStat.index}__].value}" />
+											<input type="hidden"
+												th:field="*{invoiceItems[__${itemStat.index}__].taxes}"
+												class="calculated-tax-input" />
+											<input type="hidden"
+												th:field="*{invoiceItems[__${itemStat.index}__].totalValue}"
+												class="total-value-input" />
+											<input type="hidden" class="hidden-amt"
+												th:field="*{invoiceItems[__${itemStat.index}__].invoiceAmount}" />
+											<input type="hidden" class="hidden-invoice-qty"
+												th:field="*{invoiceItems[__${itemStat.index}__].invoiceQty}" />
+											<input type="hidden"
+												th:field="*{invoiceItems[__${itemStat.index}__].netWeight}" />
+											<input type="hidden"
+												th:field="*{invoiceItems[__${itemStat.index}__].pricePerKg}" />
+											<input type="hidden"
+												th:field="*{invoiceItems[__${itemStat.index}__].plantNo}" />
+
+												    <!-- Change color if material is repeating -->
+												    <span th:if="${#lists.contains(ezInvoiceInputDto.warningMaterials.![material], item.material)}"
+												          style="color: blue; cursor: pointer; text-decoration: underline;"
+												          th:text="${item.material}"
+												          th:attr="onclick='showModal(\'' + ${item.material} + '\')'">
+												    </span>
+												    <span th:unless="${#lists.contains(ezInvoiceInputDto.warningMaterials.![material], item.material)}"
+												          th:text="${item.material}">
+												    </span>
+												</td>
+											
+											<!-- <td class="material-code" th:text="${item.material}"></td> -->
+											<td th:text="${item.matDesc}"></td>
+											<td th:text="${item.uom}"></td>
+											<td th:text="${item.totalQty}" class="total-qty"></td>
+											<td th:text="${item.submittedQty}" class="submitted-qty"></td>
+
+											<td th:text="${item.netWeight}" class="net-weight"></td>
+											<td><input
+												th:field="*{invoiceItems[__${itemStat.index}__].quantity}"
+												th:value="${item.quantity}" type="number" disabled
+												class="form-control unit-price-input input-sm"
+												value="item.quantity" data-quantity="item.quantity" /></td>
+											<td th:text="${item.price}" class="item-price"></td>
+											<td
+												th:text="${item.pricePerKg != null and item.pricePerKg != 'Infinity' ? 
+              #numbers.formatDecimal(item.pricePerKg, 2, 2) : '0.00'}"
+												class="price-per-kg"></td>
+											<td class="amount-cell" th:text="${item.value}"></td>
+											<td th:text="${item.taxes}" class="calculated-tax"></td>
+											<td th:text="${item.totalValue}" class="total-value"></td>
+										</tr>
+									</tbody>
+									<tfoot>
+										<tr>
+											<td colspan="3">
+												<div class="d-flex justify-content-center font-italic">
+													Total
+												</div>
+											</td>
+											<td id="total-qty"></td>
+											<td id="sub-qty"></td>
+											<td></td>
+											<td id="qty"></td>
+											<td></td>
+											<td></td>
+											<td id="value-sum"></td>
+											<td id="taxes-sum"></td>
+											<td id="total-value-sum"></td>
+										</tr>
+									</tfoot>
+								</table>
+
+							</div>
+							<!-- <div class="row mt-4">
+								<div class="col-4 bg-light rounded p-4 mx-2 h-50">
+									<div class="d-flex gap-2 align-items-center mb-2">
+										<div class="h-15 w-15 bg-orange border"></div>
+										<span class="ml-1 text-sm">Quantity mismatch</span>
+									</div>
+									<div class="d-flex gap-2 align-items-center">
+										<div class="h-15 w-15 bg-red border"></div>
+										<span class="ml-1 text-sm">Value mismatch</span>
+									</div>
+								</div>
+								<div class="col-4"></div>
+								<div class="col p-4 mx-2 bg-light rounded">
+									<div class="row">
+										<p class="col">Base Value:</p>
+										<span>₹</span>
+										<p id="value-sum" class="col"></p>
+									</div>
+									<div class="row">
+										<p class="col">Base Tax:</p>
+										<span>₹</span>
+										<p id="taxes-sum" class="col"></p>
+									</div>
+									<div class="row">
+										<p class="col">Total value:</p>
+										<span>₹</span>
+										<p id="total-value-sum" class="col"></p>
+										<input type="hidden" id="hidden-total-value-sum" name="invoiceValue" />
+									</div>
+								</div>
+							</div> -->
+							<div class="d-flex justify-content-end mb-3">
+								<button id="submitButton" type="submit"
+									class="btn btn-success px-4 mt-3">SUBMIT</button>
+							</div>
+						</form>
+					</div>
+				</div>
+			</div>
+		</div>
+		<div
+			th:replace="modals/uploadFileModal.html:: uploadFile(action='rest-template-service', title='Invoice Upload')">
+		</div>
+
+		<div class="modal fade" id="quantityMismatchModal" tabindex="-1"
+			aria-labelledby="quantityMismatchModal" aria-hidden="true">
+			<div class="modal-dialog">
+				<div class="modal-content" style="min-width: 600px;">
+					<div class="modal-header bg-danger text-white">
+						<h5 class="modal-title" id="rejectModalLabel">Quantity
+							Mismatch</h5>
+						<button type="button" class="btn-close" data-dismiss="modal"
+							aria-label="Close"></button> 
+					</div>
+					<div class="modal-body">
+						<form id="rejectForm">
+							<input type="hidden" id="rejectItemId" name="itemId" value="">
+							<div class="mb-3">
+								<label for="rejectComment" class="form-label">
+									For following materials either quantities/value are not matching or
+									entered quantities are more than open quantities!
+								</label>
+								<div>
+									<table id="quantityMismatchTable"
+										class="styled-table table table-responsive-md text-center table-striped table-bordered w-100 table-flush">
+										<thead>
+											<tr>
+												<th>Material</th>
+												<th>Open Quantities</th>
+												<th>Submitted Quantities</th>
+												<th>Entered Quantities</th>
+												<th>Value</th>
+												<th>Invoice value</th>
+											</tr>
+										</thead>
+										<tbody id="quantityMismatchBody">
+
+										</tbody>
+									</table>
+								</div>
+							</div>
+						</form>
+					</div>
+					<div class="modal-footer">
+						<button type="button" class="btn btn-secondary"
+							data-dismiss="modal">Okay!</button>
+
+					</div>
+				</div>
+			</div>
+		</div>
+		
+
+
+
+		<div class="modal fade" id="invalidMatModal" tabindex="-1"
+			aria-labelledby="invalidMatModal" aria-hidden="true">
+			<div class="modal-dialog">
+				<div class="modal-content">
+					<div class="modal-header bg-danger text-white">
+						<h5 class="modal-title" id="invalidMatModallabel">Invalid
+							Materials</h5>
+						<button type="button" class="btn-close" data-dismiss="modal"
+							aria-label="Close"></button>
+					</div>
+					<div class="modal-body" id="invalidMatModalBody"></div>
+					<div class="modal-footer">
+						<button type="button" class="btn btn-secondary"
+							data-dismiss="modal">Okay!</button>
+					</div>
+				</div>
+			</div>
+		</div>
+		
+		
+		<div id="materialModal" class="modal" tabindex="-1" aria-labelledby="materialModalLabel" aria-hidden="true">
+		    <div class="modal-dialog">
+		        <div class="modal-content">
+		            <!-- Close Button (Custom Style) -->
+		            <span class="close" onclick="closeModal()" style="position: absolute; top: 10px; right: 15px; font-size: 24px; cursor: pointer;">&times;</span>
+		            
+		            <!-- Header -->
+		            <div class="modal-header bg-warning text-black">
+		                <h3 class="modal-title">Material Details</h3>
+		            </div>
+		            
+		            <!-- Table -->
+		            <div class="modal-body">
+		                <table class="table table-bordered text-center">
+		                    <thead class="table-light">
+		                        <tr>
+		                        	<th>Material</th>
+		                            <th>PO Number</th>
+		                            <th>Quantity</th>
+		                            <th>Open Quantity</th>
+		                        </tr>
+		                    </thead>
+		                    <tbody id="modalBody" class="modalBody">
+		                        <!-- Data will be dynamically injected here -->
+		                    </tbody>
+		                </table>
+		            </div>
+		        </div>
+		    </div>
+		</div>
+
+
+	</div>
+
+	<div layout:fragment="scriptContent">
+		<script th:inline="javascript">
+				$(document).ready(function() {
+
+				//addQtyOfDuplRow();
+					
+		            let table1 = $("#poItemTable tbody");
+		            let rows = table1.find("tr").toArray();
+
+		 /*            rows.sort(function (a, b) {
+		                let aValue = parseInt($(a).find("td:first").text().trim()) || 0;
+		                let bValue = parseInt($(b).find("td:first").text().trim()) || 0;
+
+		                return aValue - bValue; // Change to `bValue - aValue` for descending order
+		            }); */
+
+		            table1.append(rows);
+					
+					
+					const poNo = /*[[${ezInvoiceInputDto.poNo}]]*/ '';
+					let isUploaded = false;
+					let momentStartDate = moment().subtract(15, 'days');
+					let momentEndDate = moment();
+					$(function() {
+					    $('input[name="daterange"]').daterangepicker({
+					        startDate: momentStartDate,
+					        endDate: momentEndDate,
+					        opens: 'left',
+					        locale: {
+					        	format: 'DD/MM/YYYY'
+					        }
+					    }, function(start, end, label) {
+					    	momentStartDate = start
+					    	momentEndDate = end
+					    	
+					    });
+					});
+					$('#startDate').val(moment(momentStartDate, "ddd MMM DD YYYY HH:mm:ss [GMT]ZZ").format("YYYY-MM-DD HH:mm:ss.SSSSSS"));
+			    	$('#endDate').val(moment(momentEndDate, "ddd MMM DD YYYY HH:mm:ss [GMT]ZZ").format("YYYY-MM-DD HH:mm:ss.SSSSSS"));
+					  
+					  callSubmitQtyApi();
+				
+				calculateSums()
+				let uploadedFiledata = [];
+				const table = $('#poItemTable');
+/* 				const table = $('#poItemTable').DataTable({
+						"dom" : 'T<"clear">lfrtip'
+				}); */
+				let base64File;
+				 $('#uploadButton').click(() => {
+					$("#quantityMismatchBody").empty();
+	                const fileInput = document.getElementById('file');
+	                const file = fileInput.files[0]; // Get the first file from the input
+	                loader.start();
+	                const fileName = file.name
+	                
+	                $('#uploadFile').modal('hide');
+	                isUploded = true;
+
+	                if (file) {
+	                    const reader = new FileReader();
+	                    reader.onload = function () {
+	                        // Convert file to Base64
+	                      	base64File = reader.result.split(',')[1];
+	                        const file = downloadBase64File(base64File, fileName, "application/pdf");
+	                        
+	                        const link = $("#downloadFile").attr("href", file).attr("download", fileName);
+	                        $("#downloadFile").css("display", "inline-block");
+	                        $("#removeFileBtn").css("display", "inline-block");
+	                       // $(".unit-price-input").prop("disabled", false);
+	                        
+	                       
+	                        
+	                        $("#uploadinvbtn").css("display", "none");
+
+	                        // Prepare the payload
+	                        const payload = {
+	                            file: base64File,
+	                            fileType: "base64",
+	                            companyId: "627cfcf04d84cb2638ca6385",
+	                            _csrf: $('input[name="_csrf"]').val()
+	                        };
+	                        const formData = new FormData(fileUploadForm); 
+	                        const uuId = document.getElementById('uuid');
+	                        
+	        	            $.ajax({
+	        	                url: '/files/upload-temp',
+	        	                type: 'POST',
+	        	                headers: {
+	                            	"X-CSRF-TOKEN": payload._csrf
+	                            },
+	        	                data: formData,
+	        	                processData: false, 
+	        	                contentType: false,
+	        	                success: function (response) { 
+	        	                    uuId.value = response.filename;
+	        	                    $('#uploadExcelFrag').modal('hide');
+	        	                    
+	        	                },
+	        	                error: function (xhr, status, error) { 
+	        	                    alert('An error occurred: ' + error);
+	        	                }
+	        	            });
+
+	                        
+	                        $.ajax({
+	                            url: '/rest-template-service',
+	                            type: 'POST',
+	                            headers: {
+	                            	"X-CSRF-TOKEN": payload._csrf
+	                            },
+	                            contentType: 'application/json',
+	                            data: JSON.stringify(payload),
+	                            success: function (response) {
+	                            	loader.stop();
+	                            	onInvoiceNo(response?.jsonData?.InvoiceId);
+	                               	
+	                                uploadedFiledata = response?.jsonData.Line_Items;
+	                                $("#invoiceNumber").val(response?.jsonData?.InvoiceId);
+	                                
+	                                let dateStr = response?.jsonData?.InvoiceDate; // Your date in "DD-MM-YYYY" format
+	                                let parts = dateStr.split("-"); // Split the string into parts
+	                                let formattedDate = `${parts[2]}-${parts[1]}-${parts[0]}`; // Convert to "YYYY-MM-DD"
+
+	                                $("#invoiceDate").val(formattedDate);
+	                                $('#invoiceValue').val(response?.jsonData?.InvoiceTotal);
+	                                addQuantities(uploadedFiledata);
+	                            },
+	                            error: function (err) {
+	                                console.error('Error:', err);
+	                                loader.stop();
+	                            }
+	                        });
+	                        
+	                    };
+	                    reader.readAsDataURL(file);
+	                } else {
+	                    alert('Please select a file to upload.');
+	                }
+				});
+				
+				$("#removeFileBtn").click(function () {
+			        base64File = ""; // Clear Base64
+			        $("#file").val(""); // Reset Input
+                    $(".unit-price-input").prop("disabled", true);
+                    $(".unit-price-input").val("");
+                    $(".unit-price-input").trigger('input')
+                    $("#invoiceNumber").val("");
+
+			        // Hide Buttons
+			        $("#downloadFile").css("display", "none");
+			        $("#removeFileBtn").css("display", "none");
+			        $("#uploadinvbtn").css("display", "inline-block");
+			        
+			    });
+				
+				$("#getSubmittedQty").on("click", () => callSubmitQtyApi());
+				
+				function callSubmitQtyApi() {
+					{
+						const formattedStartDate = formatDate(momentStartDate);
+						const formattedEndDate = formatDate(momentEndDate);
+						const plantNo = $("#plant-no").val();
+						const payload = {
+	                            _csrf: $('input[name="_csrf"]').val()
+	                        };
+						$.ajax({
+	                        url: '/get-submitted-qty',
+	                        type: 'GET',
+	                        headers: {
+	                        	"X-CSRF-TOKEN": payload._csrf
+	                        },
+	                        contentType: 'application/json',
+	                        data: {
+	                            startDate: formattedStartDate,
+	                            endDate: formattedEndDate,
+	                            plantNo: plantNo
+	                        },
+	                        success: function (response) {
+	                            showSubmittedQty(response);
+	                            $('#startDate').val(moment(momentStartDate, "ddd MMM DD YYYY HH:mm:ss [GMT]ZZ").format("YYYY-MM-DD HH:mm:ss.SSSSSS"));
+	        			    	$('#endDate').val(moment(momentEndDate, "ddd MMM DD YYYY HH:mm:ss [GMT]ZZ").format("YYYY-MM-DD HH:mm:ss.SSSSSS"));
+	                        },
+	                        error: function (err) {
+	                        	
+	                            console.error('Error:', err);
+	                            
+	                        }
+	                    });
+					}
+				}
+				
+	            function formatDate(date) {
+	                // Create a Date object from the input string (assumed to be in yyyy-mm-dd format)
+	                var dateObj = new Date(date);
+
+	                // Get the components of the date
+	                var year = dateObj.getFullYear();
+	                var month = String(dateObj.getMonth() + 1).padStart(2, '0');
+	                var day = String(dateObj.getDate()).padStart(2, '0');
+
+	                return year + '-' + month + '-' + day;
+	            }
+				
+		        let showMismatchModal = false;
+		        
+				function addQuantities(data) {
+					const tempArr = [];
+			        const tempArr2 = [];
+			        /* let msg = ""; */
+			        $("#invalidMatMsg").remove();
+					$.each(data, (key, item) => {
+					    const productCode = item.properties.ProductCode?.value;
+					    const quantity = item.properties.Quantity?.value;
+					    const amount = (item.properties.Amount?.value);
+					    
+					    
+					    $('table tbody tr').each(function () {
+					        const materialCode = $(this).find('.material-code').text().trim();
+					        tempArr2.push(materialCode)
+					        if (materialCode === productCode) {
+					        	const input = $(this).find('.unit-price-input');
+					        	const hiddenAmt = $(this).find(".hidden-amt");
+					        	const hiddenQty = $(this).find(".hidden-invoice-qty");
+					            input.val(quantity);
+					        	hiddenQty.val(quantity);
+					        	hiddenAmt.val(amount);					        	
+					            input.trigger('input');
+					            if ((input.val() || "").trim() !== "") {
+							        input.prop("disabled", false);
+							    } else {
+							        input.prop("disabled", true);
+							    }
+					            calculateSums();
+					        }
+					        /* else {
+					        	if(!tempArr.includes(productCode)) tempArr.push(productCode);
+					        } */
+					    });
+					    
+					    if(!tempArr2.includes(productCode)) {
+					    	tempArr.push(productCode);
+					    }
+
+					    
+					});
+					
+					console.log(tempArr, 'temparr'); 
+					
+				    if(tempArr.length) {
+				 		/* base64File = ""; // Clear Base64
+				        $("#file").val(""); // Reset Input
+	                    $(".unit-price-input").prop("disabled", true);
+	                    $(".unit-price-input").val("");
+	                    $(".unit-price-input").trigger('input')
+	                    $("#invoiceNumber").val("");
+	                    $("#invoiceValue").val("");
+	                    
+	                    $("#downloadFile").css("display", "none");
+				        $("#removeFileBtn").css("display", "none");
+				        $("#uploadinvbtn").css("display", "inline-block"); */
+				        
+				        
+				        let msg = `<div class="text-break" id="invalidMatMsg">The following Materials are not available in PO <br/> ${tempArr}`
+				        $("#invalidMatModalBody").append(msg);
+				        $('#invalidMatModal').modal('show');
+				    }
+				    else if(showMismatchModal) $('#quantityMismatchModal').modal('show');
+				    showMismatchModal = false;
+					
+				};
+				
+				function showSubmittedQty(data) {
+		            document.querySelectorAll('tr').forEach(row => {
+		                const materialCell = row.querySelector('.material-code');
+		                const material = materialCell ? materialCell.textContent.trim() : null;
+		                
+		                let quantityCell = row.querySelector('td.submitted-qty');
+	                    let hiddenSubmittedQty = row.querySelector(".hidden-submitted-qty")
+	                    
+	                    if (quantityCell) {
+		                    quantityCell.textContent = 0;
+		                    hiddenSubmittedQty.value = 0;
+	                    }
+		                if (material && data[material] !== undefined) {
+		                    if (quantityCell) {
+		                        // Update the quantity with the value from the JSON response
+		                        quantityCell.textContent = data[material];
+		                        hiddenSubmittedQty.value = data[material];
+		                    }
+		                }
+		                let subQty = 0;
+		                $('table tbody tr').each(function () {
+		                	subQty += parseFloat($(this).find('.submitted-qty').text()) || 0;
+		                })
+		                $("#sub-qty").text(subQty);
+		            });
+				}
+		        
+		        function calculateSums() {
+		            let valueSum = 0;
+		            let taxesSum = 0;
+		            let totalValueSum = 0;
+		            let totalQty = 0;
+		            let subQty = 0;
+		            let qty = 0;
+
+		            $('table tbody tr').each(function () {
+		                valueSum += parseFloat($(this).find('.amount-cell').text()) || 0;
+		                taxesSum += parseFloat($(this).find('.calculated-tax').text()) || 0;
+		                totalValueSum += parseFloat($(this).find('.total-value').text()) || 0;
+		                totalQty += parseFloat($(this).find('.total-qty').text()) || 0;
+		                subQty += parseFloat($(this).find('.submitted-qty').text()) || 0;
+		                qty += parseFloat($(this).find('.unit-price-input').val()) || 0;
+		            });
+		            
+		            $('#value-sum').text(valueSum.toFixed(2));
+		            $('#taxes-sum').text(taxesSum.toFixed(2));
+		            $('#total-value-sum').text(totalValueSum.toFixed(2));
+		            $("#total-qty").text(totalQty);
+		            $("#sub-qty").text(subQty);
+		            $("#qty").text(qty);
+		            $('#hidden-total-value-sum').val(totalValueSum.toFixed(2));
+		            
+		        }
+		        $(document).on('input', '.unit-price-input', function () {
+		            const $input = $(this);
+		            const $row = $input.closest('tr'); // Find the closest row
+		            
+		            const totalQty = parseFloat($input.closest('tr').find('.total-qty').text()); // Get the total quantity
+		            const submittedQty = parseFloat($input.closest('tr').find('.submitted-qty').text());
+		            const materialCode = parseFloat($input.closest('tr').find('.material-code').text());
+		            let enteredQty = parseFloat($input.val()); //
+		            
+		            $row.removeClass('highlight-row');
+		            if (enteredQty > submittedQty || enteredQty > totalQty ) {
+		                // alert('Quantity cannot be greater than Total Quantity!');
+		                $input.val('');
+		                $input.trigger('input');
+		                $row.removeClass('highlight-orange highlight-red');
+		                //checkMismatch() 
+		                enteredQty = '';		                
+		            }
+		                        
+		            const quantity = parseFloat($input.val()) || 0; // Get the updated Quantity value
+		            
+		            const unitPrice = parseFloat($row.find('.item-price').text()) || 0;
+		            const pricePerkg = parseFloat($row.find('.price-per-kg').text()) || 0;
+		            const netWeight = parseFloat($row.find('.net-weight').text()) || 0;
+		            const hiddenAmt = parseFloat($row.find('.hidden-amt').val())
+		            const $amountCell = $row.find('.amount-cell');
+		            const $amountCellInput = $row.find('.amount-cell-input');
+		            const $calculatedTax = $row.find(".calculated-tax");	
+		            const $calculatedTaxInput = $row.find(".calculated-tax-input");
+		            const $totalValue = $row.find(".total-value");
+		            const $totalValueInput = $row.find(".total-value-input");
+
+		            const newAmount = (unitPrice * quantity).toFixed(2);
+		            const tax = (newAmount * 0.18).toFixed(2);
+		            const totalValue = (+newAmount + +tax).toFixed(2);
+		            
+		            $row.removeClass('highlight-orange highlight-red');
+		            //checkMismatch()
+		            if(!+enteredQty || +enteredQty == NaN) {
+		            	$row.removeClass('highlight-orange highlight-red');
+		            	//checkMismatch()
+		            }
+		            else if(+enteredQty != +submittedQty || +enteredQty > totalQty){
+		            	$row.addClass('highlight-orange');
+		            	//checkMismatch()
+		            	
+		                
+		                const tr = `<tr>
+		                				<td>${materialCode}</td>
+		                				<td>${totalQty}</td>
+		                				<td>${submittedQty}</td>
+		                				<td>${enteredQty}</td>
+		                				<td>${newAmount}</td>
+		                				<td>${hiddenAmt}</td>
+		                			</tr>`
+		                $("#quantityMismatchBody").append(tr);
+		                showMismatchModal = true;
+
+		            }
+		            else if( (+enteredQty == +submittedQty) && (+hiddenAmt != +newAmount)) {
+		            	
+		            	$row.addClass('highlight-red');
+		            	//checkMismatch()
+		                const tr = `<tr>
+		                				<td>${materialCode}</td>
+		                				<td>${totalQty}</td>
+		                				<td>${submittedQty}</td>
+		                				<td>${enteredQty}</td>
+		                				<td>${newAmount}</td>
+		                				<td>${hiddenAmt}</td>
+		                			</tr>`
+		                $("#quantityMismatchBody").append(tr);
+		                showMismatchModal = true;
+
+		            }
+		            
+		            $amountCell.text(newAmount);
+		            $amountCellInput.val(newAmount);
+		            $calculatedTax.text(tax);
+		            $calculatedTaxInput.val(tax);
+		            $totalValue.text(totalValue);
+		            $totalValueInput.val(totalValue);
+		            
+		            calculateSums();
+		        });
+		        
+		        function downloadBase64File(base64Data, fileName, mimeType) {
+		            // Convert Base64 to a Blob
+		            var byteCharacters = atob(base64Data);
+		            var byteNumbers = new Array(byteCharacters.length);
+		            
+		            for (let i = 0; i < byteCharacters.length; i++) {
+		                byteNumbers[i] = byteCharacters.charCodeAt(i);
+		            }
+		            
+		            var byteArray = new Uint8Array(byteNumbers);
+		            var blob = new Blob([byteArray], { type: mimeType });
+
+		            // Create a Blob URL
+		            var blobUrl = URL.createObjectURL(blob);
+		            return blobUrl
+		        }
+		        
+		        
+	            $("#exportBtn").click(function () {
+	                let table = document.getElementById("poItemTable");
+	                let rows = table.rows;
+	                let csvContent = "data:text/csv;charset=utf-8,";
+
+	                for (let i = 0; i < rows.length - 1; i++) {
+	                    let row = [], cols = rows[i].cells;
+	                    for (let j = 0; j < cols.length; j++) {
+	                        row.push(cols[j].innerText);
+	                    }
+	                    csvContent += row.join(",") + "\r\n";
+	                }
+
+	                let encodedUri = encodeURI(csvContent);
+	                let link = document.createElement("a");
+	                link.setAttribute("href", encodedUri);
+	                link.setAttribute("download", poNo);
+	                document.body.appendChild(link);
+	                link.click();
+	            });
+			});
+				
+			
+			function checkMismatch() {
+			   if ($(".highlight-red, .highlight-orange").length > 0) {
+			        $("#submitButton").hide(); // Hide the button
+			    } else {
+			        $("#submitButton").show(); // Show the button if no mismatch
+			    }
+			}
+
+			function addQtyOfDuplRow() {
+				var materialData = {}; // Object to store material data
+
+			    // Iterate through each row in the table body
+			    $("#poItemTable tbody tr").each(function () {
+			        var $row = $(this);
+			        var material = $row.find(".material-code").text().trim(); // Get Material Code
+			        var totalQty = parseFloat($row.find(".total-qty").text().trim()) || 0; // Get Total Qty
+			        var submittedQty = parseFloat($row.find(".submitted-qty").text().trim()) || 0;
+			        var value = parseFloat($row.find(".amount-cell").text().trim()) || 0;
+			        var taxes = parseFloat($row.find(".calculated-tax").text().trim()) || 0;
+			        var totalValue = parseFloat($row.find(".total-value").text().trim()) || 0;
+			
+			        if (materialData[material]) {
+			            // Sum up the total quantity, submitted quantity, value, taxes, and total value
+			            materialData[material].totalQty += totalQty;
+			            materialData[material].submittedQty += submittedQty;
+			            materialData[material].value += value;
+			            materialData[material].taxes += taxes;
+			            materialData[material].totalValue += totalValue;
+			
+			            $row.remove(); // Remove duplicate row
+			        } else {
+			            // Store the first occurrence of the material
+			            materialData[material] = {
+			                row: $row,
+			                totalQty: totalQty,
+			                submittedQty: submittedQty,
+			                value: value,
+			                taxes: taxes,
+			                totalValue: totalValue
+			            };
+			        }
+			    });
+				    // Update the first occurrence of each material with the summed-up values
+			    $.each(materialData, function (material, data) {
+			        data.row.find(".total-qty").text(data.totalQty.toFixed(2));
+			        data.row.find(".submitted-qty").text(data.submittedQty.toFixed(2));
+			        data.row.find(".amount-cell").text(data.value.toFixed(2));
+			        data.row.find(".calculated-tax").text(data.taxes.toFixed(2));
+			        data.row.find(".total-value").text(data.totalValue.toFixed(2));
+			    });
+			}
+				
+		</script>
+	</div>
+
+</body>
+
+</html>

@@ -1,0 +1,2263 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+	xmlns:layout="http://www.ultraq.net.nz/web/thymeleaf/layout"
+	layout:decorate="layout">
+<head>
+<meta charset="UTF-8">
+<title>Accident / Incident Investigation Report</title>
+
+<!-- Bootstrap CSS -->
+<link rel="stylesheet"
+	href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css">
+<link
+	href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+	rel="stylesheet">
+<link rel="stylesheet"
+	href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+
+<script
+	src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+<style>
+thead {
+	background-color: #007bff !important;
+	color: white;
+}
+
+.table th {
+	text-align: center;
+}
+
+.table td {
+	vertical-align: middle;
+}
+
+/* Column Width Adjustments */
+.col-id {
+	width: 7%;
+}
+
+.col-action {
+	width: 46%;
+}
+
+.col-responsibility {
+	width: 21%;
+}
+
+.col-date {
+	width: 12%;
+}
+
+.col-status {
+	width: 15%;
+}
+
+#imageContainer {
+	position: relative; /* Fix coordinates to the image, not page */
+	width: fit-content;
+	/* Ensures container is only as wide as the image */
+	margin: auto; /* Centers the image */
+}
+
+.scrollable-content {
+	max-height: 400px;
+	overflow-y: auto;
+	position: relative;
+}
+
+.navbar-nav .nav-link {
+	/*  color: white !important; */
+	transition: background 0.2s ease-in-out, color 0.2s ease-in-out;
+}
+
+.navbar-nav .nav-link:hover {
+	background-color: rgba(255, 255, 255, 0.2);
+	border-radius: 5px;
+}
+
+.navbar-nav .nav-item .nav-link.active {
+	background-color: rgba(255, 255, 255, 0.3);
+	color: white !important;
+	border-radius: 5px;
+}
+
+.navbar-nav .nav-item {
+	margin-right: 15px;
+}
+
+html {
+	scroll-behavior: smooth;
+}
+
+/* Styling for "Other" Input */
+#otherInputContainer {
+	margin-top: 15px;
+	display: none;
+}
+
+/* Table styling */
+#selectedSection {
+	margin-top: 20px;
+	padding: 15px;
+	border: 1px solid #ddd;
+	border-radius: 5px;
+	background-color: #f9f9f9;
+	display: none; /* Hide initially */
+}
+
+.table-responsive {
+	overflow-x: auto;
+}
+
+.table {
+	margin-top: 10px;
+	border: 1px solid #ddd;
+}
+
+.table th, .table td {
+	vertical-align: middle;
+	text-align: center;
+}
+
+/* Style for remove button */
+.btn-danger {
+	padding: 5px 10px;
+	font-size: 14px;
+}
+
+/* Styling for "Other" Input in System Causes */
+#systemOtherInputContainer {
+	margin-top: 15px;
+	display: none;
+}
+
+/* Table styling for System Causes */
+#selectedSystemSection {
+	margin-top: 20px;
+	padding: 15px;
+	border: 1px solid #ddd;
+	border-radius: 5px;
+	background-color: #f9f9f9;
+	display: none; /* Hide initially */
+}
+
+.table-responsive {
+	overflow-x: auto;
+}
+
+.table {
+	margin-top: 10px;
+	border: 1px solid #ddd;
+}
+
+.table th, .table td {
+	vertical-align: middle;
+	text-align: center;
+}
+
+/* Style for remove button in System Causes */
+.btn-danger {
+	padding: 5px 10px;
+	font-size: 14px;
+}
+</style>
+<script>
+   
+    function addImmediateCause() {
+        let container = document.getElementById("immediateCausesContainer");
+        let newField = document.createElement("div");
+        newField.classList.add("input-group", "mb-2");
+        newField.innerHTML = `
+            <input type="text" class="form-control" name="immediateCauses">
+            <button type="button" class="btn btn-danger" onclick="removeField(this)">−</button>
+        `;
+        container.appendChild(newField);
+    }
+
+   
+    function addSystemCause() {
+        let container = document.getElementById("systemCausesContainer");
+        let newField = document.createElement("div");
+        newField.classList.add("input-group", "mb-2");
+        newField.innerHTML = `
+            <input type="text" class="form-control" name="systemCauses">
+            <button type="button" class="btn btn-danger" onclick="removeField(this)">−</button>
+        `;
+        container.appendChild(newField);
+    }
+
+    // Function to remove an input field
+    function removeField(element) {
+        element.parentElement.remove();
+    }
+       
+    // Injured Body part
+    
+      function showSelectedPart(part) {
+            document.getElementById("selectedPart").innerText = "Selected Body Part: " + part;
+        }
+        
+        function showDropdown() {
+            let dropdown = document.getElementById("dropdown");
+            dropdown.style.display = "block";
+        }
+
+        function selectOption() {
+            let selectedPart = document.getElementById("headOptions").value;
+            if (selectedPart) {
+            	showSelectedPart(selectedPart)
+            }
+        }
+
+        document.addEventListener("click", function(event) {
+            let dropdown = document.getElementById("dropdown");
+            if (dropdown != null && !dropdown.contains(event.target) && event.target.tagName !== "AREA") {
+                dropdown.style.display = "none";
+            }
+        });
+        
+        function closeModal() {
+            let modal = document.getElementById('bodyModal');
+            let bootstrapModal = bootstrap.Modal.getInstance(modal);
+            
+            if (!bootstrapModal) {
+                bootstrapModal = new bootstrap.Modal(modal);
+            }
+
+            bootstrapModal.hide();
+        }
+        
+        function updateHiddenWhyInput() {
+            const whyInputs = document.querySelectorAll('.why-input');
+            const values = Array.from(whyInputs)
+                .map(input => input.value.trim())
+                .filter(val => val !== "");
+            document.getElementById('hiddenWhyCauses').value = values.join(',');
+        }
+        
+        
+
+        function addWhyField() {
+            const container = document.getElementById('whyContainer');
+            const index = container.querySelectorAll('.input-group').length + 1;
+
+            const div = document.createElement('div');
+            div.className = "input-group mb-2";
+            div.innerHTML = `
+                <span class="input-group-text">Why ${index}</span>
+                <input type="text" class="form-control why-input" oninput="updateHiddenWhyInput()">
+                <button type="button" class="btn btn-danger" onclick="removeWhyField(this)">−</button>
+            `;
+            container.appendChild(div);
+            updateHiddenWhyInput();
+        }
+
+        function removeWhyField(button) {
+            const container = document.getElementById('whyContainer');
+            container.removeChild(button.parentElement);
+            updateWhyLabels();
+            updateHiddenWhyInput();
+        }
+
+        function updateWhyLabels() {
+            const labels = document.querySelectorAll('#whyContainer .input-group-text');
+            labels.forEach((label, index) => {
+                label.innerHTML = `Why ${index + 1}`;
+            });
+        }
+
+        window.onload = function () {
+            updateHiddenWhyInput(); // Initialize on load
+        };
+
+
+        
+        // table for corrective action
+document.addEventListener("DOMContentLoaded", function () {
+    let tableBody = document.getElementById("tableBody");
+    let addRowBtn = document.getElementById("addRowBtn");
+    let submitButton = document.getElementById("submitBtn");
+
+    /* function checkIfAllClosed() {
+        const statusFields = document.querySelectorAll("input[name^='actions'][name$='.status']");
+        const allClosed = Array.from(statusFields).every(input => input.value.trim() === "Completed");
+
+        if (submitButton) {
+            submitButton.disabled = !allClosed;
+        }
+    } */
+
+    addRowBtn.addEventListener("click", function () {
+        let rowCount = tableBody.querySelectorAll("tr").length;
+
+        let newRow = document.createElement("tr");
+        newRow.innerHTML = `
+            <td>${rowCount + 1}</td>
+            <td><input type="text" name="actions[${rowCount}].action" class="form-control" placeholder="Enter action"></td>
+            <td><input type="text" name="actions[${rowCount}].responsibility" class="form-control" placeholder="Enter responsibility"></td>
+            <td><input type="date" name="actions[${rowCount}].completionDate" class="form-control"></td>
+            <td>
+                <span>Opened</span>
+                <input type="hidden" name="actions[${rowCount}].status" value="Opened" />
+            </td>
+        `;
+
+        tableBody.appendChild(newRow);
+       
+    });
+
+    // Initial check (useful when editing/viewing form)
+    //checkIfAllClosed();
+
+    // Observe DOM for any changes (like data loaded from DB or other interactions)
+    const observer = new MutationObserver(checkIfAllClosed);
+    observer.observe(tableBody, { childList: true, subtree: true });
+});
+
+
+        
+  function adjustImageMap() {
+	 
+	    let img = document.getElementById("bodyImage");
+	    let originalWidth = 1000; // Set your original image width
+	    let scaleFactor = img.clientWidth / originalWidth;
+
+	    let areas = document.querySelectorAll("map area");
+	    areas.forEach(area => {
+	        let originalCoords = area.getAttribute("data-original-coords").split(",");
+	        let newCoords = originalCoords.map(coord => Math.round(coord * scaleFactor));
+	        area.setAttribute("coords", newCoords.join(","));
+	    });
+	}
+
+        
+        
+  // Open Modal Popup
+  function openPopup() {
+      var modal = new bootstrap.Modal(document.getElementById('bodyMapModal'));
+
+      modal.show();
+      setTimeout(() => {
+  	    adjustImageMap();
+  	}, 500);
+  }
+//Close Modal
+  function closeModal() {
+      var modal = bootstrap.Modal.getInstance(document.getElementById('bodyMapModal'));
+      modal.hide();
+  }
+  // Update Selection from Image Map
+  function selectFromImage(bodyPart) {
+      document.getElementById("selectedPart").innerText = "Injured Body Part: " + bodyPart;
+      document.getElementById("bodyPartDropdown").value = bodyPart;
+      var modal = bootstrap.Modal.getInstance(document.getElementById('bodyMapModal'));
+      modal.hide();
+  }
+
+  // Update Selection from Dropdown
+  function selectFromDropdown() {
+      var selected = document.getElementById("bodyPartDropdown").value;
+      document.getElementById("selectedPart").innerText = "Injured Body Part: " + selected;
+  }
+  
+  window.addEventListener("resize", adjustImageMap);
+  //document.getElementById("bodyImage").addEventListener("load", adjustImageMap);
+  
+  setTimeout(() => {
+	    adjustImageMap();
+	}, 1500);
+
+	
+	 function toggleHIRASection() {
+        const hiraYes = document.getElementById("hiraYes").checked;
+        const hiraSection = document.getElementById("hiraSubmissionSection");
+        const hiraTable = document.getElementById("uploadManufacturabilityTable");
+
+        if (hiraYes) {
+            hiraSection.style.display = "block";
+
+            // If files exist, show the table
+            const hasRows = hiraTable && hiraTable.rows.length > 1; // >1 means it has content beyond header
+            hiraTable.closest('.form-group').style.display = hasRows ? 'block' : 'none';
+        } else {
+            hiraSection.style.display = "none";
+            hiraTable.closest('.form-group').style.display = "none";
+        }
+    }
+
+    // Auto-run on page load
+    window.onload = function () {
+        const hiraAvailable = document.querySelector('input[name="hiraAvailable"]:checked');
+        if (hiraAvailable && hiraAvailable.value === 'Yes') {
+            toggleHIRASection();
+        } else {
+            document.getElementById("hiraSubmissionSection").style.display = "none";
+            const hiraTable = document.getElementById("uploadManufacturabilityTable");
+            if (hiraTable) {
+                hiraTable.closest('.form-group').style.display = "none";
+            }
+        }
+    }
+	
+//Table 1 - Possible Immediate Causes
+$(document).ready(function () {
+    let selectedImmediateCauses = []; // Store selected causes
+
+    // Function to add a row
+    function addImmediateCause(type, cause) {
+        if (!cause || selectedImmediateCauses.includes(cause)) return; // Prevent duplicate entries
+
+        selectedImmediateCauses.push(cause);
+        $("#selectedItems").append(`
+            <tr>
+                <td>${type}</td>
+                <td>${cause}</td>
+                <td><button type="button" class="btn btn-danger btn-sm remove-immediate-cause">Remove</button></td>
+            </tr>
+        `);
+
+        updateImmediateCausesField();
+        $("#selectedSection").show(); // Show table
+    }
+    
+ // Preload existing immediate causes if any
+    let existingCauses = $("#hiddenImmediateCauses").val();
+    if (existingCauses) {
+        selectedImmediateCauses = existingCauses.split(",");
+        selectedImmediateCauses.forEach(function (cause) {
+            // Guessing type is tricky unless stored separately — fallback to "Pre-filled"
+            $("#selectedItems").append(`
+                <tr>
+                    <td>Immediate Causes</td>
+                    <td>${cause}</td>
+                    <td><button type="button" class="btn btn-danger btn-sm remove-immediate-cause">Remove</button></td>
+                </tr>
+            `);
+        });
+        $("#selectedSection").show();
+    }
+
+
+    // Function to update the hidden field
+    function updateImmediateCausesField() {
+        $("#hiddenImmediateCauses").val(selectedImmediateCauses.join(",")); // Store as comma-separated values
+    }
+
+    // Event listener for dropdown selections
+    $("#actionsDropdown, #conditionsDropdown").change(function () {
+        let selectedValue = $(this).val();
+        let selectedType = $(this).attr("id") === "actionsDropdown" ? "Action" : "Condition";
+
+        if (selectedValue === "Other") {
+            $("#otherInputContainer").show();
+            $("#otherInput").focus();
+        } else {
+            addImmediateCause(selectedType, selectedValue);
+            $("#otherInputContainer").hide();
+            $("#otherInput").val(""); // Clear input
+        }
+    });
+
+    // Handling "Other" input field
+    $("#otherInput").keypress(function (e) {
+        if (e.which === 13) { // Enter key
+            e.preventDefault();
+            let otherText = $(this).val().trim();
+            if (otherText) {
+                addImmediateCause("Other", otherText);
+                $("#otherInputContainer").hide();
+                $(this).val("");
+            }
+        }
+    });
+
+    // Remove row event
+    $(document).on("click", ".remove-immediate-cause", function () {
+        let rowText = $(this).closest("tr").find("td:nth-child(2)").text();
+        selectedImmediateCauses = selectedImmediateCauses.filter(cause => cause !== rowText);
+        $(this).closest("tr").remove();
+
+        if (selectedImmediateCauses.length === 0) {
+            $("#selectedSection").hide(); // Hide table if empty
+        }
+
+        updateImmediateCausesField();
+    });
+});
+
+  // table 2
+  $(document).ready(function () {
+    let selectedSystemCauses = [];
+
+    // Function to add a row
+    function addSystemCause(category, cause) {
+        if (!cause || selectedSystemCauses.includes(cause)) return; // Prevent duplicate entries
+
+        selectedSystemCauses.push(cause);
+        $("#selectedSystemItems").append(`
+            <tr>
+                <td>${category}</td>
+                <td>${cause}</td>
+                <td><button type="button" class="btn btn-danger btn-sm remove-system-cause">Remove</button></td>
+            </tr>
+        `);
+
+        updateSystemCausesField();
+        $("#selectedSystemSection").show(); // Show table
+    }
+    
+ // Preload existing system causes if any
+    let existingSystemCauses = $("#hiddenSystemCauses").val();
+    if (existingSystemCauses) {
+        selectedSystemCauses = existingSystemCauses.split(",");
+        selectedSystemCauses.forEach(function (cause) {
+            // Show as "Pre-filled" type for simplicity
+            $("#selectedSystemItems").append(`
+                <tr>
+                    <td> System Causes</td>
+                    <td>${cause}</td>
+                    <td><button type="button" class="btn btn-danger btn-sm remove-system-cause">Remove</button></td>
+                </tr>
+            `);
+        });
+        $("#selectedSystemSection").show();
+    }
+
+
+    // Function to update the hidden field
+    function updateSystemCausesField() {
+        $("#hiddenSystemCauses").val(selectedSystemCauses.join(",")); // Store as comma-separated values
+    }
+
+    // Event listener for dropdown selections
+    $("#systemPersonalFactorsDropdown, #systemJobFactorsDropdown").change(function () {
+        let selectedValue = $(this).val();
+        let selectedCategory = $(this).attr("id") === "systemPersonalFactorsDropdown" ? "Personal Factor" : "Job Factor";
+
+        if (selectedValue === "Other") {
+            $("#systemOtherInputContainer").show();
+            $("#systemOtherInput").focus();
+        } else {
+            addSystemCause(selectedCategory, selectedValue);
+            $("#systemOtherInputContainer").hide();
+            $("#systemOtherInput").val(""); // Clear input
+        }
+    });
+
+    // Handling "Other" input field
+    $("#systemOtherInput").keypress(function (e) {
+        if (e.which === 13) { // Enter key
+            e.preventDefault();
+            let otherText = $(this).val().trim();
+            if (otherText) {
+                addSystemCause("Other", otherText);
+                $("#systemOtherInputContainer").hide();
+                $(this).val("");
+            }
+        }
+    });
+
+    // Remove row event
+    $(document).on("click", ".remove-system-cause", function () {
+        let rowText = $(this).closest("tr").find("td:nth-child(2)").text();
+        selectedSystemCauses = selectedSystemCauses.filter(cause => cause !== rowText);
+        $(this).closest("tr").remove();
+
+        if (selectedSystemCauses.length === 0) {
+            $("#selectedSystemSection").hide(); // Hide table if empty
+        }
+
+        updateSystemCausesField();
+    });
+});
+  
+  function showUploadModal() {
+      // Clear any previously selected file
+      document.getElementById('incidentFile').value = '';
+      
+      // Show the modal using Bootstrap 5 method
+      const myModal = new bootstrap.Modal(document.getElementById('uploadExcelFrag'));
+      myModal.show();
+  }
+
+  // Type if injury
+  const injuryDescriptions = {
+		    "Laceration/Cut": "A tear or opening in the skin caused by sharp objects.",
+		    "Abrasion": "Scrape or wearing away of the skin, often caused by friction.",
+		    "Contusion (Bruise)": "Bleeding under the skin caused by impact without breaking the surface.",
+		    "Fracture": "A break or crack in a bone. Can be open (compound) or closed (simple).",
+		    "Sprain/Strain": "Injury to ligaments (sprain) or muscles/tendons (strain) due to overstretching or tearing.",
+		    "Burn": "Caused by heat, chemicals, electricity, or radiation.",
+		    "Amputation": "Partial or complete removal of a body part.",
+		    "Puncture": "Deep wound caused by a pointed object (e.g., nail, needle).",
+		    "Crush Injury": "Caused by force or pressure, usually from heavy machinery.",
+		    "Electrical Shock": "Caused by contact with live electrical sources.",
+		    "Eye Injury": "Includes foreign objects, chemical splashes, or radiation exposure (e.g., welding arc).",
+		    "Inhalation Injury": "Caused by breathing in toxic gases, dust, fumes, or smoke.",
+		    "Repetitive Strain Injury (RSI)": "Caused by repetitive motion over time (e.g., carpal tunnel syndrome)."
+		  };
+
+		  function showInjuryDescription() {
+		    const dropdown = document.getElementById("injuryTypeDropdown");
+		    const selectedValue = dropdown.value;
+		    const descriptionBox = document.getElementById("descriptionBox");
+		    const descriptionTextarea = document.getElementById("injuryDescription");
+
+		    if (injuryDescriptions[selectedValue]) {
+		      descriptionTextarea.value = injuryDescriptions[selectedValue];
+		      descriptionBox.style.display = "block";
+		    } else {
+		      descriptionBox.style.display = "none";
+		      descriptionTextarea.value = "";
+		    }
+		  }
+		  window.addEventListener('DOMContentLoaded', showInjuryDescription);
+		  
+		  
+		  // Department  other
+		  
+		    function handleDepartmentChange() {
+        const select = document.getElementById("department");
+        const otherDiv = document.getElementById("otherDeptDiv");
+
+        if (select.value === "Other") {
+            otherDiv.style.display = "block";
+            document.getElementById("otherDepartment").value = "";
+        } else {
+            otherDiv.style.display = "none";
+        }
+    }
+
+    function setCustomDepartment() {
+        const inputVal = document.getElementById("otherDepartment").value.trim();
+        const select = document.getElementById("department");
+
+        // Remove existing dynamic option
+        const existingCustom = Array.from(select.options).find(opt => opt.dataset.custom === "true");
+        if (existingCustom) {
+            select.removeChild(existingCustom);
+        }
+
+        // Add new dynamic option and select it
+        if (inputVal) {
+            const newOption = document.createElement("option");
+            newOption.value = inputVal;
+            newOption.text = inputVal;
+            newOption.selected = true;
+            newOption.dataset.custom = "true";
+            select.appendChild(newOption);
+        }
+    }
+
+    // Page load: Check if selected value is not in the list, and handle it
+    document.addEventListener("DOMContentLoaded", function () {
+        const select = document.getElementById("department");
+        const savedValue = select.getAttribute("value"); // the one from th:value
+        const options = Array.from(select.options).map(opt => opt.value);
+
+        if (savedValue && !options.includes(savedValue)) {
+            // Add the saved custom department back to the dropdown
+            const newOption = document.createElement("option");
+            newOption.value = savedValue;
+            newOption.text = savedValue;
+            newOption.selected = true;
+            newOption.dataset.custom = "true";
+            select.appendChild(newOption);
+
+            document.getElementById("otherDeptDiv").style.display = "block";
+            document.getElementById("otherDepartment").value = savedValue;
+        }
+
+        // Ensure correct option is selected on reload
+        select.value = savedValue;
+    });
+
+    </script>
+</head>
+<body>
+	<section layout:fragment="header" style="padding-bottom: 0px;">
+		<div class="container-fluid">
+			<div class="row sb-1">
+				<div class="col-sm-6">
+					<h1>CAPA</h1>
+				</div>
+				<div class="col-sm-6">
+					<ol class="breadcrumb float-sm-right">
+						<li class="breadcrumb-item"><a href="#">EHS</a></li>
+						<li class="breadcrumb-item active">CAPA FORM</li>
+					</ol>
+				</div>
+			</div>
+		</div>
+		<!-- /.container-fluid -->
+	</section>
+
+	<div class="container-fluid" layout:fragment="content"
+		style="padding-left: 0px; padding-right: 0px;">
+		<div class="container mt-2">
+			<div class="card shadow-lg incident-card">
+				<div class="card-header bg-primary text-white text-center"
+					style="padding: 0px 16px;">
+					<!-- <h4 class="mb-0">Accident / Incident Investigation Report</h4> -->
+					<nav id="scrollspyNav"
+						class="navbar navbar-expand-sm bg-primary  navbar-dark">
+						<div class="container-fluid">
+							<ul class="navbar-nav" id="scrollspyList">
+								<li class="nav-item"><a class="nav-link"
+									href="#incident-report">Report</a></li>
+								<li class="nav-item"><a class="nav-link" href="#details">Details</a>
+								</li>
+								<li class="nav-item"><a class="nav-link"
+									href="#investigation">Investigation</a></li>
+								<li class="nav-item"><a class="nav-link" href="#root-cause">Root
+										Cause</a></li>
+								<li class="nav-item"><a class="nav-link"
+									href="#corrective-action">Corrective Action</a></li>
+							</ul>
+						</div>
+						<a th:href="@{/capa/downloadExcel(id=${capa.capaId})}"
+							class="btn btn-success"
+							style="white-space: nowrap; padding: 6px 12px; display: inline-flex; align-items: center;">
+							<i class="bi bi-download" style="margin-right: 5px;"></i>
+							Download
+						</a>
+
+					</nav>
+				</div>
+
+				<div class="card-body">
+					<!-- Success Alert -->
+					<div th:if="${successMessage}" class="alert alert-success"
+						role="alert">
+						<span th:text="${successMessage}"></span>
+					</div>
+
+					<!-- Error Alert -->
+					<div th:if="${errorMessage}" class="alert alert-danger"
+						role="alert">
+						<span th:text="${errorMessage}"></span>
+					</div>
+
+
+
+
+
+					<form th:action="@{/ehs/submitCapa}" th:object="${capa}"
+						method="post">
+						<div id="scrollableCard" class="scrollable-content p-3"
+							data-bs-spy="scroll" data-bs-target="#scrollspyNav"
+							data-bs-offset="10">
+						<input type="hidden" id="capaId" th:field="*{capaId}" />
+        <input type="hidden" id="incidentId" th:field="*{incidentId}" />
+        <input type="hidden" id="capaStatus" th:value="${capaStatus}" />
+
+
+
+
+							<div id="incident-report" class="section">
+								<h5 class="text-secondary text-center">Incident Report</h5>
+
+								<div class="row" style="padding: 15px;">
+
+									<div class="col-md-6">
+										<!-- Type of Incident -->
+										<div class="form-section">
+											<label for="incidentType" class="form-label">Type of
+												Incident:</label> <select class="form-select" id="incidentType"
+												th:field="*{incidentType}" required>
+												<option value="">--Select--</option>
+												<option value="Personal Injury">Personal Injury</option>
+												<option value="Dangerous Occurrence">Dangerous
+													Occurrence</option>
+												<option value="Fire Incident">Fire Incident</option>
+												<option value="Environmental Incident">Environmental
+													Incident</option>
+												<option value="Occupational Illness">Occupational
+													Illness</option>
+												<option value="Near Miss">Near Miss</option>
+											</select>
+										</div>
+									</div>
+
+									<div class="col-md-6">
+										<!-- Near Miss Type -->
+										<div class="form-section">
+											<label for="nearMiss" class="form-label">Type of Case
+												:</label> <select class="form-select" id="caseType"
+												th:field="*{caseType}" required>
+												<option value="">--Select--</option>
+												<option value="FAC">First Aid Case (FAC)</option>
+												<option value="MTC">Medical Treatment Case (MTC) /
+													Minor Accident</option>
+												<option value="LTI">Loss Time Incident (LTI) /
+													Major Accident</option>
+												<option value="Fatal">Fatal Incident / Major
+													Accident</option>
+											</select>
+										</div>
+									</div>
+								</div>
+
+
+
+								<!-- Body Part Injured -->
+
+								<div class="form-section" style="padding: 15px;">
+									<label class="form-label">Select Body Part Injured:</label>
+
+									<!-- Dropdown & Add Button -->
+
+									<div class="input-group">
+										<select class="form-select" id="bodyPartDropdown"
+											onchange="selectFromDropdown()" th:field="*{injuredBodyPart}">
+											<option value="">--Select Body Part--</option>
+											<optgroup label="Head">
+												<option value="Head">Head / Forehead</option>
+												<option value="Skull">Skull</option>
+												<option value="Eye">Eye</option>
+												<option value="Ear">Ear</option>
+												<option value="Mouth / Tooth">Mouth / Tooth</option>
+												<option value="Nose">Nose</option>
+												<option value="Chin / Cheeks">Chin / Cheeks</option>
+											</optgroup>
+											<optgroup label="Neck">
+												<option value="Neck">Neck</option>
+												<option value="Throat">Throat</option>
+											</optgroup>
+											<optgroup label="Upper Limbs">
+												<option value="Finger">Finger</option>
+												<option value="Hand / Palm / Wrist">Hand / Palm /
+													Wrist</option>
+												<option value="Forearm">Forearm</option>
+												<option value="Elbow">Elbow</option>
+												<option value="Upper Arm">Upper Arm</option>
+												<option value="Shoulder">Shoulder</option>
+											</optgroup>
+											<optgroup label="Lower Limbs">
+												<option value="Hip">Hip</option>
+												<option value="Thigh">Thigh</option>
+												<option value="Knee">Knee</option>
+												<option value="Leg">Leg</option>
+												<option value="Calf">Calf</option>
+												<option value="Ankle">Ankle</option>
+												<option value="Foot/Toe">Foot / Toe</option>
+											</optgroup>
+											<optgroup label="Torso">
+												<option value="Back">Back</option>
+												<option value="Chest">Chest</option>
+												<option value="Abdomen">Abdomen</option>
+												<option value="Pelvis / Groin">Pelvis / Groin</option>
+											</optgroup>
+										</select>
+
+										<button type="button" class="btn btn-success"
+											onclick="openPopup()">+</button>
+
+
+										<!-- Small & Centered Modal for Image Selection -->
+										<div class="modal fade" id="bodyMapModal" tabindex="-1"
+											aria-labelledby="bodyMapModalLabel" aria-hidden="true">
+											<div class="modal-dialog modal-dialog-centered modal-mg">
+												<div class="modal-content">
+													<div class="modal-header">
+														<h5 class="modal-title text-center w-100">Select
+															Injured Body Part</h5>
+														<button type="button" class="btn-close"
+															data-dismiss="modal" onclick="closeModal()"
+															aria-label="Close"></button>
+													</div>
+													<div class="modal-body">
+
+														<div id="imageContainer">
+															<img id="bodyImage"
+																th:src="@{/resources/images/body_front_back.webp}"
+																usemap="#image-map" class="img-fluid">
+														</div>
+
+
+														<map name="image-map">
+															<area alt="Abdomen" title="Abdomen"
+																href="javascript:void(0);"
+																onclick="selectFromImage('Abdomen')"
+																coords="227,329,233,352,230,379,228,402,232,408,251,416,278,417,306,421,332,420,351,418,361,408,362,394,362,380,365,366,366,354,365,337,364,328"
+																data-original-coords="227,329,233,352,230,379,228,402,232,408,251,416,278,417,306,421,332,420,351,418,361,408,362,394,362,380,365,366,366,354,365,337,364,328"
+																shape="poly">
+
+
+															<area alt="Pelvis / Groin" title="Pelvis / Groin"
+																href="javascript:void(0);"
+																onclick="selectFromImage('Pelvis / Groin')"
+																coords="231,410,233,425,239,435,245,443,256,458,267,485,281,506,289,510,304,507,317,491,328,473,336,460,344,445,350,435,352,423,355,418"
+																data-original-coords="231,410,233,425,239,435,245,443,256,458,267,485,281,506,289,510,304,507,317,491,328,473,336,460,344,445,350,435,352,423,355,418"
+																shape="poly">
+
+															<area alt="Head" title="Head" href="javascript:void(0);"
+																onclick="selectFromImage('Head')"
+																coords="258,104,264,74,288,62,318,65,334,89,335,113,331,133,326,166,308,174,283,160,265,129"
+																data-original-coords="258,104,264,74,288,62,318,65,334,89,335,113,331,133,326,166,308,174,283,160,265,129"
+																shape="poly">
+
+															<area alt="Skull" title="Skull"
+																href="javascript:void(0);"
+																onclick="selectFromImage('Skull')"
+																coords="655,95,663,106,667,119,675,126,687,131,705,131,722,127,732,108,732,87,721,63,690,53,664,60,657,69"
+																data-original-coords="655,95,663,106,667,119,675,126,687,131,705,131,722,127,732,108,732,87,721,63,690,53,664,60,657,69"
+																shape="poly">
+
+															<area alt="Throat" title="Throat"
+																href="javascript:void(0);"
+																onclick="selectFromImage('Throat')"
+																coords="262,152,275,156,288,167,310,176,315,186,313,198,301,209,280,209,268,195,263,178"
+																data-original-coords="262,152,275,156,288,167,310,176,315,186,313,198,301,209,280,209,268,195,263,178"
+																shape="poly">
+
+															<area alt="Neck" title="Neck" href="javascript:void(0);"
+																onclick="selectFromImage('Neck')"
+																coords="671,130,670,142,668,156,667,171,671,178,692,177,719,179,727,179,726,156,724,141,724,133,684,131"
+																data-original-coords="671,130,670,142,668,156,667,171,671,178,692,177,719,179,727,179,726,156,724,141,724,133,684,131"
+																shape="poly">
+
+															<area alt="Chest" title="Chest"
+																href="javascript:void(0);"
+																onclick="selectFromImage('Chest')"
+																coords="222,214,225,236,227,258,219,274,215,289,216,306,219,317,365,319,364,294,364,277,368,261,359,249,354,242,353,221,349,215,349,214"
+																data-original-coords="222,214,225,236,227,258,219,274,215,289,216,306,219,317,365,319,364,294,364,277,368,261,359,249,354,242,353,221,349,215,349,214"
+																shape="poly">
+
+															<area alt="Shoulder" title="Shoulder"
+																href="javascript:void(0);"
+																onclick="selectFromImage('Shoulder')"
+																coords="355,214,370,212,387,225,401,245,395,264,375,269,357,249,355,233,406,262,352,235"
+																data-original-coords="355,214,370,212,387,225,401,245,395,264,375,269,357,249,355,233,406,262,352,235"
+																shape="poly">
+
+															<area alt="Shoulder" title="Shoulder"
+																href="javascript:void(0);"
+																onclick="selectFromImage('Shoulder')"
+																coords="225,218,210,219,191,237,182,262,180,277,199,275,216,272,229,255,224,263,225,239"
+																data-original-coords="225,218,210,219,191,237,182,262,180,277,199,275,216,272,229,255,224,263,225,239"
+																shape="poly">
+
+															<area alt="Upper Arm" title="Upper Arm"
+																href="javascript:void(0);"
+																onclick="selectFromImage('Upper Arm')"
+																coords="180,276,195,276,211,274,213,296,212,316,207,336,202,345,194,354,175,354,166,350"
+																data-original-coords="180,276,195,276,211,274,213,296,212,316,207,336,202,345,194,354,175,354,166,350"
+																shape="poly">
+
+															<area alt="Upper Arm" title="Upper Arm"
+																href="javascript:void(0);"
+																onclick="selectFromImage('Upper Arm')"
+																coords="375,275,389,273,403,277,411,304,407,331,409,345,388,363,373,337,370,311,366,295,368,285"
+																data-original-coords="375,275,389,273,403,277,411,304,407,331,409,345,388,363,373,337,370,311,366,295,368,285"
+																shape="poly">
+
+															<area alt="Forearm" title="Forearm"
+																href="javascript:void(0);"
+																onclick="selectFromImage('Forearm')"
+																coords="161,361,178,360,192,363,193,392,185,404,178,420,176,438,170,448,166,462,153,459,149,443,151,419,153,396,154,380"
+																data-original-coords="161,361,178,360,192,363,193,392,185,404,178,420,176,438,170,448,166,462,153,459,149,443,151,419,153,396,154,380"
+																shape="poly">
+
+															<area alt="Forearm" title="Forearm"
+																href="javascript:void(0);"
+																onclick="selectFromImage('Forearm')"
+																coords="386,376,402,376,414,369,423,385,425,411,428,431,432,454,432,471,418,478,404,451,394,425,386,402,383,388"
+																data-original-coords="386,376,402,376,414,369,423,385,425,411,428,431,432,454,432,471,418,478,404,451,394,425,386,402,383,388"
+																shape="poly">
+
+															<area alt="Elbow" title="Elbow"
+																href="javascript:void(0);"
+																onclick="selectFromImage('Elbow')"
+																coords="790,329,799,324,823,322,831,339,835,354,836,365,822,371,805,371,794,371,789,351"
+																data-original-coords="790,329,799,324,823,322,831,339,835,354,836,365,822,371,805,371,794,371,789,351"
+																shape="poly">
+
+															<area alt="Elbow" title="Elbow"
+																href="javascript:void(0);"
+																onclick="selectFromImage('Elbow')"
+																coords="567,328,582,329,607,332,603,345,595,365,596,379,579,384,555,376,560,354"
+																data-original-coords="567,328,582,329,607,332,603,345,595,365,596,379,579,384,555,376,560,354"
+																shape="poly">
+
+															<area alt="Finger" title="Finger"
+																href="javascript:void(0);"
+																onclick="selectFromImage('Finger')"
+																coords="141,487,150,487,169,493,179,513,182,527,184,538,184,549,171,574,151,553,144,532"
+																data-original-coords="141,487,150,487,169,493,179,513,182,527,184,538,184,549,171,574,151,553,144,532"
+																shape="poly">
+
+															<area alt="Fingers" title="Fingers"
+																href="javascript:void(0);"
+																onclick="selectFromImage('Fingers')"
+																coords="413,501,428,502,440,501,442,514,441,532,434,554,429,570,419,575,409,576,404,561,401,543,402,525,404,517"
+																data-original-coords="413,501,428,502,440,501,442,514,441,532,434,554,429,570,419,575,409,576,404,561,401,543,402,525,404,517"
+																shape="poly">
+
+															<area alt="Hand / Palm / Wrist "
+																title="Hand / Palm / Wrist " href="javascript:void(0);"
+																onclick="selectFromImage('Hand / Palm / Wrist ')"
+																coords="538,479,557,478,572,479,578,510,581,524,583,536,578,560,584,586,557,592,540,536,537,511"
+																data-original-coords="538,479,557,478,572,479,578,510,581,524,583,536,578,560,584,586,557,592,540,536,537,511"
+																shape="poly">
+
+															<area alt="Hand / Palm / Wrist "
+																title="Hand / Palm / Wrist " href="javascript:void(0);"
+																onclick="selectFromImage('Hand / Palm / Wrist ')"
+																coords="822,470,835,466,851,470,853,483,853,500,850,520,847,537,836,558,824,578,815,561,808,561,801,547,797,535,799,517,811,491"
+																data-original-coords="822,470,835,466,851,470,853,483,853,500,850,520,847,537,836,558,824,578,815,561,808,561,801,547,797,535,799,517,811,491"
+																shape="poly">
+															<area alt="Hip" title="Hip" href="javascript:void(0);"
+																onclick="selectFromImage('Hip')"
+																coords="624,436,647,428,672,428,683,429,704,428,718,428,739,428,758,436,764,447,765,461,763,479,763,495,755,503,730,511,699,512,666,512,644,511,630,505,617,500,611,491"
+																data-original-coords="624,436,647,428,672,428,683,429,704,428,718,428,739,428,758,436,764,447,765,461,763,479,763,495,755,503,730,511,699,512,666,512,644,511,630,505,617,500,611,491"
+																shape="poly">
+
+															<area alt="Thigh" title="Thigh"
+																href="javascript:void(0);"
+																onclick="selectFromImage('Thigh')"
+																coords="228,426,243,447,260,482,283,514,290,539,286,580,280,608,251,607,227,607,212,592,209,548,214,490"
+																data-original-coords="228,426,243,447,260,482,283,514,290,539,286,580,280,608,251,607,227,607,212,592,209,548,214,490"
+																shape="poly">
+
+															<area alt="Thigh" title="Thigh"
+																href="javascript:void(0);"
+																onclick="selectFromImage('Thigh')"
+																coords="307,511,327,487,345,451,357,436,362,468,374,521,376,559,369,594,368,624,351,617,324,615,311,608,303,575,294,545,294,522"
+																data-original-coords="307,511,327,487,345,451,357,436,362,468,374,521,376,559,369,594,368,624,351,617,324,615,311,608,303,575,294,545,294,522"
+																shape="poly">
+
+															<area alt="Knee" title="Knee" href="javascript:void(0);"
+																onclick="selectFromImage('Knee')"
+																coords="223,630,247,629,279,635,274,651,272,670,267,684,265,690,242,692,233,692,222,688,223,661"
+																data-original-coords="223,630,247,629,279,635,274,651,272,670,267,684,265,690,242,692,233,692,222,688,223,661"
+																shape="poly">
+
+															<area alt="Knee" title="Knee" href="javascript:void(0);"
+																onclick="selectFromImage('Knee')"
+																coords="311,632,326,632,349,632,366,636,366,651,366,667,367,680,367,688,358,692,339,696,330,696,321,684,313,665,313,657,311,650"
+																data-original-coords="311,632,326,632,349,632,366,636,366,651,366,667,367,680,367,688,358,692,339,696,330,696,321,684,313,665,313,657,311,650"
+																shape="poly">
+
+															<area alt="Back" title="Back" href="javascript:void(0);"
+																onclick="selectFromImage('Back')"
+																coords="627,201,623,241,625,266,627,305,622,351,623,401,624,421,650,417,684,414,734,419,744,421,757,420,759,388,760,356,755,328,761,300,768,283,768,258,768,228,765,202,761,195,738,187,714,182,679,182,663,181"
+																data-original-coords="627,201,623,241,625,266,627,305,622,351,623,401,624,421,650,417,684,414,734,419,744,421,757,420,759,388,760,356,755,328,761,300,768,283,768,258,768,228,765,202,761,195,738,187,714,182,679,182,663,181"
+																shape="poly">
+
+															<area alt="Leg" title="Leg" href="javascript:void(0);"
+																onclick="selectFromImage('Leg')"
+																coords="221,695,235,694,256,693,266,694,275,703,272,726,271,751,265,774,263,803,260,840,262,854,237,854,229,850,223,778,215,758,215,738"
+																data-original-coords="221,695,235,694,256,693,266,694,275,703,272,726,271,751,265,774,263,803,260,840,262,854,237,854,229,850,223,778,215,758,215,738"
+																shape="poly">
+
+															<area alt="Leg" title="Leg" href="javascript:void(0);"
+																onclick="selectFromImage('Leg')"
+																coords="319,695,333,698,356,695,365,692,371,704,373,724,369,742,365,780,363,803,356,831,356,844,328,844,326,815,322,752,318,736"
+																data-original-coords="319,695,333,698,356,695,365,692,371,704,373,724,369,742,365,780,363,803,356,831,356,844,328,844,326,815,322,752,318,736"
+																shape="poly">
+
+															<area alt="Calf" title="Calf" href="javascript:void(0);"
+																onclick="selectFromImage('Calf')"
+																coords="617,692,636,690,658,691,667,711,664,736,660,763,658,787,652,805,650,827,649,842,639,848,626,846,618,826,614,792,608,762,608,735"
+																data-original-coords="617,692,636,690,658,691,667,711,664,736,660,763,658,787,652,805,650,827,649,842,639,848,626,846,618,826,614,792,608,762,608,735"
+																shape="poly">
+
+															<area alt="Calf" title="Calf" href="javascript:void(0);"
+																onclick="selectFromImage('Calf')"
+																coords="723,685,741,684,756,683,762,689,774,723,771,747,767,770,764,792,761,813,758,827,757,847,731,845,723,807,715,766,709,745,709,728"
+																data-original-coords="723,685,741,684,756,683,762,689,774,723,771,747,767,770,764,792,761,813,758,827,757,847,731,845,723,807,715,766,709,745,709,728"
+																shape="poly">
+															<area alt="Ankle" title="Ankle"
+																href="javascript:void(0);"
+																onclick="selectFromImage('Ankle')"
+																coords="626,852,639,851,650,851,656,861,663,879,663,895,661,915,656,925,648,931,636,929,625,925,615,917,614,900,618,886,623,866"
+																data-original-coords="626,852,639,851,650,851,656,861,663,879,663,895,661,915,656,925,648,931,636,929,625,925,615,917,614,900,618,886,623,866"
+																shape="poly">
+
+															<area alt="Ankle" title="Ankle"
+																href="javascript:void(0);"
+																onclick="selectFromImage('Ankle')"
+																coords="724,857,731,857,745,857,755,857,759,868,764,882,759,913,748,920,736,920,727,918,714,909,718,889,720,877"
+																data-original-coords="724,857,731,857,745,857,755,857,759,868,764,882,759,913,748,920,736,920,727,918,714,909,718,889,720,877"
+																shape="poly">
+
+															<area alt="Foot/Toe" title="Foot/Toe"
+																href="javascript:void(0);"
+																onclick="selectFromImage('Foot/Toe')"
+																coords="234,853,253,856,267,857,267,870,274,894,270,902,261,906,252,907,247,920,230,921,215,918,204,916,202,903,218,885,229,886,229,868"
+																data-original-coords="234,853,253,856,267,857,267,870,274,894,270,902,261,906,252,907,247,920,230,921,215,918,204,916,202,903,218,885,229,886,229,868"
+																shape="poly">
+
+															<area alt="Foot/Toe" title="Foot/Toe"
+																href="javascript:void(0);"
+																onclick="selectFromImage('Foot/Toe')"
+																coords="324,853,340,849,353,850,361,858,365,873,369,884,383,906,371,922,361,922,351,920,341,914,331,906,324,901,317,895,323,879,325,867"
+																data-original-coords="324,853,340,849,353,850,361,858,365,873,369,884,383,906,371,922,361,922,351,920,341,914,331,906,324,901,317,895,323,879,325,867"
+																shape="poly">
+
+														</map>
+													</div>
+
+													<!-- Selected Body Part Display -->
+													<h6 id="selectedPart" align="center" class="mt-3">Injured
+														Body Part: None</h6>
+												</div>
+
+											</div>
+
+										</div>
+									</div>
+
+								</div>
+
+
+								<div class="form-section" style="padding: 15px;">
+									<label class="form-label">Select Type of Injury:</label>
+
+									<!-- Dropdown -->
+									<div class="input-group">
+										<select class="form-select" id="injuryTypeDropdown"
+											onchange="showInjuryDescription()" th:field="*{typeOfInjury}">
+											<option value="">-- Select Injury Type --</option>
+											<option value="Laceration/Cut">Laceration/Cut</option>
+											<option value="Abrasion">Abrasion</option>
+											<option value="Contusion (Bruise)">Contusion
+												(Bruise)</option>
+											<option value="Fracture">Fracture</option>
+											<option value="Sprain/Strain">Sprain/Strain</option>
+											<option value="Burn">Burn</option>
+											<option value="Amputation">Amputation</option>
+											<option value="Puncture">Puncture</option>
+											<option value="Crush Injury">Crush Injury</option>
+											<option value="Electrical Shock">Electrical Shock</option>
+											<option value="Eye Injury">Eye Injury</option>
+											<option value="Inhalation Injury">Inhalation Injury</option>
+											<option value="Repetitive Strain Injury (RSI)">Repetitive
+												Strain Injury (RSI)</option>
+										</select>
+									</div>
+
+									<!-- Hidden Description Textarea -->
+									<div class="mt-3" id="descriptionBox" style="display: none;">
+										<label class="form-label">Injury Description:</label>
+										<textarea class="form-control" rows="2" id="injuryDescription"
+											readonly></textarea>
+									</div>
+								</div>
+							</div>
+
+							<!-- Specific Body Part Selection -->
+
+							<div id="details" class="section">
+								<h5 class="text-secondary text-center">Details</h5>
+
+								<div class="row" style="padding: 15px;">
+
+									<div class="col-md-6">
+										<!-- Plant Name -->
+										<div class="mb-3">
+											<label for="plantName" class="form-label">Plant Name</label>
+											<input type="text" class="form-control" id="plantName"
+												th:field="*{plantName}" required>
+										</div>
+									</div>
+
+									<div class="col-md-6">
+										<!-- Name Of Injured Person -->
+										<div class="mb-3">
+											<label for="injuredPerson" class="form-label">Name Of
+												Injured Person</label> <input type="text" class="form-control"
+												id="injuredPerson" th:field="*{injuredPersonName}" required>
+										</div>
+									</div>
+								</div>
+
+
+								<div class="row" style="padding: 15px;">
+
+									<div class="col-md-6">
+										<!-- Permanent / Contractor -->
+										<div class="mb-3">
+											<label class="form-label">Permanent/Contractor</label> <select
+												class="form-select" id="employmentType"
+												th:field="*{employmentType}" required>
+												<option value="">Select</option>
+												<option value="Permanent">Permanent</option>
+												<option value="Contractor">Contractor</option>
+											</select>
+										</div>
+									</div>
+
+									<div class="col-md-6">
+										<!-- Employee Code -->
+										<div class="mb-3">
+											<label for="employeeCode" class="form-label">Employee
+												Code</label> <input type="text" class="form-control"
+												id="employeeCode" th:field="*{employeeCode}" required>
+										</div>
+									</div>
+
+								</div>
+
+								<div class="row" style="padding: 15px;">
+
+									<div class="col-md-6">
+										<div class="mb-3">
+											<label class="form-label">Type of Activity</label> <select
+												class="form-select" id="activityType"
+												th:field="*{activityType}" required>
+												<option value="">Select</option>
+												<option value="Routine">Routine</option>
+												<option value="Non routine">Non routine</option>
+											</select>
+										</div>
+									</div>
+
+									<div class="col-md-6">
+										<div class="mb-3">
+											<label class="form-label">Department</label> <select
+												class="form-select" id="department" name="department"
+												th:value="*{department}" required
+												onchange="handleDepartmentChange()">
+												<option value="">Select</option>
+												<option value="Production">Production</option>
+												<option value="Utilites">Utilites</option>
+												<option value="Engireeing">Engireeing</option>
+												<option value="QA">QA</option>
+												<option value="RMS">RMS</option>
+												<option value="FPS">FPS</option>
+												<option value="Other">Other</option>
+											</select>
+										</div>
+
+									</div>
+
+									<div class="mb-3" id="otherDeptDiv" style="display: none;">
+										<label class="form-label">Please specify department</label> <input
+											type="text" class="form-control" id="otherDepartment"
+											placeholder="Enter department name"
+											oninput="setCustomDepartment()">
+									</div>
+
+									<!-- Date & Time -->
+									<div class="row" style="padding: 15px;">
+										<!-- Date Field -->
+										<div class="col-md-6 mb-3">
+											<label for="incidentDate" class="form-label">Date</label><input
+												type="date" class="form-control" id="incidentDate"
+												name="incidentDate"
+												th:value="${incidentDate != null ? #temporals.format(incidentDate, 'yyyy-MM-dd') : ''}"
+												required>
+
+										</div>
+
+										<!-- Time Field -->
+										<div class="col-md-6 mb-3">
+											<label for="incidentTime" class="form-label">Time</label> <input
+												type="time" class="form-control" id="incidentTime"
+												th:field="*{incidentTime}" required>
+										</div>
+									</div>
+
+
+
+									<div class="row" style="padding: 15px;">
+
+										<div class="col-md-6">
+											<!-- Shift -->
+											<div class="mb-3">
+												<label class="form-label">Shift</label> <select
+													class="form-select" id="shift" th:field="*{shift}" required>
+													<option value="">Select Shift</option>
+													<option value="Morning">Morning</option>
+													<option value="Afternoon">Afternoon</option>
+													<option value="Night">Night</option>
+												</select>
+											</div>
+										</div>
+
+										<div class="col-md-6">
+											<!-- Date of Person Reported Back on Duty -->
+											<div class="mb-3">
+												<label for="reportedBackDate" class="form-label">Date
+													of Person Reported Back on Duty</label> <input type="date"
+													class="form-control"
+													th:value="${reportedBackDate != null ? #dates.format(reportedBackDate, 'yyyy-MM-dd') : ''}">
+
+											</div>
+										</div>
+									</div>
+
+
+
+									<div class="row" style="padding: 15px;">
+
+
+										<div class="col-md-6">
+											<!-- Name of Witness -->
+											<div class="mb-3">
+												<label for="witnessName" class="form-label">Name of
+													Witness</label> <input type="text" class="form-control"
+													id="witnessName" th:field="*{witnessName}">
+											</div>
+										</div>
+
+										<div class="col-md-6">
+											<!-- Investigated by -->
+											<div class="mb-3">
+												<label for="investigatedBy" class="form-label">Investigated
+													by </label> <input type="text" class="form-control"
+													id="investigatedBy" th:field="*{investigatedBy}">
+											</div>
+										</div>
+									</div>
+
+									<div class="row" style="padding: 15px;">
+
+										<div class="col-md-6">
+											<div class="mb-3">
+												<label for="machine" class="form-label">Machine</label> <input
+													type="text" class="form-control" id="machine"
+													th:field="*{machine}">
+											</div>
+
+
+										</div>
+
+										<div class="col-md-6"></div>
+
+									</div>
+
+									<div class="row" style="padding: 15px;">
+
+										<div class="col-md-6">
+											<label class="form-label">Was there an Unsafe
+												Condition?</label>
+											<div>
+												<input type="radio" id="unsafeConditionYes" value="Yes"
+													th:field="*{unsafeCondition}"> <label
+													for="unsafeConditionYes">Yes</label> <input type="radio"
+													id="unsafeConditionNo" value="No"
+													th:field="*{unsafeCondition}" class="ms-3"> <label
+													for="unsafeConditionNo">No</label>
+											</div>
+
+										</div>
+
+										<div class="col-md-6">
+											<label class="form-label">Was there an Unsafe Action?</label>
+											<div>
+												<input type="radio" id="unsafeActionYes" value="Yes"
+													th:field="*{unsafeAction}"> <label
+													for="unsafeActionYes">Yes</label> <input type="radio"
+													id="unsafeActionNo" value="No" th:field="*{unsafeAction}"
+													class="ms-3"> <label for="unsafeActionNo">No</label>
+											</div>
+										</div>
+
+									</div>
+
+									<div class="row" style="padding: 15px;">
+
+										<div class="col-md-6">
+
+											<label class="form-label">Was Hazard Identified as
+												part of Risk Assessment?</label>
+											<div>
+												<input type="radio" id="hazardYes" name="hazardIdentified"
+													value="Yes" th:field="*{hazardIdentified}"> <label
+													for="hazardYes">Yes</label> <input type="radio"
+													id="hazardNo" name="hazardIdentified" value="No"
+													th:field="*{hazardIdentified}" class="ms-3"> <label
+													for="hazardNo">No</label>
+											</div>
+
+										</div>
+
+										<div class="col-md-6">
+											<label class="form-label">HIRA is there? <span
+												style="color: red;">*</span>
+											</label>
+											<div>
+												<input type="radio" id="hiraYes" name="hiraAvailable"
+													value="Yes" onclick="toggleHIRASection()"
+													th:field="*{hiraAvailable}"> <label for="hiraYes">Yes</label>
+												<input type="radio" id="hiraNo" name="hiraAvailable"
+													value="No" class="ms-3" onclick="toggleHIRASection()"
+													th:field="*{hiraAvailable}"> <label for="hiraNo">No</label>
+											</div>
+
+										</div>
+
+									</div>
+
+
+									<!-- view HIRA document -->
+
+									<div class="form-group">
+										<div class="card-body p-0">
+											<div class="table-responsive">
+												<table class="table table-bordered table-hover text-center"
+													id="uploadManufacturabilityTable">
+													<thead class="table-primary">
+														<tr>
+															<th>HIRA File</th>
+															<th></th>
+														</tr>
+													</thead>
+													<tbody>
+														<tr th:each="file : ${files}">
+															<td><a th:text="${file.fileName}"></a></td>
+															<td class="text-right py-0 align-middle">
+																<div
+																	class="d-flex justify-content-center btn-group btn-group-sm">
+																	<a
+																		th:href="@{'/view/' + ${file.fileName} + '/' + *{capaId} + '/' + ${file.docType} + '/'+ ${file.itemNo}}"
+																		class="btn btn-info" target="_blank"> <i
+																		class="fas fa-eye"></i>
+																	</a>
+																</div>
+															</td>
+														</tr>
+
+													</tbody>
+												</table>
+											</div>
+										</div>
+									</div>
+
+
+									<!-- HIRA Submission Section (Initially Hidden) -->
+									<div id="hiraSubmissionSection" class="mb-3"
+										style="display: none; padding: 15px;">
+
+
+										<!-- Your File Upload Section (Modal Trigger + Hidden Fields) -->
+										<div class="form-group" id="fileUploadSection">
+											<!-- Hidden Fields for CSRF and UUID -->
+											<input type="hidden" name="uuid" id="uuid" th:value="${uuid}">
+											<input type="hidden" name="_csrf" th:value="${_csrf.token}" />
+
+											<!-- Upload Button Triggering Modal -->
+											<div class="input-group mt-2">
+												<a onclick="showUploadModal()" class="btn btn-warning">
+													<i class="fa fa-upload" style="color: green"></i> Upload
+													HIRA
+												</a>
+											</div>
+										</div>
+
+										<!-- Table that shows uploaded images -->
+										<div class="form-group">
+											<table id="uploadManufacturabilityFile"></table>
+										</div>
+
+									</div>
+
+
+									<!-- Description of Incident -->
+									<div class="mb-3" style="padding: 15px;">
+										<label for="incidentDescription" class="form-label">Description
+											of Incident</label>
+										<textarea class="form-control" id="incidentDescription"
+											rows="3" required th:field="*{incidentDescription}"></textarea>
+									</div>
+
+								</div>
+
+
+								<div id="investigation" class="section">
+									<h5 class="text-secondary text-center">Incident
+										Investigation</h5>
+
+
+
+									<div class="form-section" style="padding: 15px;">
+										<label for="immediateCauses" class="form-label">Possible
+											Immediate Causes:</label>
+										<div class="row">
+											<!-- Actions Dropdown -->
+											<div class="col-md-6">
+												<select class="form-select" id="actionsDropdown">
+													<option value="">--Select Action--</option>
+													<optgroup label="1. Did not follow existing procedures">
+														<option value="Violation (by individual)">Violation
+															(by individual)</option>
+														<option value="Violation (by group)">Violation
+															(by group)</option>
+														<option value="Violation (by supervisor)">Violation
+															(by supervisor)</option>
+														<option value="Procedure not available">Procedure
+															not available</option>
+														<option value="Procedure was not understood">Procedure
+															was not understood</option>
+														<option value="Other">Other</option>
+													</optgroup>
+													<optgroup
+														label="2. Use of tools, plant/equipment or vehicle">
+														<option
+															value="Plant/Equipment or vehicle used in the wrong way">Plant/Equipment
+															or vehicle used in the wrong way</option>
+														<option value="Tools used in the wrong way">Tools
+															used in the wrong way</option>
+														<option
+															value="Use of plant/equipment or vehicle with known defect">Use
+															of plant/equipment or vehicle with known defect</option>
+														<option value="Use of tools with a known defect">Use
+															of tools with a known defect</option>
+														<option
+															value="Incorrect placement of tools, equipment or materials">Incorrect
+															placement of tools, equipment or materials</option>
+														<option
+															value="Operation of plant/equipment or vehicle at improper speed">Operation
+															of plant/equipment or vehicle at improper speed</option>
+														<option value="Other">Other</option>
+													</optgroup>
+													<optgroup label="3. Use of protective equipment or methods">
+														<option
+															value="Need for protective equipment or methods not recognized">Need
+															for protective equipment or methods not recognized</option>
+														<option
+															value="Personal protective equipment or methods not used">Personal
+															protective equipment or methods not used</option>
+														<option
+															value="Incorrect use of personal protective equipment or methods">Incorrect
+															use of personal protective equipment or methods</option>
+														<option
+															value="Personal protective equipment or methods not available">Personal
+															protective equipment or methods not available</option>
+														<option
+															value="Disabled guards, warning systems or safety devices">Disabled
+															guards, warning systems or safety devices</option>
+														<option
+															value="Removal of guards, warning systems or safety devices">Removal
+															of guards, warning systems or safety devices</option>
+														<option value="Other">Other</option>
+													</optgroup>
+													<optgroup label="4. Lack of focus or inattention">
+														<option value="Distracted by other concerns">Distracted
+															by other concerns</option>
+														<option value="Inattention to surroundings">Inattention
+															to surroundings</option>
+														<option value="Inappropriate workplace behaviour">Inappropriate
+															workplace behaviour</option>
+														<option value="No warning provided">No warning
+															provided</option>
+														<option value="Unintentional human error">Unintentional
+															human error</option>
+														<option value="Routine activity without thought">Routine
+															activity without thought</option>
+														<option value="Other">Other</option>
+													</optgroup>
+
+												</select>
+
+
+											</div>
+
+											<!-- Conditions Dropdown -->
+											<div class="col-md-6">
+												<select class="form-select" id="conditionsDropdown">
+													<option value="">--Select Condition--</option>
+
+													<optgroup label="5. Protective systems">
+														<option value="Guards or protective devices not effective">Guards
+															or protective devices not effective</option>
+														<option value="Defective guards or protective devices">Defective
+															guards or protective devices</option>
+														<option value="Incorrect personal protective equipment">Incorrect
+															personal protective equipment</option>
+														<option value="Defective personal protective equipment">Defective
+															personal protective equipment</option>
+														<option value="Warning systems not effective">Warning
+															systems not effective</option>
+														<option value="Defective warning systems">Defective
+															warning systems</option>
+														<option value="Safety devices were not effective">Safety
+															devices were not effective</option>
+														<option value="Defective safety devices">Defective
+															safety devices</option>
+														<option value="Other">Other</option>
+													</optgroup>
+													<optgroup label="6. Tools, plant/equipment and vehicles">
+														<option value="Plant/equipment malfunction">Plant/equipment
+															malfunction</option>
+														<option value="Preparation of plant/equipment">Preparation
+															of plant/equipment</option>
+														<option value="Tool malfunction">Tool malfunction</option>
+														<option value="Preparation of tools">Preparation
+															of tools</option>
+														<option value="Vehicle malfunction">Vehicle
+															malfunction</option>
+														<option value="Preparation of vehicle">Preparation
+															of vehicle</option>
+														<option value="Other">Other</option>
+													</optgroup>
+													<optgroup label="7. Unanticipated exposure to...">
+														<option value="Fire and explosion">Fire and
+															explosion</option>
+														<option value="Noise">Noise</option>
+														<option value="Energized electrical systems">Energized
+															electrical systems</option>
+														<option value="Energized sources other than electrical">Energized
+															sources other than electrical</option>
+														<option value="Temperature extremes">Temperature
+															extremes</option>
+														<option value="Hazardous chemicals">Hazardous
+															chemicals</option>
+														<option value="Mechanical hazards">Mechanical
+															hazards</option>
+														<option value="Storms or acts of nature">Storms
+															or acts of nature</option>
+														<option value="Other">Other</option>
+													</optgroup>
+													<optgroup label="8. Workplace layout">
+														<option value="Congestion">Congestion</option>
+														<option value="Illumination">Illumination</option>
+														<option value="Ventilation">Ventilation</option>
+														<option value="Unprotected height">Unprotected
+															height</option>
+														<option value="Workplace displays">Workplace
+															displays</option>
+														<option value="Other">Other</option>
+													</optgroup>
+
+												</select>
+											</div>
+
+											<!-- "Other" Input (Hidden) -->
+											<div id="otherInputContainer"
+												style="display: none; margin-top: 10px;">
+												<input type="text" id="otherInput" class="form-control"
+													placeholder="Enter other">
+											</div>
+
+											<!-- Hidden field to store selected immediate causes -->
+											<input type="hidden" id="hiddenImmediateCauses"
+												name="possibleImmediateCauses"
+												th:field="*{possibleImmediateCauses}">
+
+											<!-- Table for Selected Immediate Causes -->
+											<div id="selectedSection" style="display: none;">
+												<h5>Selected Items:</h5>
+												<div class="table-responsive">
+													<table class="table table-bordered table-hover text-center">
+														<thead class="table-primary">
+															<tr>
+																<th>Type</th>
+																<th>Selection</th>
+																<th>Action</th>
+															</tr>
+														</thead>
+														<tbody id="selectedItems"></tbody>
+													</table>
+												</div>
+											</div>
+
+										</div>
+
+										<br>
+										<!-- System Causes -->
+										<div class="form-section">
+											<label for="systemCauses" class="form-label">Possible
+												System Causes:</label>
+											<div class="row">
+												<!-- Personal Factors Dropdown -->
+												<div class="col-md-6">
+													<select class="form-select"
+														id="systemPersonalFactorsDropdown">
+														<option value="">--Select Personal Factor--</option>
+														<optgroup label="1. Physical Capabilities">
+															<option value="Vision deficiency">Vision
+																deficiency</option>
+															<option value="Hearing deficiency">Hearing
+																deficiency</option>
+															<option value="Other sensory deficiency">Other
+																sensory deficiency</option>
+															<option value="Other permanent physical disabilities">Other
+																permanent physical disabilities</option>
+															<option value="Substance sensitivities or allergies">Substance
+																sensitivities or allergies</option>
+															<option value="Size or strength limitations">Size
+																or strength limitations</option>
+															<option value="Other">Other</option>
+														</optgroup>
+														<optgroup label="2. Physical Condition">
+															<option value="Previous injury or illness">Previous
+																injury or illness</option>
+															<option value="Fatigue">Fatigue</option>
+															<option value="Diminished performance">Diminished
+																performance</option>
+															<option
+																value="Impairment due to drug, alcohol, or medication">Impairment
+																due to drug, alcohol, or medication</option>
+															<option value="Other">Other</option>
+														</optgroup>
+														<optgroup label="3. Mental Capability">
+															<option value="Memory failure">Memory failure</option>
+															<option value="Poor co-ordination or reaction time">Poor
+																co-ordination or reaction time</option>
+															<option value="Emotional status">Emotional
+																status</option>
+															<option value="Fears or phobias">Fears or
+																phobias</option>
+															<option value="Low mechanical aptitude">Low
+																mechanical aptitude</option>
+															<option value="Low learning aptitude">Low
+																learning aptitude</option>
+															<option value="Incorrect judgment">Incorrect
+																judgment</option>
+															<option value="Other">Other</option>
+														</optgroup>
+														<optgroup label="4. Mental Stress">
+															<option value="Preoccupation with problems">Preoccupation
+																with problems</option>
+															<option value="Frustration">Frustration</option>
+															<option value="Confusing directions/demands">Confusing
+																directions/demands</option>
+															<option value="Conflicting directions or demands">Conflicting
+																directions or demands</option>
+															<option value="Extreme decision demands">Extreme
+																decision demands</option>
+															<option value="Lack of concentration or perception">Lack
+																of concentration or perception</option>
+															<option value="Other emotional overload">Other
+																emotional overload</option>
+															<option value="Other">Other</option>
+														</optgroup>
+														<optgroup label="5. Behaviour">
+															<option value="Antecedent not present">Antecedent
+																not present</option>
+															<option value="Antecedent not effective">Antecedent
+																not effective</option>
+															<option value="Incorrect behaviour reinforced">Incorrect
+																behaviour reinforced</option>
+															<option value="Incorrect behaviour not confronted">Incorrect
+																behaviour not confronted</option>
+															<option value="Proper behaviour not rewarded">Proper
+																behaviour not rewarded</option>
+															<option
+																value="Behavioural analysis process not effective">Behavioural
+																analysis process not effective</option>
+															<option value="Other">Other</option>
+														</optgroup>
+														<optgroup label="6. Skill Level/Competency">
+															<option
+																value="Assessment of required skills or competency not effective">Assessment
+																of required skills or competency not effective</option>
+															<option value="Practice of skill not effective">Practice
+																of skill not effective</option>
+															<option value="No coaching on skill">No coaching
+																on skill</option>
+															<option value="Infrequent performance of skill">Infrequent
+																performance of skill</option>
+															<option value="Other">Other</option>
+														</optgroup>
+
+													</select>
+												</div>
+
+												<!-- Job Factors Dropdown -->
+												<div class="col-md-6">
+													<select class="form-select" id="systemJobFactorsDropdown">
+														<option value="">--Select Personal Factor--</option>
+														<optgroup label="7. Training/Knowledge Transfer">
+															<option value="No training provided">No training
+																provided</option>
+															<option value="Training effort not effective">Training
+																effort not effective</option>
+															<option value="Knowledge transfer not effective">Knowledge
+																transfer not effective</option>
+															<option value="Training materials not recalled">Training
+																materials not recalled</option>
+															<option value="Other">Other</option>
+														</optgroup>
+														<optgroup
+															label="8. Management / Supervision / Employee Leadership">
+															<option value="Behaviour was not reinforced">Behaviour
+																was not reinforced</option>
+															<option
+																value="Participation in safety efforts not effective">Participation
+																in safety efforts not effective</option>
+															<option
+																value="Consideration of safety in staffing not effective">Consideration
+																of safety in staffing not effective</option>
+															<option value="Encouragement for safety not effective">Encouragement
+																for safety not effective</option>
+															<option value="Support of people not effective">Support
+																of people not effective</option>
+															<option
+																value="Visual communication of safety process not effective">Visual
+																communication of safety process not effective</option>
+															<option value="Other">Other</option>
+														</optgroup>
+														<optgroup label="9. Contractor Selection and Oversight">
+															<option value="No contractor pre-qualification process">No
+																contractor pre-qualification process</option>
+															<option
+																value="Contractor pre-qualification process not effective">Contractor
+																pre-qualification process not effective</option>
+															<option value="Use of a non-approved contractor">Use
+																of a non-approved contractor</option>
+															<option value="Contractor selection not effective">Contractor
+																selection not effective</option>
+															<option value="No job oversight process">No job
+																oversight process</option>
+															<option value="Job oversight not effective">Job
+																oversight not effective</option>
+															<option value="Other">Other</option>
+														</optgroup>
+														<optgroup label="10. Engineering/Design">
+															<option value="Technical design not correct">Technical
+																design not correct</option>
+															<option
+																value="Design standards, specifications or not correct">Design
+																standards, specifications or not correct</option>
+															<option
+																value="Incorrect ergonomic or human factor design">Incorrect
+																ergonomic or human factor design</option>
+															<option value="Monitoring of construction not effective">Monitoring
+																of construction not effective</option>
+															<option
+																value="Assessment of operational readiness not effective">Assessment
+																of operational readiness not effective</option>
+															<option
+																value="Monitoring of initial operation not effective">Monitoring
+																of initial operation not effective</option>
+															<option value="Technical analysis for risk not effective">Technical
+																analysis for risk not effective</option>
+															<option value="Other">Other</option>
+														</optgroup>
+														<optgroup label="11. Control of Work (CoW)">
+															<option
+																value="No work planning or risk assessment performed">No
+																work planning or risk assessment performed</option>
+															<option value="Risk assessment not effective">Risk
+																assessment not effective</option>
+															<option value="Required permit not obtained">Required
+																permit not obtained</option>
+															<option value="Specified controls not followed">Specified
+																controls not followed</option>
+															<option value="Change in job scope">Change in
+																job scope</option>
+															<option value="Worksite not left safe">Worksite
+																not left safe</option>
+															<option value="Other">Other</option>
+														</optgroup>
+														<optgroup
+															label="12. Purchasing, Material Handling and Material Control">
+															<option value="Incorrect item ordered">Incorrect
+																item ordered</option>
+															<option value="Incorrect item received">Incorrect
+																item received</option>
+															<option value="Handling or shipping not effective">Handling
+																or shipping not effective</option>
+															<option value="Storage of materials not effective">Storage
+																of materials not effective</option>
+															<option value="Labelling of materials not effective">Labelling
+																of materials not effective</option>
+															<option value="Other">Other</option>
+														</optgroup>
+														<optgroup label="13. Tools and Plant/Equipment">
+															<option value="Wrong tools or plant/equipment provided">Wrong
+																tools or plant/equipment provided</option>
+															<option
+																value="Correct tools or plant/equipment not available">Correct
+																tools or plant/equipment not available</option>
+															<option value="No inspection">No inspection</option>
+															<option value="Incorrect adjustment/repair/maintenance">Incorrect
+																adjustment/repair/maintenance</option>
+															<option
+																value="Removal or replacement of unsuitable items not effective">Removal
+																or replacement of unsuitable items not effective</option>
+															<option value="No preventative maintenance program">No
+																preventative maintenance program</option>
+															<option
+																value="Testing of plant, tools or equipment not performed">Testing
+																of plant, tools or equipment not performed</option>
+															<option value="Other">Other</option>
+														</optgroup>
+														<optgroup
+															label="14. Standards / Practices / Procedures (SPP)">
+															<option value="Lack of SPP for the task">Lack of
+																SPP for the task</option>
+															<option value="Development of SPP not effective">Development
+																of SPP not effective</option>
+															<option value="Communication of SPP not effective">Communication
+																of SPP not effective</option>
+															<option value="Implementation of SPP not effective">Implementation
+																of SPP not effective</option>
+															<option value="Enforcement of SPP not effective">Enforcement
+																of SPP not effective</option>
+															<option value="Other">Other</option>
+														</optgroup>
+														<optgroup label="15. Communication">
+															<option
+																value="Horizontal communication between peers not effective">Horizontal
+																communication between peers not effective</option>
+															<option
+																value="Vertical communication between supervisor and person not effective">Vertical
+																communication between supervisor and person not
+																effective</option>
+															<option
+																value="Communication between different organizations not effective">Communication
+																between different organizations not effective</option>
+															<option
+																value="Communication between work groups not effective">Communication
+																between work groups not effective</option>
+															<option
+																value="Communication between shifts not effective">Communication
+																between shifts not effective</option>
+															<option value="Communication not received">Communication
+																not received</option>
+															<option value="Incorrect information">Incorrect
+																information</option>
+															<option value="Information not understood">Information
+																not understood</option>
+															<option value="Other">Other</option>
+														</optgroup>
+													</select>
+												</div>
+
+												<!-- Input field for "Other" -->
+												<div id="systemOtherInputContainer" style="display: none;">
+													<input type="text" id="systemOtherInput"
+														class="form-control" placeholder="Enter other cause">
+												</div>
+
+												<!-- Hidden field to store selected system causes -->
+												<input type="hidden" id="hiddenSystemCauses"
+													name="possibleSystemCauses"
+													th:field="*{possibleSystemCauses}">
+
+												<!-- Table for Selected System Causes -->
+												<div id="selectedSystemSection" style="display: none;">
+													<h5>Selected System Causes:</h5>
+													<div class="table-responsive">
+														<table
+															class="table table-bordered table-hover text-center">
+															<thead class="table-primary">
+																<tr>
+																	<th>Category</th>
+																	<th>Cause</th>
+																	<th>Action</th>
+																</tr>
+															</thead>
+															<tbody id="selectedSystemItems"></tbody>
+														</table>
+													</div>
+												</div>
+
+
+											</div>
+										</div>
+
+
+									</div>
+
+
+									<div id="root-cause" class="section">
+										<br>
+										<h5 id="root-cause" class="text-secondary text-center">Root
+											Cause Analysis</h5>
+										<br>
+										<div id="whyContainer" style="padding: 15px;">
+											<!-- Existing values if present -->
+											<th:block th:if="${capa.rootCauses != null}">
+												<th:block
+													th:each="cause, iterStat : ${capa.rootCauses.split(',')}">
+													<div class="input-group mb-2">
+														<span class="input-group-text">Why <span
+															th:text="${iterStat.index + 1}"></span></span> <input
+															type="text" class="form-control why-input"
+															th:value="${cause}">
+														<button type="button" class="btn btn-danger"
+															onclick="removeWhyField(this)">−</button>
+													</div>
+												</th:block>
+											</th:block>
+										</div>
+										<input type="hidden" id="hiddenWhyCauses" name="rootCauses"
+											th:field="*{rootCauses}" />
+
+										<button type="button" class="btn btn-primary mt-2"
+											onclick="addWhyField()">+ Add Why</button>
+									</div>
+
+
+									<div id="corrective-action" class="section">
+										<h5 id="corrective-action" class="text-secondary text-center">Corrective
+											Action - CA</h5>
+
+
+										<div class="container mt-5">
+											<div class="table-container">
+												<h3 class="mb-3 text-center text-primary">Action Table</h3>
+												<div class="table-responsive">
+													<table class="table table-bordered table-hover text-center"
+														id="actionTable">
+														<thead class="table-primary">
+															<tr>
+																<th class="col-id">Sr No</th>
+																<th class="col-action">Action</th>
+																<th class="col-responsibility">Responsibility</th>
+																<th class="col-date">Due Date</th>
+																<th class="col-status">Status</th>
+															</tr>
+														</thead>
+														<tbody id="tableBody">
+															<tr th:each="action, iterStat : *{actions}">
+																<td th:text="${iterStat.index + 1}"></td>
+																<td><input type="text"
+																	th:field="*{actions[__${iterStat.index}__].action}"
+																	class="form-control" placeholder="Enter action"></td>
+																<td><input type="text"
+																	th:field="*{actions[__${iterStat.index}__].responsibility}"
+																	class="form-control" placeholder="Enter responsibility"></td>
+																<td><input type="date"
+																	th:name="'actions[' + ${iterStat.index} + '].completionDate'"
+																	th:value="${action.completionDate != null ? #temporals.format(action.completionDate, 'yyyy-MM-dd') : ''}"
+																	class="form-control" /></td>
+
+
+																<td><input type="hidden"
+																	th:field="*{actions[__${iterStat.index}__].status}"
+																	class="status-field"> <span
+																	th:text="*{actions[__${iterStat.index}__].status}"></span>
+
+
+																	<!-- ✅ Add hidden fields to preserve values --> <input
+																	type="hidden"
+																	th:field="*{actions[__${iterStat.index}__].actionId}" />
+																	<input type="hidden"
+																	th:field="*{actions[__${iterStat.index}__].submittedDate}" />
+																	<input type="hidden"
+																	th:field="*{actions[__${iterStat.index}__].comments}" />
+
+																</td>
+
+
+															</tr>
+														</tbody>
+
+													</table>
+													<!-- Add Row Button -->
+													<div class="text-center">
+														<button type="button" id="addRowBtn" class="btn add-btn">➕
+															Add Row</button>
+													</div>
+												</div>
+											</div>
+										</div>
+									</div>
+									<!-- Buttons -->
+									<div class="d-flex justify-content-between mt-4">
+
+										<button type="button" class="btn btn-secondary"
+											data-back-button
+											th:onclick="|window.location.href='@{/ehs/view/{id}(id=${incidentId})}'|">
+											Back</button>
+
+
+										<div>
+											<button type="submit" class="btn btn-warning" id="saveBtn"
+												name="action" value="save">Save</button>
+											<button type="submit" class="btn btn-primary" id="submitBtn"
+												name="action" value="submit">Submit</button>
+										</div>
+									</div>
+								</div>
+							</div>
+					</form>
+
+
+
+				</div>
+			</div>
+		</div>
+
+		<!-- Modal for Upload -->
+		<div class="modal fade" id="uploadExcelFrag" tabindex="-1"
+			aria-labelledby="modalLabel" aria-hidden="true">
+			<div class="modal-dialog">
+				<div class="modal-content">
+					<form id="modalForm" th:action="@{/files/upload-temp}"
+						method="post" enctype="multipart/form-data">
+						<div class="modal-header bg-primary">
+							<h5 class="modal-title" id="modalLabel">Upload File</h5>
+							<button type="button" class="btn-close" data-dismiss="modal"
+								aria-label="Close"></button>
+						</div>
+
+						<div class="modal-body">
+							<!-- File input with the same ID as your original -->
+							<input type="file" name="file" id="incidentFile"
+								class="form-control" style="border: 0px;" /> <input
+								type="hidden" name="_csrf" th:value="${_csrf.token}" /> <input
+								type="hidden" name="uuid" id="uuid" th:value="${uuid}">
+						</div>
+
+						<div class="modal-footer">
+							<button type="button" id="closeModal" class="btn btn-secondary"
+								data-dismiss="modal">Close</button>
+							<button type="submit" class="btn btn-primary">Submit</button>
+						</div>
+					</form>
+				</div>
+			</div>
+		</div>
+	</div>
+
+
+
+
+	<script
+		src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+
+	<div layout:fragment="scriptContent">
+		<script th:inline="javascript">
+
+$('#uploadExcelFrag').on('submit', function (event) {
+    event.preventDefault(); // Prevent default form submission
+    const form = document.getElementById('modalForm');
+    const formData = new FormData(form); // Create a FormData object
+    
+    const fileInput = form.querySelector('input[type="file"]');
+    if (!fileInput || !fileInput.files || fileInput.files.length === 0) {
+        alert("Please select a file before uploading.");
+        return;
+    }
+ 	// Restrict file size to 30MB (30 * 1024 * 1024 bytes)
+    const fileSize = fileInput.files[0].size;
+    const maxSize = 30 * 1024 * 1024;
+
+    if (fileSize > maxSize) {
+        alert("File size exceeds the 30MB limit. Please upload a smaller file.");
+        return;
+    }
+    
+    
+    
+    var csrfToken = document.querySelector('input[name="_csrf"]').value;
+    const docNo = document.getElementById('incidentId').value;
+
+   const eventForm = event.target;  
+   const docType = 'CAPA';
+   const docItemType ='HIRA';
+    
+
+    
+    const baseUrl = '/download/';   
+
+    // Perform AJAX request
+    $.ajax({
+        url: `/fileUpload/handle/${docNo}/${docType}/${docItemType}`, // Replace with your server endpoint
+        type: 'POST',
+        headers: {  
+        	"X-CSRF-TOKEN": csrfToken
+        },	
+        data: formData,
+        processData: false, 
+        contentType: false, 
+        success: function (response) {   
+            alert(response.message); 
+            let fileHtml = `<tr><td align="left" width="65%"><input type="hidden" id="fileItem" name="fileItem" value="${response.fileName}"><a href="${baseUrl}${response.fileName}/${docNo}"  target="_blank">${response.fileName}</a> &nbsp;&nbsp;<span onclick="deleteFile(this,'${response.fileName}', '${docNo}','${docType}','${docItemType}')"  class="fa fa-trash fa-lg"  ></span></td></tr>`;
+            $('#uploadManufacturabilityFile').append(fileHtml);
+            enableSubmitButton(); 
+            
+            $('#uploadExcelFrag').modal('hide'); // Hide the modal  
+        },
+        error: function (xhr, status, error) { 
+            alert('An error occurred: ' + error);
+        }
+    });
+});
+function deleteFile(element, fileName,docNo,docType,docItemType)
+{
+	 if (!confirm("Are you sure you want to delete this file?")){
+         return;
+     }
+	  var csrfToken = document.querySelector('input[name="_csrf"]').value; 
+     fetch(`/delete/${fileName}/${docNo}/${docType}/${docItemType}`, {
+         method: 'DELETE',
+         headers: { 
+         	"X-CSRF-TOKEN": csrfToken
+         },	
+     })
+     .then(response => {
+         if (response.ok) {
+             // Remove the file entry from the list
+            const tdToDelete = $(element).closest("td"); // The <td> containing the delete button
+        	const fileTypeTd = tdToDelete.prev("td");   // The <td> containing the file name
+        	const fileNameTd = fileTypeTd.prev("td");
+        	const commentTd = fileNameTd.prev("td");
+        
+	        // Remove both <td> elements
+	        tdToDelete.remove();
+	        fileTypeTd.remove(); 
+	        fileNameTd.remove();
+	        if("PPAP_INITIATION" === docType){
+	        	commentTd.remove();
+	        }
+            alert("File deleted successfully!");
+         } else {
+             alert("Failed to delete the file.");
+         }
+     })
+     .catch(error => {
+         console.error("Error:", error);
+         alert("An error occurred while deleting the file.");
+     });
+     
+ }
+
+
+window.onload = function() {
+    var capaStatusInput = document.getElementById("capaStatus");
+    if (capaStatusInput && capaStatusInput.value.trim() === "Completed") {
+        disableForm();
+    }
+};
+
+function disableForm() {
+   
+    const saveBtn = document.getElementById("saveBtn");
+    if (saveBtn) {
+        saveBtn.style.display = "none";
+    }
+
+   
+    const submitBtn = document.getElementById("submitBtn");
+    if (submitBtn) {
+        submitBtn.style.display = "none";
+    }
+
+    
+    const formElements = document.querySelectorAll("form input, form select, form textarea, form button");
+    formElements.forEach(function(element) {
+       
+    	const isBackBtn = element.hasAttribute("data-back-button");
+        const isHidden = element.type === "hidden";
+        const isSaveBtn = element.id === "saveBtn"; // Already hidden
+        const isSubmitBtn = element.id === "submitBtn"; // Already hidden
+        if (!isBackBtn && !isHidden && !isSaveBtn && !isSubmitBtn) {
+            element.disabled = true;
+        }
+    });
+}
+
+
+
+</script>
+	</div>
+
+
+
+
+
+
+</body>
+</html>

@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/web/thymeleaf/layout"
+      xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity5"
+      layout:decorate="layout">
+<body>
+<section layout:fragment="header"> 
+       <div class="container-fluid">
+        <div class="row mb-2"> 
+          <div class="col-sm-6">
+            <h1>Initiate Request for PPAP</h1>
+          </div>
+          <div class="col-sm-6">
+            <ol class="breadcrumb float-sm-right">
+              <li class="breadcrumb-item"><a href="#">Initiate Request for PPAP</a></li>
+              <li class="breadcrumb-item active">Create</li>
+            </ol>
+          </div>
+        </div>
+      </div><!-- /.container-fluid -->
+</section>
+<div layout:fragment="content">
+
+	<div th:if="${success!= null}" class="alert alert-success alert-dismissible">
+   			<i class="icon fa fa-check"></i>
+   			<span th:text="${success}" ></span>
+   	</div>
+   	<div th:if="${error!= null}" class="alert alert-danger alert-dismissible">
+   			<i class="icon fa fa-check"></i>
+   			<span th:text="${error}" ></span>
+   	</div>
+   <div class="container-fluid">
+        <div class="row">
+          <!-- left column -->
+          <div class="col-md-6">
+            <!-- general form elements -->
+            <div class="card card-primary">
+              <div class="card-header">
+                <h3 class="card-title">Create</h3>
+              </div>
+              <!-- /.card-header -->
+              <!-- form start -->
+              <form data-toggle="validator" enctype="multipart/form-data" role="form" name="myForm" id="myForm"   method="post" >
+			   <div class="card-body"> 
+                
+              
+                   
+                
+                <!-- /.card-body -->
+
+               
+              </form>
+            </div>
+           </div>
+          </div>	
+				
+			
+</div>
+<div class="modal fade" id="uploadExcelFrag" tabindex="-1" aria-labelledby="modalLabel" aria-hidden="true">
+    <div class="modal-dialog"> 
+        <div class="modal-content">
+            <form id="modalForm" th:action="@{/files/upload-temp}"  method="post" enctype="multipart/form-data">
+                <div class="modal-header bg-primary">
+                    <h5 class="modal-title" id="modalLabel">Modal Form</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                     <input type="file" th:name="file"> 
+                      <input type="hidden" name="_csrf"  th:value="${_csrf.token}" />
+                        <input type="hidden" name="uuid" id="uuid" th:value="${uuid}">
+                </div>
+                <div class="modal-footer">
+                    <button type="button"  id="closeModal" class="btn btn-default" data-dismiss="modal">Close</button>
+                    <button type="submit" class="btn btn-primary">Submit Modal</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+</div>
+
+
+
+</div>
+</body>
+</html>

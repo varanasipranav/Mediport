@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+	xmlns:layout="http://www.ultraq.net.nz/web/thymeleaf/layout"
+	xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity5"
+	layout:decorate="layout">
+<head>
+<meta charset="UTF-8">
+<title>Purchase Order</title>
+<link rel="stylesheet" type="text/css" href="../../../../resources/dist/css/table.css">
+</head>
+<body>
+	<div layout:fragment="content">
+		<div th:if="${success!= null}" class="alert alert-success alert-dismissible auto-dismiss">
+	   			<i class="icon fa fa-check"></i>
+	   			<span th:text="${success}" ></span>
+	   	</div>
+	   	<div th:if="${error!= null}" class="alert alert-danger alert-dismissible auto-dismiss">
+	   			<i class="icon fa fa-check"></i>
+	   			<span th:text="${error}" ></span>
+	   	</div>
+		<div>
+			<h1 class="text-blue text-xl text-semibold">Accepted Service PO(s)</h1>
+			<form role="form" name="filterList" id="filterList" method="get" action="/purchase-orders">
+				<div class="table-responsive hidden-xs rounded">
+
+					<div class="d-flex justify-content-between p-3 bg-white mb-3">
+						<div class="form-group col-md-5 w-100">
+							<label for="">From Date</label> <input type="date"
+								autocomplete="off"
+								class="form-control pull-right validate[required]" id="fromDate"
+								name="fromDate">
+						</div>
+	
+						<div class="form-group col-md-5">
+							<label for="">To Date</label> <input type="date"
+								autocomplete="off"
+								class="form-control pull-right validate[required]" id="toDate"
+								name="toDate">
+						</div>
+	
+						<div class="d-flex align-items-center w-50">
+							<button type="submit" class="btn btn-primary pull-right mt-3 w-100">
+								Go<i class="fa fa-paper-plane"></i>
+							</button>
+						</div>
+					</div>
+
+				</div>
+			</form>
+			<table id="poList"
+				class="styled-table table table-striped table-responsive-md text-center table-bordered">
+				<thead>
+					<tr>
+						<th>PO No.</th>
+						<th>Document Date</th>
+						<th>Purchase Group</th>
+					</tr>
+				</thead>
+				<tbody>
+					<tr th:each="po: ${PurchaseOrderList}">
+						<form th:action="@{/showPoDetail}" method="post">
+							<input type="hidden" name="poNo" th:value="${po.poNo}" /> <input
+								type="hidden" name="plant" th:value="${po.plant}" /> <input
+								type="hidden" name="vendor" th:value="${po.vendor}" /> <input
+								type="hidden" name="plant" th:value="${po.plant}" /> <input
+								type="hidden" name="coCode" th:value="${po.coCode}" /> <input
+								type="hidden" name="purOrg" th:value="${po.purOrg}" /> <input
+								type="hidden" name="purGrp" th:value="${po.purGrp}" />
+						<td>
+							<button type="submit" style="all: unset; cursor: pointer;"
+								class="text-primary" th:text="${po.poNo}"></button>
+						</td>
+						</form>
+
+
+						<td th:text="${po.docDate}"></td>
+						<td th:text="${po.purGrp}"></td>
+
+					</tr>
+				</tbody>
+			</table>
+		</div>
+	</div>
+	<div layout:fragment="scriptContent">
+
+		<script th:inline="javascript">
+			$(document).ready(function() {
+				$('#poList').DataTable({
+					"dom" : 'T<"clear">lfrtip'
+				});
+				
+				$('.auto-dismiss').each(function () {
+		            const alert = $(this);
+
+		            // Set a timeout to hide the alert after 5 seconds
+		            setTimeout(function () {
+		                alert.fadeOut(500, function () {
+		                    // Remove the element from the DOM after fading out
+		                    alert.remove();
+		                });
+		            }, 5000);
+		        });
+			});
+		</script>
+	</div>
+</body>
+<style scoped>
+.btn-container {
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	height: 100%;
+}
+</style>
+</html>
+

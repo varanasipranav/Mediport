@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/web/thymeleaf/layout"
+      xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity5"
+      layout:decorate="layout">
+<head>
+    <meta charset="UTF-8">
+    <title>Consent Compliance Forms</title>
+    <script th:src="@{/resources/dist/js/utils.js}"></script> 
+
+    <link rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+
+<body>
+<section layout:fragment="header">
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-sm-6">
+                <h1 class="text-primary text-bold text-lg ml-2">Select Vendor</h1>
+            </div>
+            <div class="col-sm-6">
+                <ol class="breadcrumb float-sm-right">
+                    <li class="breadcrumb-item"><a href="#">EHS</a></li>
+                    <li class="breadcrumb-item active">Vendors List</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+</section>
+
+	<div class="container-fluid" layout:fragment="content">
+	    <div class="row">
+	        <div class="col-12">
+	            <div class="card">
+	                <div class="card-body">
+	                	<div class="row">
+	                		<div class="col-12 col-sm-6 col-md-3">
+								<a th:href="@{'/ehs-compliance/conscent-form/' + 3700007}" style="text-decoration: none; color: inherit;">
+						            <div class="info-box">
+						              <span class="info-box-icon bg-warning elevation-1"><i class="fas fa-users"></i></span>
+						 
+						              <div class="info-box-content">
+						                <span class="info-box-text">Vilas Polymer</span>
+						                <span class="info-box-number">
+						                  3700007
+						                  <small>VI</small>
+						                </span>
+						              </div>
+						              <!-- /.info-box-content -->
+						            </div>
+						         </a>
+					            <!-- /.info-box -->
+					          </div> 
+	                	</div>
+	                </div>
+	            </div>
+	        </div>
+	    </div>
+	</div>
+	
+	
+    <div layout:fragment="scriptContent">
+        <script>
+        </script>
+    </div>
+</body>

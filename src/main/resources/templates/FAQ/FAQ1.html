@@ -1,0 +1,142 @@
+<!DOCTYPE html SYSTEM "http://www.thymeleaf.org/dtd/xhtml1-strict-thymeleaf-spring4-4.dtd">
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorator="layout">
+<head>
+<style >
+ img{
+ 	width:100%;
+ }
+ </style>
+    <title>FAQ</title>
+</head>
+<body>
+<section layout:fragment="header">
+    <h1>FAQ</h1>
+    <ol class="breadcrumb">
+        <li><a href="/"><i class="fa fa-dashboard"></i> FAQ</a></li>
+        <li class="active">Create</li>
+    </ol>
+</section>
+<div layout:fragment="content">
+	
+    <div class="box">
+ 
+     <div class="box-body">
+     <div id="faq" role="tablist" aria-multiselectable="true">
+			
+			<div class="panel panel-primary" sec:authorize="hasAnyRole('ROLE_INT')">
+			<div class="panel-heading" role="tab" id="questionOne">
+			<h5 class="panel-title">
+			<a data-toggle="collapse" data-parent="#faq" href="#answerOne" aria-expanded="false" aria-controls="answerOne">
+			How to create price approval request?
+			</a>
+			</h5>
+			</div>
+			<div id="answerOne" class="panel-collapse collapse" role="tabpanel" aria-labelledby="questionOne">
+			<div class="panel-body">
+			Follow the link.
+			Price Approval-->Create.
+			Fill the details and click on continue
+			<div><img th:src="@{/resources/images/create1.PNG}" alt="User Image" /></div>
+			<div><img th:src="@{/resources/images/create2.PNG}" alt="User Image" /></div>
+			<div><img th:src="@{/resources/images/create3.PNG}" alt="User Image" /></div>
+			<div><img th:src="@{/resources/images/create4.PNG}" alt="User Image" /></div>
+			</div>
+			
+			</div>
+			</div>
+			
+			<div class="panel panel-primary" sec:authorize="hasAnyRole('ROLE_APR','ROLE_INT','ROLE_MD_CELL')">
+			<div class="panel-heading" role="tab" id="questiontwo">
+			<h5 class="panel-title">
+			<a data-toggle="collapse" data-parent="#faq" href="#answerTwo" aria-expanded="false" aria-controls="answerTwo">
+			How to view the request list/report?
+			</a>
+			</h5>
+			</div>
+			<div id="answerTwo" class="panel-collapse collapse" role="tabpanel" aria-labelledby="questionTwo">
+			<div class="panel-body">
+			Follow the link.
+			Price Approval-->List.
+			<div><img th:src="@{/resources/images/list1.PNG}" alt="User Image" /></div>
+			</div>
+			
+			</div>
+			</div>
+			
+			<div class="panel panel-primary" sec:authorize="hasAnyRole('ROLE_APR')">
+			<div class="panel-heading" role="tab" id="questionThree">
+			<h5 class="panel-title">
+			<a data-toggle="collapse" data-parent="#faq" href="#answerThree" aria-expanded="false" aria-controls="answerThree">
+			How to approve/reject the request?
+			</a>
+			</h5>
+			</div>
+			<div id="answerThree" class="panel-collapse collapse" role="tabpanel" aria-labelledby="questionThree">
+			<div class="panel-body">
+			Click on below tab in dashboard.
+			<div><img th:src="@{/resources/images/approve1.PNG}" alt="User Image" /></div>
+			Choose the document.
+			<div><img th:src="@{/resources/images/approve2.PNG}" alt="User Image" /></div>
+			Click on Approve/Reject to act on document.
+			<div><img th:src="@{/resources/images/approve3.PNG}" alt="User Image" /></div>
+			</div>
+			
+			</div>
+			</div>
+			
+			<div class="panel panel-primary" sec:authorize="hasAnyRole('ROLE_MD_CELL')">
+			<div class="panel-heading" role="tab" id="questionFour">
+			<h5 class="panel-title">
+			<a data-toggle="collapse" data-parent="#faq" href="#answerFour" aria-expanded="false" aria-controls="answerFour">
+			How to post request to SAP?
+			</a>
+			</h5>
+			</div>
+			<div id="answerFour" class="panel-collapse collapse" role="tabpanel" aria-labelledby="questionFour">
+			<div class="panel-body">
+			Click on below tab in dashboard.
+			<div><img th:src="@{/resources/images/post1.PNG}" alt="User Image" /></div>
+			Choose the document.
+			<div><img th:src="@{/resources/images/post2.PNG}" alt="User Image" /></div>
+			Click on Approve/Reject to act on document.
+			<div><img th:src="@{/resources/images/post3.PNG}" alt="User Image" /></div>
+			</div>
+			
+			</div>
+			</div>
+			
+			<div class="panel panel-primary">
+			<div class="panel-heading" role="tab" id="questionFive">
+			<h5 class="panel-title">
+			<a data-toggle="collapse" data-parent="#faq" href="#answerFive" aria-expanded="false" aria-controls="answerFive">
+			How to reset password?
+			</a>
+			</h5>
+			</div>
+			<div id="answerFive" class="panel-collapse collapse" role="tabpanel" aria-labelledby="questionFive">
+			<div class="panel-body">
+			Click on "Forgot Your Password" link in login page
+			<div><img th:src="@{/resources/images/reset1.PNG}" alt="User Image" /></div>
+			Give your registered email id and click on Reset. Email link will be sent your email.
+			<div><img th:src="@{/resources/images/reset2.PNG}" alt="User Image" /></div>
+			</div>
+			
+			</div>
+			</div>
+
+
+		</div>
+     
+     </div>
+     </div>
+     </div>
+          
+
+
+<div layout:fragment="scriptContent">
+<script type="text/javascript">
+
+   </script>
+</div>
+</body>
+</html>

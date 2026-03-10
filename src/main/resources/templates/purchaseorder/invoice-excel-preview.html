@@ -1,0 +1,138 @@
+<!DOCTYPE html SYSTEM "http://www.thymeleaf.org/dtd/xhtml1-strict-thymeleaf-spring4-4.dtd">
+<html xmlns:th="http://www.thymeleaf.org"
+	xmlns:layout="http://www.ultraq.net.nz/web/thymeleaf/layout"
+	layout:decorate="layout">
+
+<head>
+<title>List</title>
+<style type="text/css">
+#rejectModal {
+	width: 50%;
+	height: 40%;
+	margin-left: 35%;
+	padding: 0;
+}
+
+#apprModal {
+	width: 90%;
+	height: 90%;
+	margin-left: 5%;
+	padding: 0;
+}
+
+.modal-content {
+	height: auto;
+	min-height: 100%;
+	border-radius: 0;
+}
+
+.group {
+	/* background: #eeeeee; */
+	
+}
+
+#nullifyModal {
+	z-index: 1080 !important;
+}
+</style>
+<style>
+.dataTables_filter {
+	display: inline;
+	float: right;
+}
+
+.dataTables_length {
+	display: inline;
+}
+
+.dt-buttons {
+	margin-left: 25%;
+}
+
+.input-group-addon {
+	padding: 2px 12px !important;
+}
+
+.text-primary {
+	color: #2B56A5 !important;
+}
+
+.dt-buttons {
+    margin-left: 40% !important;
+}
+
+.dataTables_filter {
+	margin-right: 16px !important;
+}
+</style>
+<link rel="stylesheet" type="text/css"
+	href="../../../../resources/dist/css/table.css">
+</head>
+<body>
+	<section layout:fragment="header">
+		<div class="container-fluid">
+			<div class="row mb-2">
+				<div class="col-sm-6">
+					<h1 class="text-primary text-bold text-lg ml-2">Budget Reports</h1>
+				</div>
+				<div class="col-sm-6">
+					<ol class="breadcrumb float-sm-right">
+						<li class="breadcrumb-item"><a href="#">Invoice</a></li>
+						<li class="breadcrumb-item active">Budget Reports</li>
+					</ol>
+				</div>
+			</div>
+		</div>
+		<!-- /.container-fluid -->
+	</section>
+	<div class="container-fluid" layout:fragment="content">
+		<div class="row">
+			<div class="col-12">
+				<div class="card">
+					<div class="card-body">
+<form method="post" action="/invoice/save-excel">
+<input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+    <table>
+        <thead>
+            <tr>
+                <th>Month</th>
+                <th>Year</th>
+                <th>Plant</th>
+                <th>Material Type</th>
+                <th>Budget Kgs</th>
+                <th>Budget CC</th>
+                <th>Budget Rt</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr th:each="row : ${previewRows}">
+                <td th:text="${row.month}"></td>
+                <td th:text="${row.year}"></td>
+                <td th:text="${row.plant}"></td>
+                <td th:text="${row.materialType}"></td>
+                <td th:text="${row.budgetKgs}"></td>
+                <td th:text="${row.budgetCC}"></td>
+                <td th:text="${row.budgetRt}"></td>
+            </tr>
+        </tbody>
+    </table>
+    <button type="submit"  class="btn btn-success">Save to Database</button>
+</form>
+
+
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+	<div layout:fragment="scriptContent">
+
+		<script type="text/javascript">
+		
+		</script>
+
+
+	</div>
+
+</body>
+</html>

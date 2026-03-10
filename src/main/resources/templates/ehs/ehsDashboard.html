@@ -1,0 +1,1354 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+	xmlns:layout="http://www.ultraq.net.nz/web/thymeleaf/layout"
+	layout:decorate="layout">
+<head>
+<meta charset="UTF-8">
+<title>Accident / Incident Investigation Report</title>
+
+<!-- Bootstrap CSS -->
+<link rel="stylesheet"
+	href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css">
+<link
+	href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+	rel="stylesheet">
+<script
+	src="https://cdn.jsdelivr.net/gh/protobi/js-xlsx@0.8.0/dist/xlsx.core.min.js"></script>
+<script
+	src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
+
+
+
+<style type="text/css">
+.parameterList {
+	padding: 10px 0;
+	height: 300px;
+	overflow-y: auto;
+	direction: rtl;
+}
+
+.parameter-btn {
+	text-align: left;
+}
+
+.parameterList::-webkit-scrollbar {
+	display: none;
+}
+
+.parameter-btn.active {
+	background-color: #0d6efd;
+	color: white;
+	border-color: #0d6efd;
+}
+
+.parameterList .parameter-btn {
+	direction: ltr; /* This keeps the buttons aligned left */
+}
+
+.table-responsive {
+	padding: 20px;
+}
+
+.border-bottom {
+	border-bottom: 3px solid #ddd;
+}
+</style>
+</head>
+
+
+
+
+<body>
+	<section layout:fragment="header">
+		<div class="container-fluid">
+			<div class="row mb-2">
+				<div class="col-sm-6">
+					<h1>EHS DASHBOARD</h1>
+				</div>
+				<div class="col-sm-6">
+					<ol class="breadcrumb float-sm-right">
+						<li class="breadcrumb-item"><a href="#">EHS</a></li>
+						<li class="breadcrumb-item active">Performance Report</li>
+					</ol>
+				</div>
+			</div>
+		</div>
+		<!-- /.container-fluid -->
+	</section>
+
+	<div class="container-fluid" layout:fragment="content">
+
+		<div class="card card-primary card-tabs">
+			<div class="card-header  p-0 pt-1 sticky-top"
+				style="top: 0; z-index: 1020;">
+				<ul class="nav nav-tabs" id="custom-tabs-one-tab" role="tablist">
+					<li class="nav-item"><a class="nav-link active"
+						id="safetyHealthTab" data-toggle="pill" href="#safetyHealth"
+						role="tab" aria-controls="safetyHealth" aria-selected="true">Safety
+							& Health Statistics</a></li>
+					<li class="nav-item"><a class="nav-link" id="environmentTab"
+						data-toggle="pill" href="#environment" role="tab"
+						aria-controls="environment" aria-selected="false">Environment
+							Statistics</a></li>
+					<li class="nav-item"><a class="nav-link"
+						id="sustainabilityTab" data-toggle="pill" href="#sustainability"
+						role="tab" aria-controls="sustainability" aria-selected="false">Sustainability</a></li>
+
+					<li class="nav-item"><a class="nav-link" id="improvmentsTab"
+						data-toggle="pill" href="#improvments" role="tab"
+						aria-controls="improvments" aria-selected="false">Improvments</a></li>
+
+					<li class="nav-item"><a class="nav-link" id="trainingHorsTab"
+						data-toggle="pill" href="#trainingHours" role="tab"
+						aria-controls="trainingHours" aria-selected="false">Training
+							Hours</a></li>
+
+					<li style="margin-left: auto; padding-left: 15px;"><a
+						href="javascript:void(0);" onclick="exportEhsReportToExcel()"
+						class="btn btn-success"
+						style="white-space: nowrap; padding: 6px 12px; display: inline-flex; align-items: center;">
+							<i class="bi bi-download" style="margin-right: 5px;"></i>
+							Download EHS Report
+					</a></li>
+
+				</ul>
+
+			</div>
+
+			<div class="card-body" style="max-height: 500px; overflow-y: auto;">
+				<div class="tab-content" id="custom-tabs-one-tabContent">
+
+
+					<!-- Safety & Health Statistics Tab Content -->
+					<div class="tab-pane fade show active" id="safetyHealth"
+						role="tabpanel" aria-labelledby="safetyHealthTab">
+
+
+						<div
+							class="d-flex justify-content-between align-items-center mb-3">
+							<!-- Toggle Switch -->
+							<div class="form-check form-switch">
+								<input class="form-check-input" type="checkbox" id="viewToggle"
+									onchange="toggleView()"> <label
+									class="form-check-label" for="viewToggle">Show Chart
+									View</label>
+
+							</div>
+
+
+							<form method="get" th:action="@{/ehs/ehsDashboard}">
+								<div class="d-flex gap-2 align-items-center">
+
+									<!-- Vendor Dropdown -->
+
+									<div
+										th:if="${#authorization.expression('hasRole(''ROLE_EHS_ADMIN'')')}">
+										<select class="form-select vendor-select" id="vendorSelect"
+											name="vendor" onchange="this.form.submit()"
+											style="width: auto;">
+											<option disabled>Select Vendor</option>
+											<option th:value="'ALL'"
+												th:selected="${'ALL' == selectedVendor}">All
+												Vendors</option>
+											<th:block th:each="v : ${vendors}">
+												<option th:value="${v}" th:text="${v}"
+													th:selected="${v == selectedVendor}">Vendor</option>
+											</th:block>
+										</select>
+									</div>
+
+
+									<!-- Financial Year Dropdown -->
+									<select class="form-select" id="financialYearSelect"
+										name="financialYear" onchange="this.form.submit()"
+										style="width: auto;">
+										<option disabled>Select Financial Year</option>
+										<option value="2022-2023"
+											th:selected="${selectedYear == '2022-2023'}">2022-2023</option>
+										<option value="2023-2024"
+											th:selected="${selectedYear == '2023-2024'}">2023-2024</option>
+										<option value="2024-2025"
+											th:selected="${selectedYear == '2024-2025'}">2024-2025</option>
+										<option value="2025-2026"
+											th:selected="${selectedYear == '2025-2026'}">2025-2026</option>
+									</select>
+
+								</div>
+							</form>
+
+
+
+
+						</div>
+
+
+						<!-- Content View Areas -->
+						<div id="tableView">
+							<div class="table-responsive" style="overflow-x: auto;">
+								<table
+									class="table table-bordered table-striped align-middle text-center"
+									id="safetyTable" style="min-width: max-content;">
+									<thead class="table-primary">
+										<tr>
+											<th style="position: sticky; left: 0; z-index: 2;"
+												class="table-info">Description</th>
+											<th class="table-info">Consolidated Data</th>
+											<th th:each="month : ${monthYears}" th:text="${month}"></th>
+										</tr>
+									</thead>
+									<tbody>
+										<tr th:each="entry : ${safetyDataMap}">
+											<!-- Fixed first column -->
+											<td
+												style="position: sticky; left: 0; font-weight: bold; ` background: white; z-index: 1;"
+												th:text="${entry.key}"></td>
+											<!-- Consolidated sum -->
+											<td th:text="${safetyConsolidatedMap[entry.key]} ?: '0'"></td>
+
+											<!-- Month-wise data in one line -->
+											<td th:each="month : ${monthYears}"
+												th:text="${entry.value.get(month)} ?: 'NA'"></td>
+										</tr>
+									</tbody>
+								</table>
+							</div>
+
+						</div>
+
+						<div id="chartView" style="display: none;">
+							<!-- Chart content will go here -->
+
+							<div class="container mt-4">
+								<div class="row">
+									<!-- Left side: Parameter Buttons in a column -->
+									<div class="col-md-3">
+										<div id="" class="d-flex flex-column gap-2 parameterList">
+											<th:block th:each="entry, stat : ${safetyDataMap}">
+												<button type="button"
+													class="btn btn-outline-primary parameter-btn"
+													th:classappend="${stat.index == 0} ? 'active' : ''"
+													th:data-param="${entry.key}" th:text="${entry.key}"
+													onclick="selectParameter(this)"></button>
+											</th:block>
+										</div>
+									</div>
+
+									<!-- Right side: Chart area in a column -->
+									<div class="col-md-9">
+										<canvas id="lineChart" width="100%" height="40"></canvas>
+									</div>
+								</div>
+							</div>
+
+
+						</div>
+
+					</div>
+
+
+
+
+					<!-- Environment Statistics Tab Content -->
+					<div class="tab-pane fade" id="environment" role="tabpanel"
+						aria-labelledby="environmentTab">
+
+
+						<div
+							class="d-flex justify-content-between align-items-center mb-3">
+							<!-- Toggle Switch -->
+							<div class="form-check form-switch">
+								<input class="form-check-input" type="checkbox"
+									id="envToggleSwitch" onchange="toggleEnvView()"> <label
+									class="form-check-label" for="envToggleSwitch">Show
+									Chart View</label>
+							</div>
+
+
+
+							<form method="get" th:action="@{/ehs/ehsDashboard}">
+								<div class="d-flex gap-2 align-items-center">
+									<div
+										th:if="${#authorization.expression('hasRole(''ROLE_EHS_ADMIN'')')}">
+										<!-- Vendor Dropdown -->
+										<select class="form-select vendor-select" id="vendorSelect"
+											name="vendor" onchange="this.form.submit()"
+											style="width: auto;">
+											<option disabled>Select Vendor</option>
+											<option th:value="'ALL'"
+												th:selected="${'ALL' == selectedVendor}">All
+												Vendors</option>
+											<th:block th:each="v : ${vendors}">
+												<option th:value="${v}" th:text="${v}"
+													th:selected="${v == selectedVendor}">Vendor</option>
+											</th:block>
+										</select>
+									</div>
+									<!-- Financial Year Dropdown -->
+									<select class="form-select" id="financialYearSelect"
+										name="financialYear" onchange="this.form.submit()"
+										style="width: auto;">
+										<option disabled>Select Financial Year</option>
+										<option value="2022-2023"
+											th:selected="${selectedYear == '2022-2023'}">2022-2023</option>
+										<option value="2023-2024"
+											th:selected="${selectedYear == '2023-2024'}">2023-2024</option>
+										<option value="2024-2025"
+											th:selected="${selectedYear == '2024-2025'}">2024-2025</option>
+										<option value="2025-2026"
+											th:selected="${selectedYear == '2025-2026'}">2025-2026</option>
+									</select>
+
+								</div>
+							</form>
+
+
+
+
+						</div>
+
+
+						<!-- Content View Areas -->
+						<div id="envTableSection" style="display: block;">
+							<div class="table-responsive" style="overflow-x: auto;">
+								<table class="table table-bordered align-middle text-center"
+									id="environmentTable" style="min-width: max-content;">
+									<thead class="table-primary">
+										<tr>
+											<th class="table-info"
+												style="position: sticky; left: 0; z-index: 2;">Description</th>
+											<th class="table-info">Consolidated Data</th>
+											<th th:each="month : ${monthYears}" th:text="${month}"></th>
+										</tr>
+									</thead>
+									<tbody>
+										<tr th:each="entry : ${envDataMap.entrySet()}">
+											<!-- SECTION HEADER ROW -->
+											<td th:if="${envIsHeaderMap[entry.key] == true}" colspan="8"
+												style="position: sticky; left: 0; right: 0; z-index: 1; background-color: #e0e0e0; font-weight: bold; text-align: center; color: black; white-space: nowrap;">
+												<span th:text="${envDisplayNames[entry.key]}"></span>
+											</td>
+
+											<!-- DATA ROWS -->
+											<th th:if="${envIsHeaderMap[entry.key] != true}"
+												style="position: sticky; left: 0; background: white; z-index: 1;"
+												th:text="${envDisplayNames[entry.key]}"></th>
+
+											<td th:if="${envIsHeaderMap[entry.key] != true}"
+												th:text="${#numbers.formatDecimal(envConsolidatedMap[entry.key],1, 'COMMA', 1, 'POINT')}">0</td>
+
+
+											<td th:if="${envIsHeaderMap[entry.key] != true}"
+												th:each="month : ${monthYears}"
+												th:text="${entry.value.get(month)} ?: 'NA'"></td>
+										</tr>
+									</tbody>
+								</table>
+							</div>
+
+						</div>
+
+						<div id="envChartSection" style="display: none;">
+							<!-- Chart content will go here -->
+							<div class="row">
+								<!-- Parameter Buttons -->
+								<div class="col-md-3">
+									<div class="d-flex flex-column gap-2 parameterList">
+										<th:block th:each="entry, stat : ${envDataMap}">
+											<!-- SECTION HEADER BUTTON (Disabled and Styled Differently) -->
+											<button type="button"
+												class="btn btn-outline-success env-parameter-btn"
+												th:if="${envIsHeaderMap[entry.key]}"
+												th:classappend="${stat.index == 0} ? 'active' : ''"
+												th:data-param="${entry.key}"
+												th:text="${envDisplayNames[entry.key]}" disabled
+												style="background-color: rgba(40, 167, 69, 0.2); color: green; font-weight: bold;">
+											</button>
+
+											<!-- DATA ROWS: Parameter Buttons (Clickable) -->
+											<button type="button"
+												class="btn btn-outline-success env-parameter-btn"
+												th:if="${!envIsHeaderMap[entry.key]}"
+												th:classappend="${stat.index == 0} ? 'active' : ''"
+												th:data-param="${entry.key}"
+												th:text="${envDisplayNames[entry.key]}"
+												onclick="selectEnvParameter(this)"></button>
+										</th:block>
+									</div>
+								</div>
+
+								<!-- Chart Area -->
+								<div class="col-md-9">
+									<canvas id="envLineChart" width="100%" height="40"></canvas>
+								</div>
+							</div>
+
+
+						</div>
+
+					</div>
+
+
+					<!-- Sustainability Tab Content -->
+					<div class="tab-pane fade" id="sustainability" role="tabpanel"
+						aria-labelledby="sustainabilityTab">
+
+						<div
+							class="d-flex justify-content-between align-items-center mb-3">
+							<!-- Toggle Switch -->
+							<div class="form-check form-switch">
+								<input class="form-check-input" type="checkbox"
+									id="susToggleSwitch" onchange="toggleSusView()"> <label
+									class="form-check-label" for="susToggleSwitch">Show
+									Chart View</label>
+							</div>
+
+
+
+							<form method="get" th:action="@{/ehs/ehsDashboard}">
+								<div class="d-flex gap-2 align-items-center">
+
+									<!-- Vendor Dropdown -->
+									<div
+										th:if="${#authorization.expression('hasRole(''ROLE_EHS_ADMIN'')')}">
+										<select class="form-select vendor-select" id="vendorSelect"
+											name="vendor" onchange="this.form.submit()"
+											style="width: auto;">
+											<option disabled>Select Vendor</option>
+											<option th:value="'ALL'"
+												th:selected="${'ALL' == selectedVendor}">All
+												Vendors</option>
+											<th:block th:each="v : ${vendors}">
+												<option th:value="${v}" th:text="${v}"
+													th:selected="${v == selectedVendor}">Vendor</option>
+											</th:block>
+										</select>
+									</div>
+
+									<!-- Financial Year Dropdown -->
+									<select class="form-select" id="financialYearSelect"
+										name="financialYear" onchange="this.form.submit()"
+										style="width: auto;">
+										<option disabled>Select Financial Year</option>
+										<option value="2022-2023"
+											th:selected="${selectedYear == '2022-2023'}">2022-2023</option>
+										<option value="2023-2024"
+											th:selected="${selectedYear == '2023-2024'}">2023-2024</option>
+										<option value="2024-2025"
+											th:selected="${selectedYear == '2024-2025'}">2024-2025</option>
+										<option value="2025-2026"
+											th:selected="${selectedYear == '2025-2026'}">2025-2026</option>
+									</select>
+
+								</div>
+							</form>
+
+
+
+
+						</div>
+
+						<!-- Content View Areas -->
+						<div id="susTableSection" style="display: block;">
+
+							<div class="table-responsive" style="overflow-x: auto;">
+								<table
+									class="table table-bordered table-striped align-middle text-center"
+									id="sustainabilityTable" style="min-width: max-content;">
+									<thead class="table-success">
+										<tr>
+											<th style="position: sticky; left: 0; z-index: 2;"
+												class="table-info">Description</th>
+											<th style="position: sticky; left: 103px; z-index: 2;"
+												class="table-info">UOM</th>
+											<th class="table-info">Consolidated Data</th>
+											<th th:each="month : ${monthYears}" th:text="${month}"></th>
+										</tr>
+									</thead>
+
+									<tbody th:with="alreadyRendered=${new java.util.HashSet()}">
+										<tr th:each="entry : ${sustainabilityDataMap}">
+											<th:block
+												th:with="
+										            desc=${#strings.arraySplit(entry.key, '_')[0]},
+										            isFirst=${!alreadyRendered.contains(desc)},
+										            ignore=${alreadyRendered.add(desc)}
+										        ">
+												<!-- Description: Span across 3 rows, show only once -->
+												<td th:if="${isFirst}" rowspan="3"
+													style="position: sticky; left: 0; text-align: center; vertical-align: middle; font-weight: bold; border-right: 2px solid #ddd; padding: 10px;">
+													<span th:text="${desc}"></span>
+												</td>
+												<td th:if="${!isFirst}" style="display: none;"></td>
+
+												<!-- UOM -->
+												<td
+													style="position: sticky; left: 103px; background: white; z-index: 1; font-weight: bold; padding: 8px 12px; text-align: center; border: 1px solid #ddd;"
+													th:text="${#strings.arraySplit(entry.key, '_')[1]}"></td>
+
+												<!-- Consolidated data -->
+												<td
+													style="padding: 8px 12px; text-align: center; border: 1px solid #ddd;"
+													th:text="${sustainabilityConsolidatedMap[entry.key] != null ? #numbers.formatDecimal(sustainabilityConsolidatedMap[entry.key], 1, 'COMMA', 1, 'POINT') : '0'}">0</td>
+
+												<!-- Month-wise values -->
+												<td
+													style="padding: 8px 12px; text-align: center; border: 1px solid #ddd;"
+													th:each="month : ${monthYears}"
+													th:text="${entry.value.get(month)} ?: 'NA'"></td>
+											</th:block>
+										</tr>
+									</tbody>
+
+								</table>
+							</div>
+
+							<br> <br>
+
+							<h3>Carbon FootPrint</h3>
+							<br>
+							<div class="table-responsive" style="overflow-x: auto;">
+								<table id="carbonFootprintTable"
+									class="table table-bordered table-striped align-middle text-center"
+									style="min-width: max-content;">
+									<thead class="table-success">
+										<tr>
+											<th style="position: sticky; left: 0; z-index: 2;"
+												class="table-info">Description</th>
+											<th class="table-info">Consolidated Data</th>
+											<th th:each="month : ${monthYears}" th:text="${month}"></th>
+										</tr>
+									</thead>
+									<tbody>
+										<tr>
+											<td
+												style="position: sticky; left: 0; background: white; z-index: 1;">Production
+												(MT)</td>
+											<td
+												th:text="${carbonFootprintTotals['Production_MT']} ?: 'NA'"></td>
+											<td th:each="month : ${monthYears}"><span
+												th:text="${carbonFootprintMap.get('Production_MT') != null ? carbonFootprintMap.get('Production_MT').get(month) : 'NA'}"></span>
+											</td>
+										</tr>
+										<tr>
+											<td
+												style="position: sticky; left: 0; background: white; z-index: 1;">Total
+												tCO2e</td>
+											<td th:text="${carbonFootprintTotals['Total_tCO2e']} ?: 'NA'"></td>
+											<td th:each="month : ${monthYears}"><span
+												th:text="${carbonFootprintMap.get('Total_tCO2e') != null ? carbonFootprintMap.get('Total_tCO2e').get(month) : 'NA'}"></span>
+											</td>
+										</tr>
+										<tr>
+											<td
+												style="position: sticky; left: 0; background: white; z-index: 1;">tCO2e
+												/ MT</td>
+											<td
+												th:text="${carbonFootprintTotals['tCO2e_per_MT']} ?: 'NA'"></td>
+											<td th:each="month : ${monthYears}"><span
+												th:text="${carbonFootprintMap.get('tCO2e_per_MT') != null ? carbonFootprintMap.get('tCO2e_per_MT').get(month) : 'NA'}"></span>
+											</td>
+										</tr>
+									</tbody>
+
+
+								</table>
+							</div>
+
+						</div>
+
+					</div>
+
+					<div id="susChartSection" style="display: none;">
+
+						<div class="row">
+							<!-- Parameter Buttons -->
+							<div class="col-md-3">
+								<div class="d-flex flex-column gap-2 parameterList">
+
+									<!-- Carbon Footprint button (DEFAULT SELECTED) -->
+									<button type="button"
+										class="btn btn-outline-danger sus-parameter-btn active"
+										data-desc="Carbon Footprint"
+										onclick="selectSusParameter(this)">Carbon Footprint</button>
+
+									<!-- Dynamic Sustainability Parameter Buttons -->
+									<th:block th:with="descRendered=${new java.util.HashSet()}">
+										<th:block th:each="entry : ${sustainabilityDataMap}">
+											<th:block
+												th:with="desc=${#strings.arraySplit(entry.key, '_')[0]}">
+												<button th:if="${descRendered.add(desc)}" type="button"
+													class="btn btn-outline-success sus-parameter-btn"
+													th:data-desc="${desc}" th:text="${desc}"
+													onclick="selectSusParameter(this)"></button>
+											</th:block>
+										</th:block>
+									</th:block>
+
+								</div>
+							</div>
+
+							<!-- Chart Area -->
+							<div class="col-md-9">
+								<canvas id="susLineChart" width="100%" height="40"
+									style="display: none;"></canvas>
+								<canvas id="carbonChart" width="100%" height="40"
+									style="display: block;"></canvas>
+							</div>
+						</div>
+					</div>
+
+					<!-- Improvment Tab Content -->
+					<div class="tab-pane fade" id="improvments" role="tabpanel"
+						aria-labelledby="improvmentsTab">
+
+						<div class="d-flex justify-content-end mb-3">
+							<form method="get" th:action="@{/ehs/ehsDashboard}">
+								<div class="d-flex gap-2 align-items-center">
+
+									<!-- Vendor Dropdown -->
+									<div
+										th:if="${#authorization.expression('hasRole(''ROLE_EHS_ADMIN'')')}">
+
+										<select class="form-select vendor-select" id="vendorSelect"
+											name="vendor" onchange="this.form.submit()"
+											style="width: auto;">
+											<option disabled>Select Vendor</option>
+											<option th:value="'ALL'"
+												th:selected="${'ALL' == selectedVendor}">All
+												Vendors</option>
+											<th:block th:each="v : ${vendors}">
+												<option th:value="${v}" th:text="${v}"
+													th:selected="${v == selectedVendor}">Vendor</option>
+											</th:block>
+										</select>
+									</div>
+
+									<!-- Financial Year Dropdown -->
+									<select class="form-select" id="financialYearSelect"
+										name="financialYear" onchange="this.form.submit()"
+										style="width: auto;">
+										<option disabled>Select Financial Year</option>
+										<option value="2022-2023"
+											th:selected="${selectedYear == '2022-2023'}">2022-2023</option>
+										<option value="2023-2024"
+											th:selected="${selectedYear == '2023-2024'}">2023-2024</option>
+										<option value="2024-2025"
+											th:selected="${selectedYear == '2024-2025'}">2024-2025</option>
+										<option value="2025-2026"
+											th:selected="${selectedYear == '2025-2026'}">2025-2026</option>
+									</select>
+
+								</div>
+							</form>
+						</div>
+
+						<div th:each="entry : ${monthToInitiativesEntrySet}" class="mb-4">
+
+							<h5 class="text-center fw-bold py-2 bg-light border rounded"
+								th:text="${entry.key}">Month-Year</h5>
+
+
+							<table class="table table-bordered table-sm align-middle">
+								<thead class="table-secondary">
+									<tr class="text-center">
+										<th style="width: 5%;">Sr</th>
+										<th style="width: 70%;">Initiative</th>
+										<th style="width: 25%;">Document</th>
+									</tr>
+								</thead>
+								<tbody>
+									<tr th:if="${#lists.isEmpty(entry.value)}">
+										<td colspan="3" class="text-center text-muted py-3"><i
+											class="fas fa-info-circle me-1"></i> No improvements
+											available for this month.</td>
+									</tr>
+
+									<tr th:each="initiative, iterStat : ${entry.value}">
+										<td class="text-center align-middle"
+											th:text="${iterStat.count}"></td>
+										<td class="align-middle" th:text="${initiative.initiative}">Initiative
+											Detail</td>
+										<td class="text-center align-middle"><a
+											th:if="${initiativeFileMap != null and initiative.id != null and initiativeFileMap[initiative.id] != null}"
+											th:href="@{'/view/' + ${initiativeFileMap[initiative.id]} + '/' + ${initiative.id} + '/MIS/Improvments'}"
+											class="btn btn-sm btn-outline-info"> <i
+												class="fas fa-eye"></i> View
+										</a></td>
+									</tr>
+								</tbody>
+							</table>
+
+						</div>
+
+
+					</div>
+
+					<!-- Training Hours Tab Content -->
+					<div class="tab-pane fade" id="trainingHours" role="tabpanel"
+						aria-labelledby="trainingHorsTab">
+
+						<div class="d-flex justify-content-end mb-3">
+							<form method="get" th:action="@{/ehs/ehsDashboard}">
+								<div class="d-flex gap-2 align-items-center">
+
+									<!-- Vendor Dropdown -->
+									<div
+										th:if="${#authorization.expression('hasRole(''ROLE_EHS_ADMIN'')')}">
+
+										<select class="form-select vendor-select" id="vendorSelect"
+											name="vendor" onchange="this.form.submit()"
+											style="width: auto;">
+											<option disabled>Select Vendor</option>
+											<option th:value="'ALL'"
+												th:selected="${'ALL' == selectedVendor}">All
+												Vendors</option>
+											<th:block th:each="v : ${vendors}">
+												<option th:value="${v}" th:text="${v}"
+													th:selected="${v == selectedVendor}">Vendor</option>
+											</th:block>
+										</select>
+									</div>
+
+									<!-- Financial Year Dropdown -->
+									<select class="form-select" id="financialYearSelect"
+										name="financialYear" onchange="this.form.submit()"
+										style="width: auto;">
+										<option disabled>Select Financial Year</option>
+										<option value="2022-2023"
+											th:selected="${selectedYear == '2022-2023'}">2022-2023</option>
+										<option value="2023-2024"
+											th:selected="${selectedYear == '2023-2024'}">2023-2024</option>
+										<option value="2024-2025"
+											th:selected="${selectedYear == '2024-2025'}">2024-2025</option>
+										<option value="2025-2026"
+											th:selected="${selectedYear == '2025-2026'}">2025-2026</option>
+									</select>
+
+								</div>
+							</form>
+						</div>
+
+
+
+						<div th:each="entry : ${monthToTrainingRecordsEntrySet}"
+							class="mb-4">
+							<h4 class="text-center fw-bold py-2 bg-light border rounded"
+								th:text="${entry.key}">Month-Year</h4>
+
+							<table class="table table-bordered table-sm align-middle"
+								id="trainingRecordTable">
+								<thead class="table-secondary">
+									<tr>
+										<th>Sr</th>
+										<th>Training Name</th>
+										<th>Trainer</th>
+										<th>Training Date</th>
+										<th>No of Participants</th>
+										<th>No of Hours</th>
+										<th>Total Hours</th>
+										<th>Action</th>
+									</tr>
+								</thead>
+								<tbody>
+									<tr th:if="${entry.value[0].id == null}">
+										<td colspan="8" class="text-center text-muted py-3"><i
+											class="fas fa-info-circle me-1"></i>No training records
+											available for this month.</td>
+									</tr>
+									<tr th:each="record, iterStat : ${entry.value}"
+										th:if="${record.id != null}">
+										<td th:text="${iterStat.count}"></td>
+
+										<td><input type="hidden" name="trainingRecordIds"
+											th:value="${record.id}" /> <input type="text"
+											class="form-control form-control-sm" name="trainingNames"
+											th:value="${record.trainingName}" /></td>
+
+										<td><input type="text"
+											class="form-control form-control-sm" name="trainers"
+											th:value="${record.trainer}" /></td>
+
+										<td><input type="date"
+											class="form-control form-control-sm" name="trainingDate"
+											th:value="${#dates.format(record.trainingDate, 'yyyy-MM-dd')}" />
+										</td>
+
+										<td><input type="number" min="0"
+											class="form-control form-control-sm no-of-participants"
+											name="noOfParticipants" th:value="${record.noOfParticipants}" />
+										</td>
+
+										<td><input type="number" step="0.01" min="0"
+											class="form-control form-control-sm no-of-hours"
+											name="noOfHours" th:value="${record.noOfHours}" /></td>
+
+										<td><input type="number" step="0.01" min="0"
+											class="form-control form-control-sm total-hours"
+											name="totalHours" th:value="${record.totalHours}" readonly />
+										</td>
+
+										<td class="text-center">
+
+											<div
+												class="d-flex justify-content-center align-items-center gap-2 w-100">
+
+
+												<!-- View Button -->
+												<a
+													th:if="${record.id != null and trainingFileMap != null and trainingFileMap[record.id] != null}"
+													th:href="@{'/view/' + ${trainingFileMap[record.id]} + '/' + ${record.id} + '/TRAINING/TrainingHours'}"
+													class="btn btn-info btn-sm" target="_blank"> <i
+													class="fas fa-eye"></i>
+												</a>
+											</div>
+										</td>
+									</tr>
+								</tbody>
+							</table>
+						</div>
+
+
+
+					</div>
+
+				</div>
+			</div>
+		</div>
+
+
+
+
+
+	</div>
+
+	<div layout:fragment="scriptContent">
+		<script th:inline="javascript">
+			
+		    // Function to toggle between table and chart view
+		    function toggleView() {
+		        const isChecked = document.getElementById("viewToggle").checked;
+		        const tableView = document.getElementById("tableView");
+		        const chartView = document.getElementById("chartView");
+
+		        // Toggle the views based on the checkbox state
+		        tableView.style.display = isChecked ? "none" : "block";
+		        chartView.style.display = isChecked ? "block" : "none";
+
+		        // Update the label based on the current state
+		        document.querySelector("label[for='viewToggle']").innerText = isChecked ? "Show Table View" : "Show Chart View";
+		    }
+
+		    // Initialize the view based on the checkbox state when the page loads
+		    window.onload = function() {
+		        toggleView(); 
+		    };
+		    
+		    function toggleEnvView() {
+		        const isChecked = document.getElementById("envToggleSwitch").checked;
+		        const envTable = document.getElementById("envTableSection");
+		        const envChart = document.getElementById("envChartSection");
+
+		        if (!envTable || !envChart) return;
+
+		        envTable.style.display = isChecked ? "none" : "block";
+		        envChart.style.display = isChecked ? "block" : "none";
+
+		        document.querySelector("label[for='envToggleSwitch']").innerText = isChecked
+		            ? "Show Table View"
+		            : "Show Chart View";
+		    }
+		    
+		    function toggleSusView() {
+		        const isChecked = document.getElementById("susToggleSwitch").checked;
+		        const susTable = document.getElementById("susTableSection");
+		        const susChart = document.getElementById("susChartSection");
+
+		        if (!susTable || !susChart) return;
+
+		        susTable.style.display = isChecked ? "none" : "block";
+		        susChart.style.display = isChecked ? "block" : "none";
+
+		        document.querySelector("label[for='susToggleSwitch']").innerText = isChecked
+		            ? "Show Table View"
+		            : "Show Chart View";
+		    }
+		    
+
+		    document.addEventListener("DOMContentLoaded", () => {
+		        const tabButtons = document.querySelectorAll('.nav-link');
+
+		        tabButtons.forEach(tab => {
+		            tab.addEventListener('click', () => {
+		                const targetTabId = tab.getAttribute('data-bs-target') || tab.getAttribute('href');
+
+		                const susChart = document.getElementById("susChartSection");
+		                const toggle = document.getElementById("susToggleSwitch");
+
+		                if (targetTabId === '#sustainability') {
+		                    // If we're switching to the Sustainability tab, call the toggle logic
+		                    if (typeof toggleSusView === 'function') {
+		                        toggleSusView();
+		                    }
+		                } else {
+		                    // Switching away from Sustainability tab — hide chart section
+		                    if (susChart) susChart.style.display = "none";
+		                }
+		            });
+		        });
+		    });
+
+	
+
+
+			function submitForm() {
+				document.forms[0].submit();
+			}
+			
+			// chart
+			
+	 const safetyDataMap = [[${safetyDataMap}]];
+    const monthLabels = /*[[${monthYears}]]*/ [];
+
+    let lineChart;
+
+    // On page load: auto-select first parameter
+  document.addEventListener("DOMContentLoaded", () => {
+    const firstParamBtn = document.querySelector('.parameter-btn');
+    if (firstParamBtn) {
+        firstParamBtn.click(); // Trigger click to select and draw chart
+    }
+});
+
+
+
+    function selectParameter(button) {
+        document.querySelectorAll('.parameter-btn').forEach(btn => btn.classList.remove('active'));
+        button.classList.add('active');
+        updateChart(button.dataset.param);
+    }
+
+    function updateChart(param) {
+        const dataPoints = safetyDataMap[param] || {};
+
+        const values = monthLabels.map(month => {
+            const val = dataPoints[month];
+            return isNaN(val) ? 0 : parseFloat(val);
+        });
+
+        if (lineChart) lineChart.destroy();
+
+        const ctx = document.getElementById("lineChart").getContext("2d");
+        lineChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: monthLabels,
+                datasets: [{
+                    label: param,
+                    data: values,
+                    borderColor: 'rgba(13, 110, 253, 1)',
+                    backgroundColor: 'rgba(13, 110, 253, 0.2)',
+                    tension: 0.4,
+                    fill: false
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+    }
+    
+    // Chart for ENV
+    
+    const envDataMap = /*[[${envDataMap}]]*/ {};
+const envMonthLabels = /*[[${monthYears}]]*/ [];
+
+let envLineChart;
+
+window.onload = function () {
+    toggleView();  // Your original view logic
+    const firstEnvParam = document.querySelector('.env-parameter-btn')?.dataset.param;
+    if (firstEnvParam) updateEnvChart(firstEnvParam);
+};
+
+function selectEnvParameter(button) {
+    document.querySelectorAll('.env-parameter-btn').forEach(btn => btn.classList.remove('active'));
+    button.classList.add('active');
+    updateEnvChart(button.dataset.param);
+}
+
+function updateEnvChart(param) {
+    const dataPoints = envDataMap[param] || {};
+    const values = envMonthLabels.map(month => {
+        const val = dataPoints[month];
+        return isNaN(val) ? 0 : parseFloat(val);
+    });
+
+    if (envLineChart) envLineChart.destroy();
+
+    const ctx = document.getElementById("envLineChart").getContext("2d");
+    envLineChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: envMonthLabels,
+            datasets: [{
+                label: param,
+                data: values,
+                borderColor: 'rgba(40, 167, 69, 1)',
+                backgroundColor: 'rgba(40, 167, 69, 0.2)',
+                tension: 0.4,
+                fill: false
+            }]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: { beginAtZero: true }
+            }
+        }
+    });
+}
+
+//CARBON CHART
+
+   const carbonFootprintMap = [[${carbonFootprintMap}]];
+    const carbonMonthLabels = /*[[${monthYears}]]*/ [];
+
+    let carbonLineChart;
+
+    document.addEventListener("DOMContentLoaded", () => {
+        const productionDataMap = carbonFootprintMap["Production_MT"] || {};
+        const tco2ePerMTDataMap = carbonFootprintMap["tCO2e_per_MT"] || {};
+
+        const productionValues = carbonMonthLabels.map(month => {
+            const val = productionDataMap[month];
+            return isNaN(val) ? 0 : parseFloat(val);
+        });
+
+        const tco2ePerMTValues = carbonMonthLabels.map(month => {
+            const val = tco2ePerMTDataMap[month];
+            return isNaN(val) ? 0 : parseFloat(val);
+        });
+
+        const ctx = document.getElementById("carbonChart").getContext("2d");
+
+        carbonLineChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: carbonMonthLabels,
+                datasets: [
+                    {
+                        label: "Production (MT)",
+                        data: productionValues,
+                        borderColor: "rgba(54, 162, 235, 1)",
+                        backgroundColor: "rgba(54, 162, 235, 0.2)",
+                        tension: 0.3,
+                        fill: false,
+                        yAxisID: 'y-axis-1'
+                    },
+                    {
+                        label: "tCO2e / MT",
+                        data: tco2ePerMTValues,
+                        borderColor: "rgba(255, 99, 132, 1)",
+                        backgroundColor: "rgba(255, 99, 132, 0.2)",
+                        tension: 0.3,
+                        fill: false,
+                        yAxisID: 'y-axis-2'
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                tooltips: {
+                    mode: 'index',
+                    intersect: false
+                },
+                scales: {
+                    xAxes: [{
+                        display: true,
+                        scaleLabel: {
+                            display: true,
+                            labelString: 'Month'
+                        }
+                    }],
+                    yAxes: [
+                        {
+                            id: 'y-axis-1',
+                            type: 'linear',
+                            position: 'left',
+                            scaleLabel: {
+                                display: true,
+                                labelString: 'Production (MT)'
+                            },
+                            ticks: {
+                                beginAtZero: true
+                            }
+                        },
+                        {
+                            id: 'y-axis-2',
+                            type: 'linear',
+                            position: 'right',
+                            scaleLabel: {
+                                display: true,
+                                labelString: 'tCO2e / MT'
+                            },
+                            ticks: {
+                                beginAtZero: true
+                            },
+                            gridLines: {
+                                drawOnChartArea: false
+                            }
+                        }
+                    ]
+                }
+            }
+        });
+
+        
+        
+        }); 
+    
+    // sustainablity
+const sustainabilityDataMap = /*[[${sustainabilityDataMap}]]*/ {};
+const susmonthLabels = /*[[${monthYears}]]*/ [];
+
+let susChart;
+
+function selectSusParameter(button) {
+    const selectedDesc = button.getAttribute("data-desc");
+
+    // Highlight the selected button
+    document.querySelectorAll('.sus-parameter-btn').forEach(btn => btn.classList.remove('active'));
+    button.classList.add('active');
+
+    // Toggle chart visibility
+    const carbonChartEl = document.getElementById("carbonChart");
+    const susChartEl = document.getElementById("susLineChart");
+
+    if (selectedDesc === "Carbon Footprint") {
+        carbonChartEl.style.display = "block";
+        susChartEl.style.display = "none";
+        return;
+    } else {
+        carbonChartEl.style.display = "none";
+        susChartEl.style.display = "block";
+    }
+
+    // Filter keys like "HSD_KL", "HSD_GJ", etc.
+    const filteredKeys = Object.keys(sustainabilityDataMap)
+        .filter(key => key.startsWith(selectedDesc + "_"));
+
+    const datasets = filteredKeys.map((key, index) => {
+        const uom = key.split("_")[1];
+        const valueMap = sustainabilityDataMap[key];
+
+        const data = susmonthLabels.map(month => {
+            const val = valueMap[month];
+            return isNaN(val) ? 0 : parseFloat(val);
+        });
+
+        const color = getColor(index);
+
+        return {
+            label: uom,
+            data: data,
+            borderColor: color,
+            backgroundColor: hexToRGBA(color, 0.2),
+            fill: false,
+            tension: 0.3
+        };
+    });
+
+
+    // Destroy old chart
+    if (susChart) {
+        susChart.destroy();
+    }
+
+    // Create new chart
+    const ctx = susChartEl.getContext("2d");
+    susChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: susmonthLabels,
+            datasets: datasets
+        },
+        options: {
+            responsive: true,
+            scales: {
+                x: {
+                    title: {
+                        display: true,
+                        text: 'Month'
+                    }
+                },
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+}
+
+// Helpers
+const colorPalette = ["#007bff", "#28a745", "#dc3545", "#ffc107", "#17a2b8", "#6f42c1", "#fd7e14"];
+
+function getColor(index) {
+    return colorPalette[index % colorPalette.length]; // loops if more UOMs than colors
+}
+
+
+function hexToRGBA(hex, alpha) {
+    const bigint = parseInt(hex.slice(1), 16);
+    const r = (bigint >> 16) & 255;
+    const g = (bigint >> 8) & 255;
+    const b = bigint & 255;
+    return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+}
+
+// Auto-select Carbon Footprint on load
+document.addEventListener("DOMContentLoaded", () => {
+    const defaultBtn = document.querySelector('[data-desc="Carbon Footprint"]');
+    if (defaultBtn) {
+        selectSusParameter(defaultBtn);
+    }
+});
+
+
+  
+    
+
+
+    
+    $(document).ready(function () {
+    	// Restore last active tab from localStorage
+    	var activeTab = localStorage.getItem('activeTab');
+    	if (activeTab) {
+    		$('a[href="' + activeTab + '"]').tab('show');
+    	}
+
+    	// Save tab on click
+    	$('a[data-toggle="pill"]').on('shown.bs.tab', function (e) {
+    		localStorage.setItem('activeTab', $(e.target).attr('href'));
+    	});
+    });
+    
+    
+    function exportEhsReportToExcel() {
+        const wb = XLSX.utils.book_new();
+        const vendor = document.getElementById('vendorSelect').value || 'Vendor';
+        const financialYear = document.getElementById('financialYearSelect').value || 'FY';
+
+        const tables = [
+            { id: 'safetyTable', name: 'Safety' },
+            { id: 'environmentTable', name: 'Environment' },
+            { id: 'sustainabilityTable', name: 'Sustainability' },
+            { id: 'carbonFootprintTable', name: 'Carbon Footprint' }
+        ];
+
+        tables.forEach(table => {
+            const htmlTable = document.getElementById(table.id);
+            if (htmlTable) {
+                let ws = XLSX.utils.table_to_sheet(htmlTable, { raw: true });
+
+                const range = XLSX.utils.decode_range(ws['!ref']);
+                const columnWidths = [];
+
+                for (let R = range.s.r; R <= range.e.r; ++R) {
+                    for (let C = range.s.c; C <= range.e.c; ++C) {
+                        const cellAddress = { r: R, c: C };
+                        const cellRef = XLSX.utils.encode_cell(cellAddress);
+                        const cell = ws[cellRef];
+                        if (!cell) continue;
+
+                        // Basic style: border and center
+                        cell.s = {
+                            border: {
+                                top: { style: "thin", color: { auto: 1 } },
+                                bottom: { style: "thin", color: { auto: 1 } },
+                                left: { style: "thin", color: { auto: 1 } },
+                                right: { style: "thin", color: { auto: 1 } }
+                            },
+                            alignment: {
+                                vertical: "center",
+                                horizontal: "center",
+                                wrapText: true
+                            }
+                        };
+
+                        // Highlight header row
+                        if (R === 0) {
+                            cell.s.fill = {
+                                fgColor: { rgb: "CCE5FF" } // Light blue
+                            };
+                            cell.s.font = { bold: true };
+                        }
+
+                        // Highlight description column
+                        if (C === 0) {
+                            cell.s.fill = {
+                                fgColor: { rgb: "FFF3CD" } // Light yellow
+                            };
+                            cell.s.font = { bold: true };
+                        }
+
+                        // Auto-track max column width
+                        const cellValue = cell.v ? cell.v.toString() : '';
+                        const width = Math.max(10, Math.min(30, cellValue.length + 5));
+                        columnWidths[C] = Math.max(columnWidths[C] || 10, width);
+                    }
+                }
+
+                // Set column widths
+                ws['!cols'] = columnWidths.map(w => ({ wch: w }));
+
+                XLSX.utils.book_append_sheet(wb, ws, table.name);
+            }
+        });
+
+        const fileName = `EHS_Report_${vendor}_${financialYear}.xlsx`;
+        XLSX.writeFile(wb, fileName, { bookType: 'xlsx', cellStyles: true });
+    }
+
+    
+    
+    document.addEventListener("DOMContentLoaded", () => {
+        const vendorInfoMap = {
+        		  "3700014": "EXEL RUBBER LTD",
+                  "3700005": "TRAMBAK RUBBER INDUSTRIES LTD",
+                  "3700007": "ZAHI TYRES (INDIA) PRIVATE LIMITED",
+                  "3700001": "ART RUBBER INDUSTRIES LIMITED",
+                  "3700008": "Rubber King Tyre Pvt. Ltd",
+                  "3700015": "ACE TYRES PRIVATE LIMITED",
+                  "3700013": "AMRIT RUBBER INDUSTRIES",
+                  "3700006": "VILAS POLYMER LIMITED",
+                  "3507138": "Demo",
+                  "Select Vendor":"Select Vendor"
+        };
+
+        const vendorSelects = document.querySelectorAll(".vendor-select");
+        vendorSelects.forEach(select => {
+            Array.from(select.options).forEach(opt => {
+                const val = opt.value.trim();
+                if (vendorInfoMap[val]) {
+                    opt.text = vendorInfoMap[val];
+                } else if (val !== 'ALL' && val !== '') {
+                    opt.text = val + " - (Unknown Plant)";
+                }
+            });
+        });
+    });
+
+
+    
+		</script>
+	</div>
+</body>
+
+
+</html>

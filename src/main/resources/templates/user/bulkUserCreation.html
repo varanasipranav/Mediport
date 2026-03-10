@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/web/thymeleaf/layout"
+      layout:decorate="layout">
+
+<head>
+    <meta charset="ISO-8859-1">
+    <title>Bulk User Creation</title>
+
+</head>
+<body>
+<section layout:fragment="header">
+    <h1>
+        Bulk User Creation
+    </h1>
+</section>
+<div layout:fragment="content">
+    <form method="post" enctype="multipart/form-data" action="/user/uploadUsersExcel">
+        <input type="hidden" name="_csrf" th:value="${_csrf.token}" />
+        <input type="file" name="file" accept=".xlsx" required />
+        <button type="submit">Upload Users</button>
+    </form>
+    <a href="/user/downloadSampleExcel">Download Sample Excel</a>
+</div>
+
+
+
+<div layout:fragment="scriptContent">
+    <script th:inline="javascript">
+
+    </script>
+</div>
+
+</body>
+</html>

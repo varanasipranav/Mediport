@@ -1,0 +1,1324 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/web/thymeleaf/layout"
+      xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity5"
+      layout:decorate="layout">
+
+<head>
+  <title>QMIS</title>
+  <!-- Bootstrap CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@2.9.4"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@0.7.0"></script>
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    function showUploadModal(button) {
+        const uploadModal = document.getElementById('uploadExcelFrag');
+        const fileInput = document.getElementById('incidentFile');
+        const closeBtn = document.getElementById('closeModal');
+
+          const qmisType = button.getAttribute('data-qmis-type');
+          document.getElementById('qmisType').value = qmisType;
+
+        // Initialize Bootstrap modal
+        const modal = new bootstrap.Modal(uploadModal);
+
+        // Clear file input and show modal
+        if (fileInput) {
+          fileInput.value = '';
+        }
+        modal.show();
+    }
+      function deleteFile(element, fileName,docNo,docType,docItemType)
+      {
+           if (!confirm("Are you sure you want to delete this file?")){
+               return;
+           }
+            var csrfToken = document.querySelector('input[name="_csrf"]').value;
+           fetch(`/delete/${fileName}/${docNo}/${docType}/${docItemType}`, {
+               method: 'DELETE',
+               headers: {
+                  "X-CSRF-TOKEN": csrfToken
+               },
+           })
+           .then(response => {
+               if (response.ok) {
+                   const uploadBtnEle = document.getElementById('uploadBtn_' + docItemType.replace(/\s/g, '_'));
+                   if (uploadBtnEle) {
+                      uploadBtnEle.style.display = 'block';
+                   }
+                   // Remove the file entry from the list
+                  const tdToDelete = $(element).closest("td"); // The <td> containing the delete button
+                  const fileTypeTd = tdToDelete.prev("td");   // The <td> containing the file name
+                  const fileNameTd = fileTypeTd.prev("td");
+                  const commentTd = fileNameTd.prev("td");
+
+                  // Remove both <td> elements
+                  tdToDelete.remove();
+                  fileTypeTd.remove();
+                  fileNameTd.remove();
+              <!--                        if("PPAP_INITIATION" === docType){-->
+              <!--                            commentTd.remove();-->
+              <!--                        }-->
+                  alert("File deleted successfully!");
+               } else {
+                   alert("Failed to delete the file.");
+               }
+           })
+           .catch(error => {
+               console.error("Error:", error);
+               alert("An error occurred while deleting the file.");
+           });
+
+      }
+  </script>
+  <style>
+    .template-row {
+      display: flex;
+      flex-wrap: wrap;
+    }
+    .content-header{
+      padding: 5px !important;
+    }
+
+    .form-section {
+      height: 80px;
+      min-width: 250px;
+      background: #f8f9fa;
+      padding: 5px;
+      border-radius: 12px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+      display: flex;
+      flex-direction: row;
+      justify-content: left;
+    }
+
+    .chart-section {
+      min-width: 300px;
+      background: #fff;
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+      height: 400px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .accordion-item {
+      border: 1px solid #e9ecef;
+      margin-bottom: 0.75rem;
+      border-radius: 12px !important;
+      overflow: hidden;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.02);
+    }
+
+    .accordion-button {
+      background-color: #f8f9fa;
+      color: #2c3e50;
+      font-weight: 600;
+      padding: 1.25rem 1.5rem;
+      font-size: 1.1rem;
+      transition: all 0.3s ease;
+      height: 50px !important;
+    }
+
+    .accordion-button:not(.collapsed) {
+      background-color: #e7f1ff;
+      color: #0d6efd;
+      box-shadow: none;
+    }
+
+    .accordion-button:hover {
+      background-color: #e9ecef;
+    }
+
+    .accordion-button:focus {
+      box-shadow: none;
+      border-color: #dee2e6;
+    }
+
+    .accordion-body {
+      padding-right: 1.5rem;
+      background-color: #fff;
+      min-height: 400px;
+    }
+
+    .form-section label {
+      margin-bottom: 0.75rem;
+      display: block;
+      color: #495057;
+      font-weight: 500;
+    }
+
+    .form-section input[type="number"] {
+      width: 100%;
+      padding: 0.625rem 1rem;
+      border: 2px solid #e9ecef;
+      border-radius: 8px;
+<!--      margin-bottom: 1.5rem;-->
+      transition: all 0.3s ease;
+      font-size: 1rem;
+    }
+
+    .form-section input[type="number"]:focus {
+      border-color: #0d6efd;
+      box-shadow: 0 0 0 3px rgba(13,110,253,0.1);
+      outline: none;
+    }
+
+    .form-section input[type="file"] {
+      width: 100%;
+      padding: 0.5rem;
+      border: 2px dashed #e9ecef;
+      border-radius: 8px;
+      margin-bottom: 1.5rem;
+      cursor: pointer;
+    }
+
+    .btn-primary {
+      padding: 0.625rem 2rem;
+      font-weight: 500;
+      border-radius: 8px;
+      transition: all 0.3s ease;
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 8px rgba(13,110,253,0.2);
+    }
+
+    .chart-section canvas {
+      width: 100% !important;
+      height: 100% !important;
+      border-radius: 8px;
+      background-color: #ffffff;
+    }
+
+    .last-month-label {
+      color: #0d6efd;
+      font-weight: 600;
+    }
+
+    /* Card styling */
+    .card.card-primary {
+      border: none;
+      border-radius: 15px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+      margin-bottom: 2rem;
+    }
+
+    /* Header styling */
+    .center {
+      text-align: center;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    /* Alert styling */
+    .alert {
+      margin-top: 1rem;
+      display: none;
+    }
+    .accordion-filled{
+        background-color: #4CAF50 !important;
+        color: white !important;
+    }
+   .icon-text-container {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      vertical-align: middle;
+    }
+
+    .icon-text-container i,
+    td a i.fa-trash {
+      font-size: 1rem;
+      vertical-align: middle;
+      line-height: 1;
+    }
+
+    td a i.fa-trash {
+      margin-top: 10px;
+    }
+
+    table[id^="uploadManufacturabilityFile_"] tr:first-child td {
+      border-top: none !important;
+    }
+  .status-icon {
+    position: absolute;
+    top: -40px;
+    right: -24px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  /* Outer black circle */
+  .arrow-circle {
+    width: 60px;
+    height: 60px;
+    border: 2px solid black;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: white;
+    box-sizing: border-box;
+  }
+
+  /* Full arrow body */
+  .arrow-body {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  /* Vertical green rectangle with text */
+  .arrow-text {
+    background-color: green;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 2px 6px;
+    border-radius: 2px 2px 0 0;
+  }
+
+  .arrow-text span {
+    color: white;
+    font-size: 10px;
+    font-weight: bold;
+    line-height: 10px;
+  }
+
+  /* Bigger triangle arrowhead — directly touching rectangle */
+  .arrow-head {
+    width: 0;
+    height: 0;
+    border-left: 17px solid transparent;
+    border-right: 17px solid transparent;
+    border-top: 14px solid green;
+    margin-top: -1px; /* Overlap slightly to remove gap */
+  }
+
+  /* Status circle below arrow */
+  .status-dot {
+    margin-top: 6px;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+  }
+
+  .status-dot.green {
+    background-color: green;
+  }
+
+  .status-dot.red {
+    background-color: red;
+  }
+  .form-group{
+    margin-bottom: 0px;
+  }
+
+
+
+  </style>
+</head>
+<body>
+<!-- <section layout:fragment="header">
+  <h3 class="center">QMIS</h3>
+</section> -->
+
+<div layout:fragment="content">
+
+  <div class="card card-primary">
+    <div class="d-flex justify-content-between align-items-center" style="margin: 0px 10px;">
+      <div>
+        <span class="badge bg-success me-2" id="filledCount">Filled: 0</span>
+        <span class="badge bg-danger" id="pendingCount">Pending: 0</span>
+      </div>
+      <div>
+        <button type="button" class="btn btn-secondary me-2" id="collapseAllBtn">Collapse All</button>
+        <button type="button" class="btn btn-secondary" id="openAllBtn">Open All</button>
+      </div>
+    </div>
+    <!-- Tabs -->
+    <div>
+      <div class="card-body">
+        <form id="qmisForm" th:action="@{/qmis/saveFormData}" method="post" enctype="multipart/form-data">
+          <input type="hidden" id="eqhCurrentStep" th:value="${docHeader.eqhCurrentStep}" />
+          <input type="hidden" id="eqhCurrentParticipant" th:value="${docHeader.eqhCurrentParticipant}" />
+          <input type="hidden" id="eqhNextParticipant" th:value="${docHeader.eqhNextParticipant}" />
+          <input type="hidden" id="eqhNextStep" th:value="${docHeader.eqhNextStep}" />
+
+          <div class="accordion" id="qmisAccordion">
+            <div th:each="template, stat : ${templates}" class="accordion-item">
+              <h2 class="accordion-header">
+                <button class="accordion-button" type="button"
+                        th:classappend="${!stat.first ? 'collapsed' : ''}"
+                        th:data-bs-target="'#collapse_' + ${#strings.replace(template.eqftQmisType, ' ', '_')}"
+                        aria-expanded="false">
+                  <span th:text="${template.eqftQmisType}"></span>
+                </button>
+              </h2>
+
+              <div th:id="'collapse_' + ${#strings.replace(template.eqftQmisType, ' ', '_')}"
+                   class="accordion-collapse collapse"
+                   th:classappend="${stat.first ? 'show' : ''}"
+                   data-bs-parent="#qmisAccordion">
+                <div class="accordion-body">
+                  <div class="template-row" style="display: flex; flex-direction: column;">
+                    <!-- FORM SECTION -->
+                    <div class="form-section" th:id="'form_section_' + ${template.eqftId}" style="display: flex; flex-wrap: wrap; gap: 20px;">
+                      <input type="hidden" name="_csrf" th:value="${_csrf.token}" />
+                      <input type="hidden" name="eqftId" th:value="${template.eqftId}" />
+                      <input type="hidden" name="eqftMaterialType" th:value="${template.eqftMaterialType}" />
+                      <input type="hidden" name="eqftType" th:value="${template.eqftType}" />
+                      <input type="hidden" name="eqftQmisType" id="eqftQmisType" th:value="${template.eqftQmisType}" />
+
+                      <div class="" id="qmisMonthValueLabel" style="margin-left: 20px;">
+                        <label style="margin-bottom: 0px;">Enter Value for <span class="last-month-label"></span>:</label>
+                        <input type="number" class="form-control track-input" th:name="'eqftValue_' + ${template.eqftQmisType}"/>
+                      </div>
+                      <div class="form-group" id="fileUploadSection" style="display: flex; flex-direction: row; align-items: center; gap: 10px;padding-top: 15px">
+                        <input type="hidden" name="docId" id="docId" th:value="${docId}">
+                        <input type="hidden" name="qmisType" id="qmisType" th:value="${template.eqftQmisType}" />
+                        <input type="hidden" name="eqftVendor" id="eqftVendor" th:value="${vendorCode}" />
+                        <div class="center">
+                          <button type="button" id="qmisSaveBtn" class="btn btn-primary save-section-btn"
+                                  th:data-template-id="${template.eqftId}">Save</button>
+                        </div>
+                        <div class="form-group" style="display: flex; justify-content: center;">
+                          <table class="table table-striped table-hover" style="margin: 0; border-top: none;"
+                                 th:id="'uploadManufacturabilityFile_' + ${#strings.replace(template.eqftQmisType, ' ', '_')}"></table>
+                        </div>
+                        <div class="alert alert-success" role="alert" th:id="'success_alert_' + ${template.eqftId}"
+                             style="text-wrap: nowrap; margin: 0px; padding: 5px;">
+                          Saved successfully!
+                        </div>
+                        <div class="alert alert-danger" role="alert" th:id="'error_alert_' + ${template.eqftId}"
+                             style="text-wrap: nowrap; margin: 0px; padding: 5px;">
+                          Please try again.
+                        </div>
+                        <div class="input-group" style="justify-content: center;">
+                          <a onclick="showUploadModal(this)" class="btn btn-warning" th:id="'uploadBtn_'+${#strings.replace(template.eqftQmisType, ' ', '_')} " th:data-qmis-type="${template.eqftQmisType}">
+                            <i class="fa fa-upload" style="color: green"></i> Upload File
+                          </a>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div class="chart-section" style="margin-top: 20px; height: 350px; position: relative;">
+                      <canvas th:id="'chart_' + ${template.eqftQmisType}"
+                              style="height: 100%; display: block; width: 100%;"></canvas>
+
+                      <div class="status-icon" >
+                        <div class="arrow-circle">
+                          <div class="arrow-body">
+                            <div class="arrow-text">
+                              <span>G</span>
+                              <span>O</span>
+                              <span>O</span>
+                              <span>D</span>
+                            </div>
+                            <div class="arrow-head"></div>
+                          </div>
+                        </div>
+                        <div class="status-dot green" th:id="'status-dot_' + ${template.eqftQmisType}"></div>
+                      </div>
+                    </div>
+                  </div>
+              </div>
+            </div>
+          </div>
+          <div class="center">
+            <div id="submitBtnWrapper" title="">
+              <button type="submit" id="submitBtn" class="btn btn-primary"
+                      th:text="${userRoles.contains('ROLE_OS_CQA_CEAT') ? 'Approve' : 'Submit'}">
+                Submit</button>
+            </div>
+          </div>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+  <!-- Modal for Upload -->
+  <div class="modal fade" id="uploadExcelFrag" tabindex="-1" aria-labelledby="modalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <form id="modalForm" enctype="multipart/form-data">
+          <div class="modal-header">
+            <h5 class="modal-title" id="modalLabel">Upload File</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <input type="file" name="file" id="incidentFile" class="form-control">
+            <input type="hidden" name="_csrf" th:value="${_csrf.token}">
+            <input type="hidden" name="uuid" id="uuid" th:value="${uuid}">
+          </div>
+          <div class="modal-footer">
+            <button type="button" id="closeModal" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            <button type="submit" class="btn btn-primary">Submit</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Bootstrap JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.mein.js"></script>
+
+<!-- Chart.js Script Section -->
+<div layout:fragment="scriptContent">
+  <script th:inline="javascript">
+    document.addEventListener('DOMContentLoaded', function() {
+      const templatesLength = [[${#lists.size(templates)}]];
+      const UOM = [[${UOM}]];
+      const chartInstances = {};
+      const chartDataSeries = [[${chartData}]];
+      console.log(chartDataSeries);
+      const currentMonth = [[${currentMonth}]];
+      const currentYear = [[${currentYear}]];
+      const monthNameMap = {
+        1: "Jan", 2: "Feb", 3: "Mar", 4: "Apr", 5: "May", 6: "Jun",
+        7: "Jul", 8: "Aug", 9: "Sep", 10: "Oct", 11: "Nov", 12: "Dec"
+      };
+      const docId = [[${docId}]];
+      const docHeader = [[${docHeader}]];
+      const userRoles = [[${userRoles}]];
+      const userId = [[${userId}]];
+      const vendorCode = [[${vendorCode}]];
+      const actualByFy = [[${actualByFy}]];
+      const graphFYLabel = [[${graphFYLabel}]];
+      const materialType = [[${materialType}]];
+      const currentParticipant = document.getElementById('eqhCurrentParticipant').value;
+      console.log(userRoles, "userRoles", userId, "userId");
+      let submitted = 0;
+      let pending = 0;
+
+      const elementsToHide = document.querySelectorAll('#qmisMonthValueLabel, #qmisSaveBtn');
+
+      if (userRoles.includes("ROLE_OS_QA_CEAT") || userRoles.includes("ROLE_OS_CQA_CEAT")) {
+        elementsToHide.forEach(element => {
+            element.hidden = true;
+        });
+      }
+
+       const observer = new MutationObserver(function(mutationsList) {
+        for (const mutation of mutationsList) {
+          if (mutation.type === 'childList') {
+            const deleteIcons = document.querySelectorAll('.fa.fa-trash.text-danger');
+            if (deleteIcons.length > 0 && userRoles.includes("ROLE_OS_CQA_CEAT")) {
+                deleteIcons.forEach(icon => {
+                    icon.hidden = true; // Hides each delete icon
+                });
+                observer.disconnect(); // Stop observing once icons are processed
+            }
+          }
+        }
+       });
+
+
+       function updateInputs(){
+         if(docHeader.eqhVendorStatus == "SUBMITTED" && userRoles.includes("ROLE_VEND")) {
+             // get all inputs with eqftValue_type3 and disable them
+            const inputs = document.querySelectorAll('input[name^="eqftValue_"]');
+            inputs.forEach(input => {
+              input.disabled = true;
+            });
+            // get all save buttons and disable them
+            const saveButtons = document.querySelectorAll('.save-section-btn');
+            saveButtons.forEach(button => {
+              button.disabled = true;
+            });
+            // get all upload buttons and disable them
+            const uploadButtons = document.querySelectorAll('a[id^="uploadBtn_"]');
+            uploadButtons.forEach(button => {
+              button.style.display = 'none';
+            });
+         }
+         if(docHeader.eqhQaStatus == "SUBMITTED" && userRoles.includes("ROLE_OS_QA_CEAT")) {
+            // get all upload buttons and disable them
+            const uploadButtons = document.querySelectorAll('a[id^="uploadBtn_"]');
+            uploadButtons.forEach(button => {
+              button.style.display = 'none';
+            });
+         }
+       }
+      // Start observing the body for changes
+      observer.observe(document.body, { childList: true, subtree: true });
+       function updateCounters() {
+          submitButton = document.getElementById('submitBtn');
+          if(!userRoles.includes(currentParticipant) && currentParticipant !=""){
+            const wrapper = document.getElementById('submitBtnWrapper');
+            submitButton.disabled = true;
+  <!--      const tooltipMsg = "Data submitted successfully! Next participant: " + docHeader.eqhCurrentParticipant.replace("ROLE_OS_", "");-->
+            const tooltipMsg = "Data submitted successfully! Next participant: ";
+            wrapper.title = tooltipMsg;
+          }
+          // currentUser == currentRole
+          else if(userRoles.includes(currentParticipant) && currentParticipant != ""){
+            if(userRoles.includes("OS_CQA")){
+              docHeader.eqhQaStatus == "APPROVED" ? submitButton.disabled = true: submitButton.disabled=false;
+            }
+            else if(templatesLength == submitted) {
+              submitButton.disabled = false;
+            }
+            else{
+              submitButton.disabled = true;
+            }
+          }
+          else {
+            submitButton.disabled = true;
+          }
+          document.getElementById('filledCount').textContent = `Filled: ${submitted}`;
+          document.getElementById('pendingCount').textContent = `Pending: ${pending}`;
+       }
+
+       function updateStatusDot(type3, cumulativeForecast, cumulativeActual) {
+          const statusDot = document.getElementById("status-dot_" + type3);
+          if (statusDot) {
+            statusDot.classList.remove("green", "red");
+            if (cumulativeForecast < cumulativeActual) {
+              statusDot.classList.add("red");
+            } else {
+              statusDot.classList.add("green");
+            }
+          }
+       }
+
+      function updateHeader() {
+           fetch(`/qmis/saveHeader/${docId}`, {
+              method: 'POST',
+              headers: {
+                "X-CSRF-TOKEN": document.querySelector('input[name="_csrf"]').value
+              },
+            })
+            .then(response => {
+              if(response.ok) {
+                  alert("Data submitted successfully!");
+                    location.reload();
+              } else {
+<!--                console.error("Error updating header");-->
+              }
+            })
+            .catch(error => {
+                console.error("Error:", error);
+                alert("An error occurred while submitting the data.");
+              });
+      }
+      function submitQmisData(formData) {
+        const csrfToken = document.querySelector('input[name="_csrf"]').value;
+        fetch(`/qmis/saveFormData`, {
+          method: 'POST',
+          headers: {
+            "X-CSRF-TOKEN": csrfToken
+          },
+          body: formData
+        })
+        .then(response => {
+          if (response.ok) {
+            updateHeader();
+
+          }
+          else {
+            alert("Error submitting data.");
+          }
+        })
+        .catch(error => {
+          console.error("Error:", error);
+          alert("An error occurred while submitting the data.");
+        });
+      }
+      function getLastMonthInfo() {
+        const currentMonth = [[${currentMonth}]];
+        const currentYear = [[${currentYear}]];
+        const lastMonthNumber = currentMonth;
+        const lastMonthYear = currentYear;
+
+        return {
+          monthNumber: lastMonthNumber,
+          yearFull: lastMonthYear,
+          yearShort: lastMonthYear.toString().slice(-2),
+          monthName: monthNameMap[lastMonthNumber]
+        };
+      }
+        function getActualData(type3) {
+          const series = chartDataSeries.find(item => item.type3 === type3);
+          if (series) {
+            return {
+              qmisActualLabels: series.actualLabels,
+              qmisActualValues: series.actualValues
+            };
+          } else {
+            console.error(`No data found for type3: ${type3}`);
+            return {
+              qmisActualLabels: [],
+              qmisActualValues: []
+            };
+          }
+        }
+
+        function deleteFile(element, fileName,docNo,docType,docItemType)
+            {
+                 if (!confirm("Are you sure you want to delete this file?")){
+                     return;
+                 }
+                  var csrfToken = document.querySelector('input[name="_csrf"]').value;
+                 fetch(`/delete/${fileName}/${docNo}/${docType}/${docItemType}`, {
+                     method: 'DELETE',
+                     headers: {
+                        "X-CSRF-TOKEN": csrfToken
+                     },
+                 })
+                 .then(response => {
+                     if (response.ok) {
+                         // Remove the file entry from the list
+                        const tdToDelete = $(element).closest("td"); // The <td> containing the delete button
+                        const fileTypeTd = tdToDelete.prev("td");   // The <td> containing the file name
+                        const fileNameTd = fileTypeTd.prev("td");
+                        const commentTd = fileNameTd.prev("td");
+
+                        // Remove both <td> elements
+                        tdToDelete.remove();
+                        fileTypeTd.remove();
+                        fileNameTd.remove();
+                        alert("File deleted successfully!");
+                     } else {
+                         alert("Failed to delete the file.");
+                     }
+                 })
+                 .catch(error => {
+                     console.error("Error:", error);
+                     alert("An error occurred while deleting the file.");
+                 });
+
+            }
+        function createChart(ctx, type3, actualLabels, actualValues, forecastLabels, forecastValues, barLabels, barValues, cumulativeForecast, cumulativeActual, allPreviousYearValues, UOM) {
+                const allLabels = [...barLabels, ...actualLabels, 'budgetYTD', 'actualYTD'];
+                 Chart.plugins.register(window.ChartDataLabels);
+                 const maxValue = Math.max(...actualValues, ...forecastValues, ...barValues, cumulativeForecast, cumulativeActual);
+
+                const chart = new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: allLabels,
+                        datasets: [
+                            {
+                                type: 'bar',
+                                label: type3 + ' FY Performance',
+                                data: [barValues[0],null,null, ...Array(actualLabels.length).fill(null), null, null],
+                                backgroundColor: 'orange',
+                                categoryPercentage: 0.8,
+                                barPercentage: 1.0,
+                                maxBarThickness: 60,
+                                minBarLength: 5,
+                                grouped: false,
+                                stack: 'stack1',
+                                order: 1
+                            },
+                            {
+                                type: 'bar',
+                                label: type3 + ' FY Performance',
+                                data: [null, barValues[1],null, ...Array(actualLabels.length).fill(null), null, null],
+                                backgroundColor: '#44b7c2',
+                                categoryPercentage: 0.8,
+                                barPercentage: 1.0,
+                                maxBarThickness: 60,
+                                minBarLength: 5,
+                                grouped: false,
+                                stack: 'stack1',
+                                order: 1
+                            },
+                            {
+                                type: 'bar',
+                                label: type3 + ' FY Performance',
+                                data: [null,null,barValues[2], ...Array(actualLabels.length).fill(null), null, null],
+                                backgroundColor: 'red',
+                                categoryPercentage: 0.8,
+                                barPercentage: 1.0,
+                                maxBarThickness: 60,
+                                minBarLength: 5,
+                                grouped: false,
+                                stack: 'stack1',
+                                order: 1
+                            },
+                            {
+                                type: 'line',
+                                label: 'Actual',
+                                data: [...Array(barLabels.length).fill(null), ...actualValues, null, null],
+                                borderColor: 'blue',
+                                backgroundColor: 'blue',
+                                borderWidth: 2,
+                                pointRadius: 2,
+                                fill: false,
+                                tension: 0,
+                                datalabels: {
+                                  display: true,  // Show labels for this dataset
+                                  align: 'top',
+                                  offset: true,
+                                  color: 'blue',
+                                  formatter: function(value) {
+                                    return value !== null ? value : '';
+                                  }
+                                }
+                            },
+                            {
+                                type: 'line',
+                                label: 'Budget',
+                                data: [...Array(barLabels.length).fill(null), ...forecastValues, null, null],
+                                borderColor: 'green',
+                                backgroundColor: 'green',
+                                borderWidth: 2,
+                                pointRadius: 2,
+                                fill: false,
+                                tension: 0,
+                                datalabels: {
+                                  display: true,  // Show labels for this dataset
+                                  align: 'top',
+                                  offset: 7,
+                                  color: 'green',
+                                  formatter: function(value) {
+                                    return value !== null ? value : '';
+                                  }
+                                }
+                            },
+                            {
+                                type: 'bar',
+                                label: 'budgetYTD',
+                                data: [...Array(barLabels.length).fill(null), ...Array(actualLabels.length).fill(null), cumulativeForecast,null ],
+                                backgroundColor: 'green',
+                                borderColor: 'green',
+                                datalabels: {
+                                  display: true,  // Show labels for this dataset
+                                  align: 'top',
+                                  offset: 7,
+                                  color: 'green',
+                                  formatter: function(value) {
+                                    return value !== null ? value : '';
+                                  }
+                                },
+                                categoryPercentage: 0.8,  // Fixed at 80% of category width
+                                barPercentage: 1.0,       // Use full space within category percentage
+                                maxBarThickness: 60,      // Maximum thickness in pixels
+                                minBarLength: 5,          // Minimum bar length for tiny values
+                                grouped: false,           // Not grouped with other bars
+                                stack: 'stack1',          // Each bar in its own stack
+                                order: 1
+                            },
+                            {
+                                type: 'bar',
+                                label: 'actualYTD',
+                                data: [...Array(barLabels.length).fill(null), ...Array(actualLabels.length).fill(null),null , cumulativeActual],
+                                backgroundColor: 'blue',
+                                datalabels: {
+                                  display: true,  // Show labels for this dataset
+                                  align: 'top',
+                                  offset: 7,
+                                  color: 'blue',
+                                  formatter: function(value) {
+                                    return value !== null ? value : '';
+                                  }
+                                },
+                                categoryPercentage: 0.8,  // Fixed at 80% of category width
+                                barPercentage: 1.0,       // Use full space within category percentage
+                                maxBarThickness: 60,      // Maximum thickness in pixels
+                                minBarLength: 5,          // Minimum bar length for tiny values
+                                grouped: false,           // Not grouped with other bars
+                                stack: 'stack1',          // Each bar in its own stack
+                                order: 1
+                            }
+                        ]
+                    },
+                    options: {
+                      stacked: true,
+                      responsive: true,
+                      devicePixelRatio: 2,
+                      maintainAspectRatio: true,
+                      legend: {
+                          position: 'bottom', // Legend moved to bottom
+                            labels: {
+                                fontColor: 'black',
+                                fontSize: 10,
+                                fontStyle: 'bold',
+                                boxWidth: 15
+                            }
+                      },
+                       title: {
+                          display: false,
+                          text: type3 ,
+                          fontSize: 20,
+                          fontColor: 'black',
+                          fontStyle: 'bold',
+                          padding: 20
+                        },
+                      plugins: {
+                        datalabels: {
+                          align: 'top',
+                          anchor: 'end',
+                          color: 'black',
+                          font: {
+                              weight: 'bold',
+                              size: 12,
+                              padding: 5
+                          },
+                          formatter: function(value, context) {
+                              // Hide labels on null points
+                              return value == null ? '' : value;
+                          }
+                        }
+                      },
+                      scales: {
+                          xAxes: [{
+                                gridLines: {
+                                  display: true,
+                                  drawBorder: true,
+                                  drawOnChartArea: true,
+                                  color: 'rgba(200, 200, 200, 0.2)',
+                                  lineWidth: 1,
+                                  drawTicks: false
+                                },
+                                ticks: {
+                                  fontColor: 'black',
+                                  fontStyle: 'bold',
+                                  fontSize: 12,
+                                  autoSkip: false,
+                                  maxRotation: 90,
+                                  minRotation: 90,
+                                  align: 'center',
+                                  padding: 10
+                                },
+                                scaleLabel: {
+                                  display: true,
+                                  labelString: graphFYLabel,
+                                  marginTop: 3,
+                                  padding: 0
+                                }
+                          }],
+                          yAxes: [{
+                              gridLines: {
+                                display: true,
+                                drawBorder: true,
+                                drawOnChartArea: true,
+                                color: 'rgba(200, 200, 200, 0.2)',
+                                lineWidth: 1,
+                                drawTicks: false
+                              },
+                              ticks: {
+                                  beginAtZero: true,
+                                  fontColor: 'black',
+                                  fontStyle: 'bold',
+                                  fontSize: 12,
+                                  padding: 10,
+                                  suggestedMax: maxValue > 0 ? Math.ceil(maxValue * 1.05):0.5
+                              },
+                              scaleLabel: {
+                                display: true,
+                                labelString: type3 + ' (' + UOM + ')',
+                              }
+                          }]
+                      }
+                    }
+                });
+
+         chart.canvas.addEventListener('click', function(evt) {
+            const activePoints = chart.getElementAtEvent(evt);
+
+            if (activePoints.length > 0) {
+                const clickedIndex = activePoints[0]._index;
+                const datasetIndex = activePoints[0]._datasetIndex;
+
+                const label = chart.data.labels[clickedIndex];
+                const datasetLabel = chart.data.datasets[datasetIndex].label;
+                console.log("actualByFy", actualByFy);
+
+                console.log(`Chart ID: ${chart.canvas.id} | Dataset: ${datasetLabel} | Label: ${label}`);
+
+                if (chart.data.datasets[datasetIndex].type === 'bar' && datasetLabel !== 'budgetYTD' && datasetLabel != 'actualYTD') {
+                    console.log(allPreviousYearValues[label]);
+                    const monthlyValues = [...barLabels, ...allPreviousYearValues[label], null,null];
+                    const barColor = chart.data.datasets[datasetIndex].backgroundColor;
+
+                    // Check if the line chart for this label already exists
+                    const existingDatasetIndex = chart.data.datasets.findIndex(
+                        (dataset) => dataset.label === `Monthly Data for ${label}`
+                    );
+
+                    if (existingDatasetIndex !== -1) {
+                        // Remove the existing line chart dataset
+                        chart.data.datasets.splice(existingDatasetIndex, 1);
+                    } else {
+                        // Add a new dataset for the line chart
+                        let maxActual = Math.max(...monthlyValues.filter(value => value !== null));
+                        let maxValue = Math.max(...chart.data.datasets.map(ds =>
+                            Math.max(...ds.data.filter(v => v !== null && !isNaN(v)))),maxActual);
+
+                        chart.data.datasets.push({
+                            type: 'line',
+                            label: `Monthly Data for ${label}`,
+                            data: monthlyValues,
+                            borderColor: barColor,
+                            backgroundColor: barColor,
+                            borderWidth: 2,
+                            pointRadius: 2,
+                            fill: false,
+                            tension: 0.1,
+                            datalabels: {
+                                display: true,
+                                align: 'top',
+                                color: barColor,
+                                formatter: function(value) {
+                                    return value !== null ? value : '';
+                                }
+                            }
+                        });
+                    }
+                    chart.update();
+                }
+            }
+        });
+
+          return chart;
+        }
+
+
+    function hideUploadBtn(type3) {
+         const uploadBtnEle = document.getElementById('uploadBtn_' + type3.replace(/\s/g, '_'));
+         if (uploadBtnEle) {
+            uploadBtnEle.style.display = 'none';
+         }
+    }
+
+    chartDataSeries.forEach(chart => {
+       const type3 = chart.type3;
+       //File
+       const fileDetails = chart.uploadedFiles;
+       console.log(fileDetails, "fileDetails");
+       if(fileDetails.length > 0) {
+         fileDetails.forEach(file => {
+           const tableId = 'uploadManufacturabilityFile_' + type3.replace(/\s/g, '_');
+           let fileHtml = `
+                  <tr>
+                    <td align="left" width="65%">
+                      <input type="hidden" id="fileItem" name="fileItem" value="${file.fileName}">
+                      <a href="/view/${file.fileName}/${docId}/QMIS/${type3}" target="_blank" class="text-primary icon-text-container">
+                        <i class="fa fa-file-alt"></i>
+                        <span>${file.fileName}</span>
+                      </a>
+                    </td>
+                    <td align="right" id="deleteIcon">
+                      <a onclick="deleteFile(this,'${file.fileName}', '${docId}','QMIS','${type3}')" class="btn btn-sm p-0">
+                        <i class="fa fa-trash text-danger"></i>
+                      </a>
+                    </td>
+                  </tr>`;
+
+           $('#' + tableId).append(fileHtml);
+         });
+         hideUploadBtn(type3);
+       }
+
+        // Actuals
+        const actualLabels = chart.actualLabels;
+        const actualValues = chart.actualValues;
+
+        //cumulative actual / forecast
+        const cumulativeForecast = chart.cumulativeForecastValues;
+        const cumulativeActual = chart.cumulativeActualValues
+        updateStatusDot(type3, cumulativeForecast, cumulativeActual);
+
+        // Forecast
+        const forecastLabels = chart.forecastLabels;
+        const forecastValues = chart.forecastValues;
+
+        // Previous years (bar)
+        const barLabels = chart.barLabels;
+        const barValues = chart.barValues;
+
+        //all prev Years(bar to lines)
+        const allPreviousYearValues = chart.allPreviousYearValues;
+        const UOM = chart.uom;
+
+        console.log("Type3:", type3);
+        console.log("Actual:", actualLabels, actualValues);
+        console.log("Forecast:", forecastLabels, forecastValues);
+        console.log("Previous FY:", barLabels, barValues);
+
+        const ctxId = 'chart_' + type3;
+        const ctx = document.getElementById(ctxId);
+        if (!ctx) return;
+
+        chartInstances[type3] = createChart(ctx, type3, actualLabels, actualValues, forecastLabels, forecastValues, barLabels, barValues, cumulativeForecast, cumulativeActual,allPreviousYearValues, UOM);
+        const accordionButton = document.querySelector(`button[data-bs-target="#collapse_${type3.replace(/\s/g, '_')}"]`);
+        if (accordionButton) {
+          // Find the last month's label
+          const { monthName } = getLastMonthInfo();
+          const monthIndex = actualLabels.indexOf(monthName);
+          if (monthIndex !== -1 && actualValues[monthIndex] != null) {
+              submitted++;
+              accordionButton.classList.add('accordion-filled');
+            } else {
+              pending++;
+            }
+        }
+        });
+       updateCounters();
+      updateInputs();
+      // Initialize all accordions
+      const accordionButtons = document.querySelectorAll('.accordion-button');
+      accordionButtons.forEach(button => {
+        button.addEventListener('click', function() {
+          const target = this.getAttribute('data-bs-target');
+          const content = document.querySelector(target);
+          if (content) {
+            if (this.classList.contains('collapsed')) {
+              this.classList.remove('collapsed');
+              content.classList.add('show');
+            } else {
+              this.classList.add('collapsed');
+              content.classList.remove('show');
+            }
+          }
+        });
+      });
+
+      // Update all month labels
+      const { monthName, yearShort, monthNumber, yearFull } = getLastMonthInfo();
+      document.querySelectorAll('.last-month-label').forEach(label => {
+        label.textContent = `${monthName} ${yearShort}`;
+      });
+
+      // Handle input changes
+      const inputs = document.querySelectorAll('.track-input');
+      inputs.forEach(input => {
+        input.addEventListener('input', function() {
+          const nameAttr = this.getAttribute('name');
+          const qmisType = nameAttr.split('_')[1];
+          const value = this.value.trim() === '' ? null : parseFloat(this.value);
+
+          if (chartInstances[qmisType]) {
+            const chart = chartInstances[qmisType];
+            const actualDataset = chart.data.datasets[3];
+            const monthIndex = chart.data.labels.indexOf(monthNameMap[monthNumber]);
+            // i want the highest value from actualDataset
+            if (monthIndex !== -1) {
+              actualDataset.data[monthIndex] = value;
+              let maxActual = Math.max(...actualDataset.data)
+              let maxValue = Math.max(...chart.data.datasets.map(ds =>
+               Math.max(...ds.data.filter(v => v !== null && !isNaN(v)))),maxActual);
+              chart.options.scales.yAxes[0].ticks.suggestedMax = maxValue > 0 ? Math.ceil(maxValue * 1.05):0.5;
+              chart.update();
+            }
+          }
+        });
+      });
+
+      // Handle save button clicks
+      document.querySelectorAll('.save-section-btn').forEach(button => {
+        button.addEventListener('click', function(e) {
+          e.preventDefault();
+
+          const templateId = this.getAttribute('data-template-id');
+          const formSection = document.getElementById('form_section_' + templateId);
+          const successAlert = document.getElementById('success_alert_' + templateId);
+          const errorAlert = document.getElementById('error_alert_' + templateId);
+
+          successAlert.style.display = 'none';
+          errorAlert.style.display = 'none';
+
+          const formData = new FormData();
+
+          // Adding all input data from this section
+           const inputs = formSection.querySelectorAll('input');
+          inputs.forEach(input => {
+            if (input.type === 'file') {
+              // Log file input details to debug
+              console.log('File input name:', input.name);
+              console.log('File input has files:', input.files.length > 0);
+
+              if (input.files.length > 0) {
+                formData.append(input.name, input.files[0]);
+                console.log('Appended file:', input.files[0].name);
+              }
+            } else {
+              formData.append(input.name, input.value);
+              console.log('Appended field:', input.name, '=', input.value);
+            }
+          });
+
+          // Add current month information
+          const currentDate = new Date();
+          const lastMonthDate = new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1);
+          const lastMonthNumber = lastMonthDate.getMonth() + 1;
+          const lastMonthYear = lastMonthDate.getFullYear();
+
+          formData.append('month', monthNumber);
+          formData.append('year', yearFull);
+<!--          uploadFile()-->
+
+          // Make the AJAX call
+          fetch('/qmis/saveSection', {
+            method: 'POST',
+            body: formData,
+            credentials: 'same-origin'
+          })
+          .then(response => {
+            if (!response.ok) {
+              throw new Error('Network response was not ok');
+            }
+          })
+          .then(data => {
+              let EzqmisType = formSection.querySelector('input[name="eqftQmisType"]').value;
+              const savedValue = parseFloat(formSection.querySelector(`input[name="eqftValue_${EzqmisType}"]`).value);
+              const chart = chartDataSeries.find(c => c.type3 === EzqmisType);
+              const { monthName } = getLastMonthInfo();
+              if (chart) {
+                const monthIndex = chart.actualLabels.indexOf(monthName);
+                if (monthIndex !== -1) {
+                  if(chart.actualValues[monthIndex] == null) {
+                    submitted++;
+                    pending--;
+                    chart.actualValues[monthIndex] = savedValue;
+                    const accordionButton = document.querySelector(`button[data-bs-target="#collapse_${EzqmisType.replace(/\s/g, '_')}"]`);
+                    if (accordionButton) {
+                      accordionButton.classList.add('accordion-filled');
+                    }
+                  }
+                  chart.actualValues[monthIndex] = savedValue;
+                  const valid = chart.actualValues.filter(v => !isNaN(parseFloat(v)));
+                  const actualAverage = Number((valid.reduce((a, v) => a + parseFloat(v), 0) / (valid.length || 1)).toFixed(2));
+                  chartInstance = chartInstances[EzqmisType];
+                  const instIndex = chartInstance.data.datasets[3].data.length;
+                  chartInstance.data.datasets[6].data[instIndex-1] = actualAverage;
+                  updateStatusDot(EzqmisType, chartInstance.data.datasets[5].data[instIndex-2] , chartInstance.data.datasets[6].data[instIndex-1] );
+                  chartInstance.update();
+                  updateCounters();
+                }
+              }
+            // Show success message
+            successAlert.style.display = 'block';
+            setTimeout(() => {
+              successAlert.style.display = 'none';
+            }, 2000);
+            const inputElement = formSection.querySelector(`input[name="eqftValue_${EzqmisType}"]`);
+            if(inputElement){inputElement.value = "";}
+          })
+          .catch(error => {
+            console.error('Error saving data:', error);
+            errorAlert.style.display = 'block';
+            setTimeout(() => {
+              errorAlert.style.display = 'none';
+            }, 2000);
+          });
+        });
+      });
+      console.log(pending, submitted);
+
+      document.getElementById('collapseAllBtn').addEventListener('click', function () {
+      const accordionItems = document.querySelectorAll('.accordion-collapse');
+      accordionItems.forEach(item => {
+          item.classList.remove('show');
+          const button = item.previousElementSibling.querySelector('.accordion-button');
+          if (button) button.classList.add('collapsed');
+        });
+      });
+
+      document.getElementById('openAllBtn').addEventListener('click', function () {
+        const accordionItems = document.querySelectorAll('.accordion-collapse');
+        accordionItems.forEach(item => {
+          item.classList.add('show');
+          const button = item.previousElementSibling.querySelector('.accordion-button');
+          if (button) button.classList.remove('collapsed');
+        });
+      });
+
+
+      const uploadExcelFrag = document.getElementById('uploadExcelFrag');
+        uploadExcelFrag.addEventListener('submit', function () {
+        event.preventDefault(); // Prevent default form submission
+        const form = document.getElementById('modalForm');
+        const formData = new FormData(form); // Create a FormData object
+
+        const fileInput = form.querySelector('input[type="file"]');
+        if (!fileInput || !fileInput.files || fileInput.files.length === 0) {
+            alert("Please select a file before uploading.");
+            return;
+        }
+        // Restrict file size to 30MB (30 * 1024 * 1024 bytes)
+        const fileSize = fileInput.files[0].size;
+        const maxSize = 30 * 1024 * 1024;
+
+        if (fileSize > maxSize) {
+            alert("File size exceeds the 30MB limit. Please upload a smaller file.");
+            return;
+        }
+        var csrfToken = document.querySelector('input[name="_csrf"]').value;
+        const docNo = document.getElementById('docId').value.trim();
+        const eventForm = event.target;
+        const docType = 'QMIS';
+        const docItemType = document.getElementById('qmisType').value;
+        const baseUrl = '/download/';
+        const baseViewUrl = '/view/';
+
+        // Perform AJAX request
+        $.ajax({
+            url: `/fileUpload/handle/${docNo}/${docType}/${docItemType}`, // Replace with your server endpoint
+            type: 'POST',
+            headers: {
+                "X-CSRF-TOKEN": csrfToken
+            },
+            data: formData,
+            processData: false,
+            contentType: false,
+            success: function (response) {
+                alert(response.message);
+                let tableId = 'uploadManufacturabilityFile_' + docItemType.replace(/\s/g, '_');
+                console.log(tableId);
+                let fileHtml = `
+                    <tr>
+                      <td align="left" width="65%">
+                        <input type="hidden" id="fileItem" name="fileItem" value="${response.fileName}">
+                         <a href="/view/${response.fileName}/${docNo}/QMIS/${docItemType}" target="_blank" class="text-primary icon-text-container">
+                          <i class="fa fa-file-alt"></i>
+                          <span>${response.fileName}</span>
+                        </a>
+                      </td>
+                      <td align="right">
+                        <a onclick="deleteFile(this,'${response.fileName}', '${docNo}','QMIS','${docItemType}')" class="btn btn-sm p-0">
+                          <i class="fa fa-trash text-danger"></i>
+                        </a>
+                      </td>
+                    </tr>`;
+                console.log(document.getElementById(tableId));
+                $('#' + tableId).append(fileHtml);
+                $('#uploadExcelFrag').modal('hide'); // Hide the modal
+                hideUploadBtn(docItemType);
+            },
+            error: function (xhr, status, error) {
+                alert('An error occurred: ' + error);
+            }
+        });
+      });
+
+      // Handle the main form submission
+      document.getElementById('qmisForm').addEventListener('submit', function(e) {
+        console.log('Form submitted');
+        e.preventDefault(); // Prevent default form submission
+        const formData = new FormData(this); // Create a FormData object
+        console.log(formData);
+        submitQmisData(formData);
+      });
+
+
+    });
+  </script>
+</div>
+</body>
+</html>

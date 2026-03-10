@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+	xmlns:layout="http://www.ultraq.net.nz/web/thymeleaf/layout"
+	layout:decorate="layout">
+
+<head>
+<meta charset="ISO-8859-1">
+<title>User-Condition Type-Sequence Mapping</title>
+<style type="text/css">
+.has-error {
+    border-color: #dd4b39;
+    box-shadow: none
+
+}
+</style>
+</head>
+<body>
+	<section layout:fragment="header">
+		<h1>
+			User-Condition Type-Sequence Mapping <small></small>
+		</h1>
+		<ol class="breadcrumb">
+			<li class="active">Map Sequence</li>
+		</ol>
+	</section>
+	<div layout:fragment="content">
+		<div th:if="${success!= null}" class="alert alert-success alert-dismissible">
+    			<i class="icon fa fa-check"></i>
+    			<span th:text="${success}" ></span>
+    	</div>
+		<form role="form" id="myForm" th:action="@{/master/mapseq/conddetail}"
+			th:object="${seqCondMapInput}" th:method="post">
+			<div class="box">
+			<div class="box-body">
+				<div class="form-group">
+					<label for="City">Select User</label>
+					<select class="form-control select2" th:field="*{selUser}"  id="selUser">
+					    <option value="">--Select User</option>
+					    <option th:each="user : *{creatorList}" th:value="${user.userId}" th:text="${user.userId+'['+user.firstName+' '+user.lastName+']'}"></option>
+					    </select>	
+				</div>
+				 <div class="box-group" id="accordion">
+                <!-- we are adding the .panel class so bootstrap.js collapse plugin detects it -->
+                <div class="panel box box-primary" th:each="condMapObj : *{condMapObjList}">
+                  <div class="box-header with-border">
+                    <h4 class="box-title">
+                      <a data-toggle="collapse" data-parent="#accordion" th:href="${'#'+condMapObj.condType}">
+                        
+                        <span class="text" th:text="${condMapObj.condType +'-'+condMapObj.condDesc}"></span>
+                  		<small class="label label-success" th:if="${condMapObj.selected}"><i class="fa fa-ok"></i> ASSIGNED</small>
+                      </a>
+                    </h4>
+                  </div>
+                  <div th:id="${condMapObj.condType}" class="panel-collapse collapse">
+                    <div class="box-body">
+                       	<div class="row">            
+					        <div class="col-md-6" th:each="seqObj : ${condMapObj.seqList}">
+		                      <input type="checkbox"  name="checkedItems" th:checked="${seqObj.selected}" th:value="${seqObj.seqId+'##'+condMapObj.condType}"/>
+		                      <p style="display:inline" th:text="${seqObj.seqDesc}"></p>
+		                  </div>
+					        </div>
+                    </div>
+                  </div>
+                </div>
+              </div>	
+    			<!-- 	<div class="row">            
+			        <div class="col-md-6" th:each="condMapObj : *{condMapObjList}">
+                      
+                      <p style="display:inline" th:text="${condMapObj.condType}"></p>
+                      <input type="checkbox"  name="checkedItems" th:checked="${seqObj.selected}" th:value="${seqObj.seqId}"/>
+                      <p style="display:inline" th:text="${seqObj.seqDesc}"></p>
+                  </div>
+			        </div>
+                 -->
+				
+
+			</div>
+			<!-- /.box-body -->
+
+			<div class="box-footer"  th:if="*{condMapObjList!=null and !condMapObjList.isEmpty()}">
+				<button type="button" id="subBtn" class="btn btn-primary pull-right" style="margin-left:5px">Submit</button>
+				
+			
+			</div>
+			</div>
+		</form>
+
+	
+</body>
+<div layout:fragment="scriptContent">
+<script>
+$(function () {
+	$('.select2').select2();
+	$("#selUser").change(function(){
+	   $("#myForm").attr("action", "/master/mapseq/conddetails");
+		$("#myForm").submit();
+		Pace.restart();
+	});
+	$("#subBtn").click(function(){
+		   $("#myForm").attr("action", "/master/mapseq/submit");
+			$("#myForm").submit();
+			Pace.restart();
+		});
+ });
+</script>
+</div>
+</html>s

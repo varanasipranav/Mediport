@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+	xmlns:layout="http://www.ultraq.net.nz/web/thymeleaf/layout"
+	xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity5"
+	layout:decorate="layout">
+<head>
+<title>Price Approval</title>
+<link rel="stylesheet" type="text/css"
+	href="../../../../resources/dist/css/table.css">
+</head>
+<body>
+	<section layout:fragment="header">
+		<div class="container-fluid">
+			<div class="row mb-2">
+				<div class="col-sm-6">
+					<h1 class="text-primary text-bold text-lg ml-2">Production
+						Plan</h1>
+				</div>
+				<div class="col-sm-6">
+					<ol class="breadcrumb float-sm-right">
+						<li class="breadcrumb-item"><a href="#">Production Plan</a></li>
+						<li class="breadcrumb-item active">Create</li>
+					</ol>
+				</div>
+			</div>
+		</div>
+		<!-- /.container-fluid -->
+	</section>
+	<div layout:fragment="content">
+		<div class="card card-primary">
+			<form data-toggle="validator" role="form" id="myForm"
+				enctype="multipart/form-data" name="myForm"
+				th:object="${weeklyPlanFormDetInput}"
+				th:action="@{/prdplan/updateRequest}" method="post">
+				<div class="card-body">
+
+					<input type="hidden" th:field="*{docId}" /> <input type="hidden"
+						th:field="*{week}" /> <input type="hidden" th:field="*{monthYear}" />
+					<table class="col-sm-12 table-sm table-bordered table-condensed">
+						<tbody class="primary">
+							<tr>
+								<th class="bg-2B56A5"><label>Doc No</label></th>
+								<td th:text="*{docId}"></td>
+								<th class="bg-2B56A5"><label>Week No</label></th>
+								<td th:text="*{week}"></td>
+							</tr>
+							<tr>
+								<th class="bg-2B56A5"><label>Vendor</label></th>
+								<td th:text="*{supplier}"></td>
+								<th class="bg-2B56A5"><label>Month Year</label>r</th>
+								<td th:text="*{monthYear}"></td>
+							</tr>
+							<tr>
+								<th class="bg-2B56A5"><label>PO</label></th>
+								<td th:text="*{po}"></td>
+								<th class="bg-2B56A5"><label>Location</label></th>
+								<td th:text="*{outSrcLoc}"></td>
+							</tr>
+						</tbody>
+					</table>
+					<div class="table-responsive table-container"
+						style="margin-top: 2%" th:if="*{!ezcPoPlanItems.empty}">
+						<!-- <p class="text-green pull-right" style="margin-right:10px"><Strong>No Of Records :<span th:text="*{#lists.size(ezcPoPlanItems)}"></span> </Strong></p> -->
+						<table
+							class="col-sm-12 table table-bordered table-condensed styled-table table-striped">
+							<thead class="primary">
+								<tr>
+									<th>Line No<br>
+									<th>Material<br>
+									<th>Description<br>
+									<th>UOM<br>
+									<th>Proposed Qty</th>
+									<th>CPT Qty</th>
+									<th>Vendor Qty</th>
+									<th>Final Qty</th>
+									<th>Remarks</th>
+								</tr>
+							</thead>
+							<tbody>
+								<tr th:if="*{ezcPoPlanItems.empty}">
+									<td colspan="2">No Data</td>
+								</tr>
+								
+								<tr th:each="row, itemStat : *{ezcPoPlanItems}"
+									th:classappend="${row.ammendSts == 'U' ? 'bg-warning' : (row.ammendSts == 'D' ? 'bg-danger' : (row.ammendSts == 'I' ? 'bg-info' : (!#strings.isEmpty(row.vendWeekPropQty) && row.quantity != row.vendWeekPropQty ? 'bg-secondary' : '')))}"
+								>
+									<td th:text="*{ezcPoPlanItems[__${itemStat.index}__].lineNo}"></td>
+									<td th:text="*{ezcPoPlanItems[__${itemStat.index}__].material}"></td>
+									<td
+										th:text="*{ezcPoPlanItems[__${itemStat.index}__].description}"></td>
+									<td th:text="*{ezcPoPlanItems[__${itemStat.index}__].uom}"></td>
+
+									<td th:text="*{ezcPoPlanItems[__${itemStat.index}__].quantity}"></td>
+									
+									<td
+										th:text="*{ezcPoPlanItems[__${itemStat.index}__].cptWeekPropQty}"></td>
+									<td><input th:if="*{showSubmitToCPT}" type="text"
+										class="form-control"
+										th:field="*{ezcPoPlanItems[__${itemStat.index}__].vendWeekPropQty}" />
+										<span th:unless="*{showSubmitToCPT}"
+										th:text="*{ezcPoPlanItems[__${itemStat.index}__].vendWeekPropQty}"></span>
+									</td>
+									<td
+										th:text="*{ezcPoPlanItems[__${itemStat.index}__].cptWeekAccQty}"></td>
+									<td><input type="hidden"
+										th:field="*{ezcPoPlanItems[__${itemStat.index}__].lineNo}" />
+
+										<!-- <textarea placeholder="+ Add a note" th:readonly="*{!showSubmit}" rows="2" cols="10" class="form-control"></textarea> -->
+
+										<input th:if="*{showSubmitToCPT}" type="text"
+										class="form-control" placeholder="+ Add a reason"
+										list="list-reasons" id="input-datalist"
+										th:field="*{ezcPoPlanItems[__${itemStat.index}__].vendWeekPropRem}">
+										<datalist id="list-reasons">
+											<option>Machine Breakdown</option>
+											<option>Raw Material Shortage</option>
+										</datalist> <span th:unless="*{showSubmitToCPT}"
+										th:text="*{ezcPoPlanItems[__${itemStat.index}__].vendWeekPropRem}"></span>
+									</td>
+								</tr>
+							</tbody>
+						</table>
+
+					</div>
+
+					<div class="card-footer row justify-content-between align-items-center mt-4">
+
+						<div class=" pull-left col-md-4">
+							<div class="">
+								<div class="custom-file"
+									th:if="*{showSubmitToVendor || showAcceptCPT || showAmmendCPT}">
+									<input type="file"
+										data-errormessage-value-missing="Upload File Template"
+										class="custom-file-input validate[required]" id="inputFile"
+										name="file"> <label class="custom-file-label"
+										for="inputFile">Choose file</label>
+								</div>
+							</div>
+						</div>
+						<div class="col-md-4"></div>
+						<div>
+							<a th:if="*{showSubmitToVendor}"
+								th:href="*{'/prdplan/downloadWeekPlan/' + {docId+'/'+week}+'/CPT_INIT'}"
+								class="btn btn-success pull-right">Download</a>
+							<button type="button" th:if="*{showSubmitToVendor}"
+								id="btnSubToVendor" class="btn btn-success pull-right"
+								style="margin-left: 5px">
+								<i class="fa fa-check fa-lg"></i>&nbsp;Submit To Vendor
+							</button>
+							<button type="button" th:if="*{showSubmitToCPT}" id="btnSubToCPT"
+								class="btn btn-success pull-right" style="margin-left: 5px">
+								<i class="fa fa-check fa-lg"></i>&nbsp;Submit Plan
+							</button>
+
+							<a th:if="*{showAcceptCPT}"
+								th:href="*{'/prdplan/downloadWeekPlan/' + {docId+'/'+week}+'/CPT_APR'}"
+								class="btn btn-success pull-right">Download</a>
+							<button type="button" th:if="*{showAcceptCPT}" id="btnAccept"
+								class="btn btn-success pull-right" style="margin-left: 5px">
+								<i class="fa fa-check fa-lg"></i>&nbsp;Approve
+							</button>
+							<a th:if="*{showAmmendCPT}"
+								th:href="*{'/prdplan/downloadWeekPlan/' + {docId+'/'+week}+'/CPT_AMD'}"
+								class="btn btn-success pull-right">Download</a>
+							<button type="button" th:if="*{showAmmendCPT}" id="btnAmmend"
+								class="btn btn-success pull-right" style="margin-left: 5px">
+								<i class="fa fa-check fa-lg"></i>&nbsp;Ammend PO
+							</button>
+						</div>
+					</div>
+
+
+				</div>
+			</form>
+
+		</div>
+		<div id="woModal" class="modal fade" tabindex="-1" role="dialog">
+			<div class="modal-dialog">
+				<div class="modal-content">
+					<div class="modal-body">
+						<button type="button" class="close" data-dismiss="modal"
+							aria-hidden="true">&times;</button>
+						<span id="modalcontent"></span>
+					</div>
+				</div>
+			</div>
+		</div>
+
+	</div>
+	<div layout:fragment="scriptContent">
+		<script type="text/javascript">
+			$(function() {
+				bsCustomFileInput.init();
+				$('.datepicker').datepicker({
+					autoclose : true,
+					format : 'dd/mm/yyyy'
+				});
+
+				$("#backBtn").click(function() {
+					//Pace.restart();
+					$("#backBtn").hide();
+					$("#subBtn").hide();
+					$("#calBtn").hide();
+					$('#pleaseWaitDialog').modal('show');
+					$("#myForm").attr("action", "/prdplan/onBackToSelect");
+					$("#myForm").submit();
+
+				});
+
+				$("#btnSubToVendor").click(
+						function() {
+							if ($("#myForm").validationEngine('validate')) {
+								$("#myForm").attr("action",
+										"/prdplan/weeklyPlanAmmend/CPT_INIT");
+								$("#myForm").submit();
+							}
+
+						});
+				$("#btnAccept").click(
+						function() {
+							
+							if ($("#myForm").validationEngine('validate')) {
+								loader.start();
+								$("#myForm").attr("action",
+										"/prdplan/weeklyPlanAmmend/CPT_APR");
+								$("#myForm").submit();
+							}
+
+						});
+				$("#btnAmmend").click(
+						function() {
+							
+							if ($("#myForm").validationEngine('validate')) {
+								loader.start();
+								$("#myForm").attr("action",
+										"/prdplan/weeklyPlanAmmendPO");
+								$("#myForm").submit();
+							}
+
+						});
+				$("#btnSubToCPT").click(
+						function() {
+
+							$("#myForm").attr("action",
+									"/prdplan/submitWeeklyPlanToVendor");
+							$("#myForm").submit();
+
+						});
+				$("#subBtn").click(function() {
+					//Pace.restart();
+					//$('#pleaseWaitDialog').modal('show');
+					document.myForm.action = "/prdplan/submitRequest";
+					document.myForm.submit();
+				});
+				$("#aprBtn").click(function() {
+					//Pace.restart();
+					//$('#pleaseWaitDialog').modal('show');
+					document.myForm.action = "/prdplan/approveRequest";
+					document.myForm.submit();
+				});
+
+			});
+
+			function showLog(status, msg) {
+				$('#modalcontent').html(msg);
+				$('#woModal').modal({
+					show : true
+				});
+			}
+			function funSubmit() {
+				//$('#pleaseWaitDialog').modal('show');
+				$("#backBtn").hide();
+				$("#subBtn").hide();
+				$("#calBtn").hide();
+				document.myForm.action = "/prdplan/updateRequest";
+				document.myForm.submit();
+			}
+		</script>
+	</div>
+</body>
+</html>

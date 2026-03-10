@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/web/thymeleaf/layout"
+      layout:decorate="layout">
+<head>
+  <title>Report</title>
+  <style>
+    .dataTables_filter {
+        display: inline;
+        float: right;
+    }
+
+    .dataTables_length {
+        display: inline;
+    }
+
+    .dt-buttons {
+        margin-left: 25%;
+    }
+
+    .input-group-addon {
+        padding: 2px 12px !important;
+    }
+  </style>
+  <link rel="stylesheet" type="text/css" href="../../../../resources/dist/css/table.css">
+</head>
+<body>
+<section layout:fragment="header">
+  <div class="container-fluid">
+    <div class="row">
+      <div class="col-sm-6">
+        <h1 class="text-primary text-bold text-lg ml-2" th:text="${reportName}">Report</h1>
+      </div>
+      <div class="col-sm-6">
+        <ol class="breadcrumb float-sm-right">
+          <li class="breadcrumb-item"><a href="#" >Home</a></li>
+          <li class="breadcrumb-item active"  th:text="${reportName}">Report</li>
+        </ol>
+      </div>
+    </div>
+  </div>
+</section>
+<div class="container-fluid" layout:fragment="content">
+  <div class="row">
+    <div class="col-12">
+      <div class="card">
+        <div class="card-body">
+          <!-- Combined form with combinedObject -->
+          <form role="form" th:object="${prdPlanReport}"
+                th:action="@{/prdplan/report}" method="get" name="combinedForm" id="combinedForm" onsubmit="return validateDateRange()">
+            <div class="table-responsive hidden-xs">
+              <table class="table table-striped" style="margin-bottom: 1%;">
+                <tbody>
+                <tr>
+                  <td>
+                    <label>From Date:</label>
+                    <div class="input-group mb-3">
+                      <span class="input-group-text border-right-0" id="basic-addon1">
+                        <i class="fa fa-calendar"></i>
+                      </span>
+                      <input type="text" class="form-control datepicker" placeholder="Start Date" aria-label="Start Date"
+                             aria-describedby="basic-addon1" id="fromDate" name="fromDate" th:field="*{fromDate}">
+                    </div>
+                  </td>
+                  <td>
+                    <label>To Date:</label>
+                    <div class="input-group mb-3">
+                      <span class="input-group-text border-right-0" id="basic-addon1">
+                        <i class="fa fa-calendar"></i>
+                      </span>
+                      <input type="text" class="form-control datepicker" placeholder="End Date" aria-label="End Date"
+                             aria-describedby="basic-addon1" id="toDate" name="toDate" th:field="*{toDate}">
+                    </div>
+                  </td>
+                  <td>
+                    <label for="selOutPlant">Location</label>
+                    <select data-errormessage-value-missing="Location is required" class="form-control validate[required]" th:field="*{selOutPlant}" id="selOutPlant" style="width:100%">
+                      <option value="">--Select Location--</option>
+                      <option th:each="option : ${prdPlanReport.outPlantList}" th:value="${option.value1}" th:text="${option.value1 + '-' + option.value2}"></option>
+                    </select>
+                  </td>
+                  <td>
+                    <div class="d-flex align-items-center justify-content-center mt-3">
+                      <button type="submit" class="btn btn-primary pull-right mt-3 w-100">
+                        Go <i class="fa fa-paper-plane"></i>
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+                </tbody>
+              </table>
+            </div>
+          </form>
+          <div class="table-responsive">
+            <table id="example"
+                   class="table table-bordered dt-responsive nowrap styled-table"
+                   cellspacing="0" width="100%">
+              <thead>
+              <tr>
+                <th>PO Number</th>
+                <th>PO Item</th>
+                <th>Batch</th>
+                <th>Plant</th>
+                <th>UOM</th>
+                <th>QNT</th>
+                <th>Vendor</th>
+                <th>Move Type</th>
+                <th>Material</th>
+                <th>MatDoc Item</th>
+                <th>MatDoc</th>
+              </tr>
+              </thead>
+              <tbody>
+
+              <tr th:each="row : ${repItems}">
+                <td th:text="${row.getPO_NUMBER()}"></td>
+                <td th:text="${row.getPO_ITEM()}"></td>
+<!--                <td><a th:href="${'/prdplan/view/' + {row.docId}}"-->
+<!--                       th:text="${#dates.format(row.createdOn, 'ddMMyyyy') + ' - ' +  row.docId}"></a></td>-->
+                <td th:text="${row.getBATCH()}"></td>
+                <td th:text="${row.getPLANT()}"></td>
+<!--                <td th:text="${row.getPO_NUMBER()}"></td>-->
+
+                <td th:text="${row.getENTRY_UOM()}"></td>
+                <td th:text="${row.getMOVE_TYPE() == '641' ? row.getENTRY_QNT() : row.getMOVE_TYPE() == '642' ? '-' + row.getENTRY_QNT() : row.getENTRY_QNT()}"></td>
+<!--                <td th:text="${row.getENTRY_QNT()}"></td>-->
+                <td th:text="${row.getVENDOR()}"></td>
+                <td th:text="${row.getMOVE_TYPE}"></td>
+                <td th:text="${row.getMATERIAL()}"></td>
+                <td th:text="${row.getMATDOC_ITM()}"></td>
+                <td th:text="${row.getMAT_DOC()}"></td>
+
+
+
+<!--                <td th:text="${row.createdBy}"></td>-->
+<!--                <td th:text="${#dates.format(row.createdOn, 'dd/MM/yyyy')}"></td>-->
+<!--                <td-->
+<!--                        th:text="${row.status == 'SUBMITTED'?'Submitted':row.status == 'APPROVED'?'Approved':row.status == 'REJECTED'?'Rejected':'Posted To SAP'}"></td>-->
+<!--                <td th:text="${row.nextPart}"></td>-->
+              </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<div layout:fragment="scriptContent">
+  <script type="text/javascript">
+    function validateDateRange() {
+      var fromDate = document.getElementById("fromDate").value;
+      var toDate = document.getElementById("toDate").value;
+
+      if (fromDate && toDate) {
+        var from = new Date(fromDate.split('/').reverse().join('-'));
+        var to = new Date(toDate.split('/').reverse().join('-'));
+
+        var oneMonth = 31 * 24 * 60 * 60 * 1000; // 30 days in milliseconds
+        if ((to - from) > oneMonth) {
+          alert("The date range should not exceed one month.");
+          return false;
+        }
+      }
+      return true;
+    }
+    $(document).ready(function() {
+        $('.datepicker').datepicker({
+            autoclose: true,
+            format: 'dd/mm/yyyy'
+        });
+        $('#example')
+        .DataTable(
+                {
+                    dom : 'lBfrtip',
+                    buttons : [
+                            {
+                                extend : 'excel',
+                                text : '<i class="fa fa-file-excel-o" style="color:green"> </i> EXCEL',
+                                title : null,
+                                filename : 'Download'
+                            },
+                            {
+                                extend : 'pdf',
+                                text : '<i class="fa fa-file-pdf-o" style="color:red"></i> PDF',
+                                title : null
+                            } ]
+
+                }
+
+        );
+    });
+  </script>
+</div>
+</body>
+</html>

@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/web/thymeleaf/layout"
+      xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity5"
+      layout:decorate="layout">
+<body>
+	<section layout:fragment="header">
+		<div class="container-fluid">
+			<div class="row">
+				<div class="col-sm-6">
+					<h1 class="text-primary text-bold text-lg ml-2">Production Plan</h1>
+				</div>
+				<div class="col-sm-6">
+					<ol class="breadcrumb float-sm-right">
+						<li class="breadcrumb-item"><a href="#">Production Plan</a></li>
+						<li class="breadcrumb-item active">Create</li>
+					</ol>
+				</div>
+			</div>
+		</div>
+	</section>
+
+<div layout:fragment="content" class="container-fluid">
+
+		<div class="row">
+			<div class="col-12">
+				<div class="card">
+					<div class="card-body">
+
+	<div th:if="${success!= null}" class="alert alert-success alert-dismissible">
+   			<i class="icon fa fa-check"></i>
+   			<span th:text="${success}" ></span>
+   	</div>
+   	<div th:if="${error!= null}" class="alert alert-danger alert-dismissible">
+   			<i class="icon fa fa-check"></i>
+   			<span th:text="${error}" ></span>
+   	</div>
+   <div class="container-fluid">
+        <div class="row">
+          <!-- left column -->
+          <div class="col-md-6">
+            <!-- general form elements -->
+            <div class="card card-primary">
+              <div class="card-header">
+                <h3 class="card-title">Create</h3>
+              </div>
+              <!-- /.card-header -->
+              <!-- form start -->
+              <form data-toggle="validator" enctype="multipart/form-data" role="form" name="myForm" id="myForm" th:object="${prdPlanReqInput}" th:action="@{/prdplan/submitReqInput}" method="post" >
+			   <div class="card-body">
+                <!--   <div class="form-group">
+                    <label for="selVendor">Select Vendor</label>
+                    <select  data-errormessage-value-missing="Vendor Code is required" class="form-control  validate[required]" th:field="*{selVendor}"  id="selVendor" style="width:100%">
+						    <option value="">--Select Vendor--</option>
+						    <option th:each="option : *{vendorList}" th:value="${option.value1}" th:text="${option.value1+'-'+option.value2}"></option>
+					</select>
+                  </div>
+                  <div class="form-group">
+                    <label for="selOutPlant">Location</label>
+                    <select data-errormessage-value-missing="Location is required" class="form-control validate[required]" th:field="*{selOutPlant}"  id="selOutPlant" style="width:100%">
+					    <option value="">--Select Location--</option>
+					    <option th:each="option : *{outPlantList}" th:value="${option.value1}" th:text="${option.value1+'-'+option.value2}"></option>
+					</select>
+                  </div>-->
+					<div class="form-group">
+                    <label for="selOutPlant">Purchase Group*</label>
+                    <select data-errormessage-value-missing="Purchase Group is required" class="form-control validate[required]" th:field="*{selPurGrp}"  id="selPurGrp" style="width:100%">
+					    <option value="">--Select Purchase Group--</option>
+					    <option value="OS1">OS1-Outsoucing 1</option>
+					    <option value="OS2">OS1-Outsoucing 2</option>
+					</select>
+                  </div>
+				  <div class="form-group">
+                    <label for="selMonthYr">Month and Year*</label>
+					<input data-errormessage-value-missing="Choose Month and Year" placeholder="Choose Month and Year"  type="text" autocomplete="off" class="form-control validate[required]"  th:field="*{selMonthYr}" id="selMonthYr">
+                  </div>
+				<div class="form-group">
+                    <!-- <label for="customFile">Custom File</label> -->
+
+                    <div class="custom-file">
+                      <input type="file" data-errormessage-value-missing="Upload File Template" class="custom-file-input validate[required]" id="inputFile" th:field="*{file}">
+                      <label class="custom-file-label" for="inputFile">Choose file</label>
+                    </div>
+                  </div>
+                
+                <!-- /.card-body -->
+
+                <div class="d-flex justify-content-between">
+                  <!-- <button type="submit" class="btn btn-primary">Submit</button> -->
+                  <!-- <button type="button" id="subBtn" class="btn btn-primary pull-right" style="margin-left:5px"><i class="fa fa-arrow-circle-right fa-lg"></i>&nbsp;Continue</button> -->
+                  <button type="button" id="downloadBtn" class="btn btn-secondary pull-left"><i class="fa fa-download fa-lg"></i>&nbsp;Download Sample</button>
+                  <button type="button" id="uploadBtn" class="btn btn-primary pull-left" style="margin-left:5px"><i class="fa fa-upload fa-lg"></i>&nbsp;Upload Excel</button>
+                </div>
+                </div>
+              </form>
+            </div>
+           </div>
+          </div>	
+				
+			
+</div>
+</div></div></div></div>
+</div>
+<div layout:fragment="scriptContent">
+<script type="text/javascript">
+     
+    $(function () {
+		$('.select2').select2();
+		  bsCustomFileInput.init();
+
+		//$("#uploadBtn").hide();
+		//$("#downloadBtn").hide();
+		$("#subBtn").click(function(){
+			//alert($("#myForm").validationEngine('validate'))
+			
+			if($("#myForm").validationEngine('validate'))
+			{
+				var selCondTypes=$("#selCondTypes").val().split("##")[0];
+				var seqId=$("input:radio.selSeq:checked").val();
+				var selDistChnl=$("#selDistChnl").val();
+				//alert("seqId::"+seqId);
+				
+				if(selCondTypes  != 'ZMRP' && selCondTypes  != 'ZLP')
+				{
+					if($('#valArea').val() == "")
+					{
+						$('#valArea').validationEngine('showPrompt', 'Please select area', '');
+						return ;
+					}
+				}
+				if(selDistChnl  == 'TT' || selDistChnl  == 'EB')
+				{
+					if($('#selDistCat').val() == "")
+					{
+						$('#selDistCat').validationEngine('showPrompt', 'Please select Dist Cat', '');
+						return ;
+					}
+				}
+				if(typeof seqId == "undefined" || seqId == "")
+				{
+					//alert("Please select the sequence");
+					$('.selSeq').validationEngine('showPrompt', 'Please select the sequence', '')
+				}
+				else
+				{
+					$('#pleaseWaitDialog').modal('show');
+					$("#myForm").attr("action", "/prdplan/submitReqInput");
+					$("#myForm").submit();
+				}
+				
+				//Pace.restart();
+			}
+		});
+		$("#uploadBtn").click(function(){
+			//alert($("#myForm").validationEngine('validate'))
+			if($("#myForm").validationEngine('validate'))
+			{
+				
+				//alert("test")
+				if($('#inputFile').val() == '')
+				{
+					alert("Please upload file");
+					return ;
+				}
+				var ext = $('#inputFile').val().split('.').pop().toLowerCase();
+				if($.inArray(ext, ['xls','xlsx']) == -1) {
+				    alert('Please upload file format xls or xlsx');
+				    return ;
+				}
+				//$('#pleaseWaitDialog').modal('show');
+				$("#myForm").attr("action", "/prdplan/submitReqUpload");
+				$("#myForm").submit();
+				//Pace.restart();
+			}
+		});
+		$("#downloadBtn").click(function(){
+			var seqId=$("#selVendor").val();
+			//alert("seqId::"+seqId);
+			
+				location.href="/prdplan/sampExcel";
+			
+		});
+		$("#selCondTypes").change(function(){
+			$("#myForm").attr("action", "/prdplan/onChangeCondType");
+			$("#myForm").submit();
+			Pace.restart();
+		});
+		 /* $('input[type="radio"]').click(function(){
+		        var inputValue = $(this).attr("value");
+		        if(inputValue == 3)
+		        {
+		        	$("#uploadBtn").show();
+		        	$("#downloadBtn").show();
+		        }
+		        else
+		        {
+		        	$("#uploadBtn").hide();
+		        	$("#downloadBtn").hide();
+		        }
+		    }); */
+		$.each($(".select2-container"), function (i, n) {
+		    $(n).next().show().fadeTo(0, 0).height("0px").css("left", "auto"); // make the original select visible for validation engine and hidden for us
+		    $(n).prepend($(n).next());
+		    $(n).delay(500).queue(function () {
+		        $(this).removeClass("validate[required]"); //remove the class name from select2 container(div), so that validation engine dose not validate it
+		        $(this).dequeue();
+		    });
+		});
+		 $('#selMainChnl').change(
+			        function() {
+			            $.getJSON("/prdplan/getSubChannel", {
+			            	mainChannel : $(this).val(),
+			                ajax : 'true'
+			            }, function(data) {
+			                var html = '<option value="">--Select Sub Channel--</option>';
+			                var len = data.length;
+			                for ( var i = 0; i < len; i++) {
+			                    html += '<option value="' + data[i].value1 + '">'
+			                            + data[i].value1+'-'+data[i].value2 + '</option>';
+			                }
+			                html += '</option>';
+			                $('#selSubChnl').html(html);
+			                if($('#tempSelSubChnl').val() != "")
+			                	$("#selSubChnl").val($('#tempSelSubChnl').val());
+			                else
+			                	$('#tempSelSubChnl').val("");
+			                
+			            });
+			        }); 
+		
+		if($('#selMainChnl').val() != "")
+		{
+			$('#selMainChnl').val($('#selMainChnl').val()).trigger("change");
+			//debugger;
+	 
+		}
+		$("#selMonthYr").datepicker( {
+			 autoclose: true,
+			 format: "mm/yyyy",
+		    viewMode: "months", 
+		    minViewMode: "months"
+		});
+	 });
+   </script>
+</div>
+</body>
+</html>

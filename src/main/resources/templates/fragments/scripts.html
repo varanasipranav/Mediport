@@ -1,0 +1,121 @@
+
+<!-- jQuery -->
+<script th:src="@{/resources/lte3dot2/plugins/jquery/jquery.min.js}"></script>
+<!-- jQuery UI 1.11.4 -->
+<script th:src="@{/resources/lte3dot2/plugins/jquery-ui/jquery-ui.min.js}"></script>
+<script th:src="@{/resources/lte3dot2/plugins/jquery.form.js}"></script>
+<!-- Resolve conflict in jQuery UI tooltip with Bootstrap tooltip -->
+<script>
+  $.widget.bridge('uibutton', $.ui.button)
+</script>
+<!-- Bootstrap 4 -->
+<script th:src="@{/resources/lte3dot2/plugins/bootstrap/js/bootstrap.bundle.min.js}"></script>
+<!-- ChartJS -->
+<script th:src="@{/resources/lte3dot2/plugins/chart.js/Chart.min.js}"></script>
+<!-- Sparkline -->
+<script th:src="@{/resources/lte3dot2/plugins/sparklines/sparkline.js}"></script>
+<!-- JQVMap -->
+<script th:src="@{/resources/lte3dot2/plugins/jqvmap/jquery.vmap.min.js}"></script>
+<script th:src="@{/resources/lte3dot2/plugins/jqvmap/maps/jquery.vmap.usa.js}"></script>
+<!-- jQuery Knob Chart -->
+<script th:src="@{/resources/lte3dot2/plugins/jquery-knob/jquery.knob.min.js}"></script>
+<!-- daterangepicker -->
+<script th:src="@{/resources/lte3dot2/plugins/moment/moment.min.js}"></script>
+<script th:src="@{/resources/lte3dot2/plugins/daterangepicker/daterangepicker.js}"></script>
+<!-- Tempusdominus Bootstrap 4 -->
+<script th:src="@{/resources/lte3dot2/plugins/tempusdominus-bootstrap-4/js/tempusdominus-bootstrap-4.min.js}"></script>
+<!-- Summernote -->
+<script th:src="@{/resources/lte3dot2/plugins/summernote/summernote-bs4.min.js}"></script>
+<!-- overlayScrollbars -->
+<script th:src="@{/resources/lte3dot2/plugins/overlayScrollbars/js/jquery.overlayScrollbars.min.js}"></script>
+<!-- AdminLTE App -->
+<script th:src="@{/resources/lte3dot2/js/adminlte.js}"></script>
+<!-- AdminLTE for demo purposes -->
+<!-- <script th:src="@{/resources/lte3dot2/js/demo.js}"></script> -->
+<!-- AdminLTE dashboard demo (This is only for demo purposes) -->
+<!-- DataTables  & Plugins -->
+<script th:src="@{/resources/lte3dot2/plugins/datatables/jquery.dataTables.min.js}"></script>
+<script th:src="@{/resources/lte3dot2/plugins/datatables-bs4/js/dataTables.bootstrap4.min.js}"></script>
+<script th:src="@{/resources/lte3dot2/plugins/datatables-responsive/js/dataTables.responsive.min.js}"></script>
+<script th:src="@{/resources/lte3dot2/plugins/datatables-responsive/js/responsive.bootstrap4.min.js}"></script>
+<script th:src="@{/resources/lte3dot2/plugins/datatables-buttons/js/dataTables.buttons.min.js}"></script>
+<script th:src="@{/resources/lte3dot2/plugins/datatables-buttons/js/buttons.bootstrap4.min.js}"></script>
+<script th:src="@{/resources/lte3dot2/plugins/jszip/jszip.min.js}"></script>
+<script th:src="@{/resources/lte3dot2/plugins/pdfmake/pdfmake.min.js}"></script>
+<script th:src="@{/resources/lte3dot2/plugins/pdfmake/vfs_fonts.js}"></script>
+<script th:src="@{/resources/lte3dot2/plugins/datatables-buttons/js/buttons.html5.min.js}"></script>
+<script th:src="@{/resources/lte3dot2/plugins/datatables-buttons/js/buttons.print.min.js}"></script>
+<script th:src="@{/resources/lte3dot2/plugins/datatables-buttons/js/buttons.colVis.min.js}"></script>
+<!-- Select2 -->
+<script th:src="@{/resources/lte3dot2/plugins/select2/js/select2.full.min.js}"></script>
+
+<script th:src="@{/resources/lte3dot2/plugins/validator.min.js}"></script>
+<script  th:src="@{/resources/lte3dot2/plugins/validation/jquery.validationEngine.js}"></script>
+<script  th:src="@{/resources/lte3dot2/plugins/validation/jquery.validationEngine-en.js?2}"></script>
+<script  th:src="@{/resources/lte3dot2/plugins/pace-progress/pace.min.js}"></script>
+<script  th:src="@{/resources/plugins/datepicker/bootstrap-datepicker.js}"></script>
+<script  th:src="@{/resources/lte3dot2/plugins/bootstrap-switch/js/bootstrap-switch.min.js}"></script>
+<script  th:src="@{/resources/lte3dot2/plugins/bs-custom-file-input/bs-custom-file-input.min.js}"></script>
+
+<script th:inline="javascript" >
+	
+	
+	
+	
+/* 	$(document).ready(function() {
+
+ 		const anchortags = document.querySelectorAll(".sidebar-menu a");
+ 		const submitBtns = document.querySelectorAll(".btn-primary");
+ 		
+		const paceObj = Pace;
+		for (const anchortag of anchortags) {
+				
+				anchortag.addEventListener('click', function(event) {
+		    	//	event.preventDefault();
+		    		Pace.restart();
+		    		anchortag.classList.add("active");
+		  
+				})
+			} 
+		for(const submitBtn of submitBtns){
+			submitBtn.addEventListener("click",(e)=>{
+				
+				setTimeout(()=>{
+					Pace.restart()
+					},300); 
+			})
+			
+		}
+				 
+        var url = window.location;
+        // for sidebar menu entirely but not cover treeview
+        $('ul.sidebar-menu a').filter(function() {
+             return this.href == url;
+        }).parent().addClass('active');
+
+        // for treeview
+        $('ul.treeview-menu a').filter(function() {
+             return this.href == url;
+        }).parentsUntil(".sidebar-menu > .treeview-menu").addClass('active');
+		
+
+        $('form').trigger("reset");
+	});
+	
+	
+	});
+ */
+	function logOut(){
+		
+		/* document.logoutForm.method="POST"
+		document.logoutForm.action="/logout" */
+		//Pace.restart()
+		document.logoutForm.submit();
+		
+		
+	}
+	
+</script>
+
+
+

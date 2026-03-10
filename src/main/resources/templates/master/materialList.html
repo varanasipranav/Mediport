@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+	xmlns:layout="http://www.ultraq.net.nz/web/thymeleaf/layout"
+	layout:decorate="layout">
+<head>
+<meta charset="ISO-8859-1">
+<title>List Materials</title>
+<style>
+.dataTables_filter
+{
+    display: inline;
+    float: right;
+}
+
+.dataTables_length
+{
+   display: inline;
+}
+.dt-buttons
+{
+   margin-left:25%;
+}
+.input-group-addon {
+    padding: 2px 12px !important;
+ }
+</style>
+</head>
+<body>
+	<section layout:fragment="header">
+		<h1>Material List</h1>
+		<ol class="breadcrumb">
+			<li><a th:href="@{/dashboard/index.html}"><i
+					class="fa fa-dashboard"></i> Material Master</a></li>
+			<li class="active">List</li>
+		</ol>
+	</section>
+	<div layout:fragment="content">
+		<!-- <form role="form" th:action="@{#}"  th:method="GET" > -->
+		<div class="box">
+			<div class="box-header">
+				<!-- <h3 class="box-title">Data Table With Full Features</h3> -->
+			</div>
+			<!-- /.box-header -->
+			<div class="box-body">
+				<table id="example" class="table  table-bordered dt-responsive nowrap" cellspacing="0" width="100%">
+					<thead>
+						<tr>
+							<th>Material Code</th>
+							<th>Description</th>
+							<th>Brand</th>
+
+						</tr>
+					</thead>
+					<tbody>
+						<tr th:each="material:${matList}">
+							<td th:text="${material[0]}">Name</td>
+							<td th:text="${material[1]}">description</td>
+							<td th:text="${material[2]+'-'+material[3]}">0</td>
+						</tr>
+					</tbody>
+				</table>
+			</div>
+			<!-- /.box-body -->
+		</div>
+
+		<!-- /.box-body -->
+		<!-- 
+	</form>
+ -->
+	
+	<!-- Modals -->
+	<div th:fragment="delete-mat" id="deleteMatModalHolder"></div>
+	<div th:fragment="edit-mat" id="editMatModalHolder"></div>
+	
+	<!-- Models End -->
+	
+	</div>
+	
+	<!-- Script Start -->
+	<div layout:fragment="scriptContent">
+		<script th:inline="javascript">
+			$(document).ready(function() {
+				$('#example').DataTable({
+					 dom: 'lBfrtip',
+					 buttons: [  {text: '<i class="fa fa-refresh"  style="color:green"> </i> SYNCH MATERIALS',action: function ( e, dt, node, config ) {$('#pleaseWaitDialog').modal('show');location.href="/master/synchMaterials";}}, { extend: 'excel', text: '<i class="fa fa-file-excel-o" style="color:green"> </i> EXCEL',title:null,filename:'Download' },{ extend: 'pdf', text: '<i class="fa fa-file-pdf-o" style="color:red"></i> PDF',title:null }]
+				
+					}
+						
+				);
+
+				$('#closeModal').click((e)=>{
+					
+					e.preventDefault();
+					$('#editMatModal').modal('toggle');
+				});
+				
+						
+				
+			});	
+/* 			$( window ).on("unload",function() {
+					Pace.restart();
+			})
+ */			
+			function openModal(modelType,matId){
+				if(modelType === "edit"){
+					
+					$.ajax({
+						url: "/modal/edit-material/" + matId,
+						success: function(data){
+							$("#editMatModalHolder").html(data);
+							$('#editMatModal').modal({
+								backdrop: 'static'
+							});
+						}
+					});
+					
+				}
+				if(modelType === "delete"){
+					
+					$.ajax({
+						url: "/modal/delete-material/" + matId,
+						success: function(data){
+							$("#deleteMatModalHolder").html(data);
+							$('#deleteMatModal').modal({
+								backdrop: 'static'
+							});
+						}
+					});
+					
+					
+				}
+				
+			}
+			function validate(event){
+					event.preventDefault();
+					var formdata = $('edit-dist-form').serialize();
+					
+					debugger;
+					$.ajax({
+							
+						type : "POST",
+						url : "/master/edit-dist", 
+						data : formdata,
+						success : function(response) {
+								
+							if(response.status == 'FAIL') {
+								showFormError(response.errorMessageList);
+							} else {
+								//everything is O.K. user logged in successfully.
+							
+							}
+						},
+						error : function(ex) {
+							console.log(ex);
+						}
+					});
+			}
+						
+		</script>
+	</div>
+</body>
+</html>

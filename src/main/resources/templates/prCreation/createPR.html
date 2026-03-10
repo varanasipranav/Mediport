@@ -1,0 +1,1715 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/web/thymeleaf/layout"
+      xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity5"
+      layout:decorate="layout">
+<head>
+    <meta charset="UTF-8">
+    <title>Create PR</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+    <meta name="_csrf" th:content="${_csrf.token}" />
+    <meta name="_csrf_header" th:content="${_csrf.headerName}" />
+
+    <style>
+        //.content-wrapper { padding-top: 10px; }
+        .container { max-width: 1200px; margin: 0 auto; }
+        .card {/* margin: 20px auto;*/ padding: 20px; width: 100%; }
+
+        /* Collapsible header */
+        .filter-panel {
+            background: #DC402B;
+            border-radius: 10px;
+            overflow: hidden;
+            width: 100%;
+            transition: all 0.3s ease-in-out;
+        }
+        .filter-header {
+            padding: 12px 20px;
+            color: white;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background-color: rgba(220, 64, 43, 0.9);
+        }
+        .filter-title {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .filter-icon {
+            cursor: pointer;
+            font-size: 1.3rem;
+            transition: transform 0.3s ease;
+        }
+        .filter-icon:hover {
+            transform: scale(1.1);
+        }
+        .filter-content {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 15px 20px;
+            border-radius: 0 0 8px 8px;
+            max-height: 500px;
+            overflow: hidden;
+            transition: all 0.4s ease-in-out;
+            opacity: 1;
+        }
+
+        /* Hide transition (collapsed state) */
+        .filter-content.hidden {
+            max-height: 0 !important;
+            opacity: 0;
+            padding: 0 20px;
+            transition: all 0.4s ease-in-out;
+        }
+
+        /* Smooth transitions for hover collapse/expand */
+        .filter-panel {
+            transition: all 0.4s ease;
+        }
+
+        /* Optional: Slight shadow pop on hover */
+        .filter-panel:hover {
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            transform: translateY(-2px);
+        }
+
+        /* Table & Buttons */
+        .custom-table-header { background-color: #033882; color: #fff; }
+        table th, table td { vertical-align: middle; padding: 6px; }
+        .btn-sm { font-size: 12px; padding: 3px 8px; }
+
+        .btn-addinfo { background-color: #0d6efd; color: #fff; }
+        .btn-addinfo:hover { background-color: #0b5ed7; }
+
+        .btn-delete { background-color: #dc3545; color: #fff; }
+        .btn-delete:hover { background-color: #bb2d3b; }
+
+        .sub-row { background-color: #f9f9f9; display: none; }
+        .sub-row td { text-align: left; padding: 10px 20px; }
+
+        /* Create PR Button */
+        .bottom-actions { text-align: center; margin-top: 30px; }
+        .btn-create {
+            background-color: #033882;
+            color: white;
+            font-size: 16px;
+            padding: 10px 25px;
+            border-radius: 6px;
+            border: none;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+        .btn-create:hover { background-color: #022b65; }
+
+        /* Refresh Button */
+        .btn-refresh {
+            background-color: #033882;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 4px 8px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .btn-refresh:hover {
+            background-color: #022b65;
+            transform: rotate(180deg);
+        }
+        .btn-refresh i {
+            transition: transform 0.3s ease;
+        }
+
+        #itemTable input.form-control {
+  padding: 4px 6px;
+  font-size: 13px;
+  width: 100%; /* Make inputs fill their td container */
+}
+
+/* Wider table fields for better readability */
+#itemTable th, #itemTable td {
+    vertical-align: middle;
+    padding: 6px 10px;
+    text-align: center;
+}
+
+#itemTable input.form-control,
+#itemTable select.form-control {
+    height: 32px;
+    font-size: 13px;
+    padding: 4px 6px;
+    width: 100%; /* Make all form controls fill their td container */
+}
+
+/* Adjust specific column widths */
+#itemTable th:nth-child(2),   /* Material Code */
+#itemTable td:nth-child(2) {
+    min-width: 180px;
+    width: 180px;
+}
+
+#itemTable th:nth-child(3),   /* Description */
+#itemTable td:nth-child(3) {
+    min-width: 250px;
+    width: 250px;
+}
+
+#itemTable th:nth-child(4),   /* UOM */
+#itemTable td:nth-child(4) {
+    min-width: 60px !important;
+    width: 60px !important;
+}
+
+#itemTable th:nth-child(5),   /* Quantity */
+#itemTable td:nth-child(5) {
+    min-width: 70px !important;
+    width: 70px !important;
+}
+
+#itemTable th:nth-child(6),   /* Unit Price */
+#itemTable td:nth-child(6) {
+    min-width: 80px !important;
+    width: 80px !important;
+}
+
+#itemTable th:nth-child(7),   /* Total */
+#itemTable td:nth-child(7) {
+    min-width: 80px !important;
+    width: 80px !important;
+}
+
+#itemTable th:nth-child(8),   /* Material Group */
+#itemTable td:nth-child(8) {
+    min-width: 110px !important;
+    width: 110px !important;
+}
+
+#itemTable th:nth-child(9),   /* Delivery Date */
+#itemTable td:nth-child(9) {
+    min-width: 130px !important;
+    width: 130px !important;
+}
+
+#itemTable th:nth-child(10),  /* Storage Location */
+#itemTable td:nth-child(10) {
+    min-width: 250px !important;
+    width: 250px !important;
+}
+
+#itemTable th:nth-child(11),  /* Tracking Number */
+#itemTable td:nth-child(11) {
+    min-width: 120px !important;
+    width: 120px !important;
+}
+
+#itemTable th:nth-child(12),  /* Action */
+#itemTable td:nth-child(12) {
+    width: 90px !important;
+}
+/* --- Fix first 3 columns and make the rest scrollable --- */
+.custom-table-container {
+  position: relative;
+  width: 100%;
+  //overflow-x: auto;
+  //max-width: 100%;
+}
+  .table-scroll {
+            max-height: 400px; /* vertical scroll height */
+            overflow-x: auto;
+            overflow-y: auto;
+            width: 100%;
+           // padding-bottom: 8px; /* gives room for scrollbar */
+            border: 1px solid #ddd;
+        }
+
+#itemTable {
+  border-collapse: separate;
+  border-spacing: 0;
+  width: max-content;
+  min-width: 100%;
+}
+
+/* Fix first three columns */
+#itemTable th:nth-child(1),
+#itemTable td:nth-child(1) {
+  position: sticky;
+  left: 0;
+  z-index: 2;
+  background: #fff;
+   min-width: 70px;
+  width: 70px;
+}
+
+#itemTable th:nth-child(2),
+#itemTable td:nth-child(2) {
+  position: sticky;
+  left: 70px; /* width of Sr No column */
+  z-index: 2;
+  background: #fff;
+    min-width: 180px;
+  width: 180px;
+}
+
+#itemTable th:nth-child(3),
+#itemTable td:nth-child(3) {
+  position: sticky;
+  left: 250px; /* sum of Sr No + Material Code column widths */
+  z-index: 2;
+  background: #fff;
+   min-width: 250px;
+  width: 250px;
+}
+
+
+/* Ensure header is above scrolling rows */
+#itemTable thead th {
+  position: sticky;
+  top: 0;
+  z-index: 3;
+  background-color: #033882;
+  color: white;
+}
+/* Fixed column headers need higher z-index and blue background */
+#itemTable thead th:nth-child(1),
+#itemTable thead th:nth-child(2),
+#itemTable thead th:nth-child(3) {
+  z-index: 4;
+  background-color: #033882 !important;
+  color: white !important;
+}
+
+/* Add borders to fixed columns */
+#itemTable th:nth-child(1),
+#itemTable td:nth-child(1),
+#itemTable th:nth-child(2),
+#itemTable td:nth-child(2),
+#itemTable th:nth-child(3),
+#itemTable td:nth-child(3) {
+  border-right: 2px solid #ddd;
+  box-shadow: 2px 0 5px -2px rgba(0, 0, 0, 0.1);
+}
+
+    </style>
+</head>
+
+<body>
+
+
+<section layout:fragment="header">
+    <div class="container">
+        <div class="row mb-2">
+            <div class="col-sm-6"><h1>Create PR</h1></div>
+            <div class="col-sm-6">
+                <ol class="breadcrumb float-sm-right">
+                    <li class="breadcrumb-item"><a href="#">PR</a></li>
+                    <li class="breadcrumb-item active">Create PR</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+</section>
+
+<div class="container" layout:fragment="content">
+    <div class="card">
+        <!-- PR Header -->
+        <div class="filter-panel mt-3">
+            <div class="filter-header">
+                <div class="filter-title">
+                    <i class="bi bi-funnel-fill"></i>
+                    <span>PR Header Details</span>
+                    <button onclick="location.reload();" class="btn btn-sm btn-refresh" title="Refresh Page" style="margin-left: 12px;">
+                        <i class="bi bi-arrow-clockwise"></i>
+                    </button>
+                </div>
+
+                <div style="display: flex; align-items: center; gap: 8px; justify-content: center;">
+                    <label style="color: white; margin-bottom: 0;">Document Type:</label>
+                    <select id="docType" class="form-control searchable-dropdown" style="width: 200px;">
+                        <option value="">-- Select Doc Type --</option>
+                        <option th:each="dt:${docTypes}"
+                                th:value="${dt.emdValue1}"
+                                th:text="${dt.emdValue2 + ' (' + dt.emdValue1 + ')'}">
+                        </option>
+                    </select>
+                </div>
+
+                <i id="toggleIcon" class="bi bi-chevron-up filter-icon" title="Collapse/Expand" onclick="toggleHeaderSection()"></i>
+            </div>
+
+            <div class="filter-content" id="headerContent">
+                <form th:action="@{/prCreate/postPR}" th:object="${prForm}" method="post" id="prForm">
+                    <div class="row mb-3">
+                        <div class="form-group col-md-4">
+                            <label>Plant</label>
+                            <select class="form-control searchable-dropdown" name ="plant" id="plant" onchange=" loadDepartments();">
+                                <option value="">--Select Plant--</option>
+                                <option th:each="pt:${plants}" th:value="${pt.emdValue1}" th:text="${pt.emdValue2+' (' +pt.emdValue1+ ')'}"></option>
+                            </select>
+                        </div>
+                        <div class="form-group col-md-4">
+                            <label>Purchase Group</label>
+                            <select class="form-control searchable-dropdown" name="purGrp" id="purGrp">
+                                <option value="">-- Select Purchase Group --</option>
+                                <option th:each="pg : ${purchaseGroups}" th:value="${pg.emdValue1}" th:text="${pg.emdValue2 +' (' +pg.emdValue1+ ')'}"></option>
+                            </select>
+                        </div>
+                        <div class="form-group col-md-4">
+                            <label>Account Assignment</label>
+                            <select class="form-control searchable-dropdown" name="accAsmt" id="accAsmt" onchange="toggleWbsInternalOrder()">
+                                <option value="">-- Select Account Assignment Group --</option>
+                                <option th:each="pg : ${accAssgs}" th:value="${pg.emdValue1}" th:text="${pg.emdValue2 +' (' +pg.emdValue1+ ')'}"></option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="form-group col-md-4">
+                            <label>Item Category</label>
+                            <select class="form-control searchable-dropdown" name="itemCat" id="itemCat" readonly disabled>
+                                <option value="">-- Select Item Category --</option>
+                                <option th:each="pg : ${itemCategs}" th:value="${pg.emdValue1}" th:text="${pg.emdValue2+' (' +pg.emdValue1+ ')'}"></option>
+                            </select>
+                        </div>
+                        <div class="form-group col-md-4">
+                            <label>Division</label>
+                            <select class="form-control searchable-dropdown" name="division" id="division" onchange="loadDepartments();">
+                                <option value="">-- Select Division --</option>
+                                <option th:each="pg : ${divisions}" th:value="${pg.emdValue1}" th:text="${pg.emdValue2+' (' +pg.emdValue1+ ')'}"></option>
+                            </select>
+                        </div>
+                        <div class="form-group col-md-4">
+                            <label>Department</label>
+                            <select id="department" name="department" class="form-control searchable-dropdown">
+                                <option value="">-- Select Department --</option>
+                            </select>
+                        </div>
+                    </div>
+                </form>
+            </div>
+
+        </div>
+
+        <!-- Item Table -->
+        <div class="custom-table-container mt-4 table-scroll-wrapper">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <h5 class="text-primary">Item Details</h5>
+                <button class="btn btn-success btn-sm" type="button" onclick="addItemRow()">
+                    <i class="bi bi-plus-circle"></i> Add Item
+                </button>
+            </div>
+            <div class="table-scroll">
+                <table id="itemTable" class="table table-bordered table-hover text-center">
+                    <thead class="custom-table-header">
+                    <tr>
+                        <th>Sr No.</th>
+                        <th>Material Code</th>
+                        <th>Description</th>
+                        <!--<th>GL Account</th>-->
+                        <th>UOM</th>
+                        <th>Quantity</th>
+                        <th>Unit Price</th>
+                        <th>Total Value</th>
+                        <th>Material Group</th>
+                        <!--   <th>Project Code</th>-->
+                        <th>Delivery Date</th>
+                        <th>Stroage location</th>
+                        <th>Tracking Number</th>
+                        <th>Action</th>
+                    </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="bottom-actions">
+            <button class="btn-create" type="button" onclick="submitPR()">
+                <i class="bi bi-check-circle me-1"></i> CREATE PR
+            </button>
+        </div>
+    </div>
+</div>
+
+<div layout:fragment="scriptContent">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <script th:inline="javascript">
+
+        let rowCount = 0;
+        let materialList = [];
+        let allMaterialsCache = { plant: null, data: [] };
+
+        $(document).ready(function () {
+          $('.searchable-dropdown').select2({
+            placeholder: "-- Select Option --",
+            allowClear: true,
+            width: 'resolve'
+          });
+
+          // Add event listener for docType change
+          $('#docType').on('change', function() {
+            console.log("🔹 docType changed, calling toggleAgreementsField()");
+            toggleAgreementsField();
+          });
+        });
+
+        /* ---------- Material Dropdown AJAX (Search) ---------- */
+        $(document).on('focus', '.material-code, .material-desc, .glacct-dd', function () {
+          if (!$(this).data('select2')) {
+            const plant = $('#plant').val();
+            if (!plant) {
+              alert("Please select a plant first!");
+              return;
+            }
+            const isCodeDropdown = $(this).hasClass('material-code');
+            const searchField = isCodeDropdown ? 'matNumber' : 'shortText';
+            $(this).select2({
+              placeholder: "-- Type to search Material --",
+              minimumInputLength: 3,
+              ajax: {
+                url: `/getMaterials`,
+                dataType: 'json',
+                delay: 300,
+                data: function (params) {
+                  return { plant: plant, query: params.term, searchType: searchField };
+                },
+                processResults: function (data) {
+                  return {
+                    results: data.map(mat => ({
+                      id: mat.materialCode,
+                       text: `${mat.materialCode}`
+                     // text: `${mat.materialCode} - ${mat.description}`
+                    }))
+                  };
+                },
+                cache: true
+              }
+            });
+          }
+        });
+
+        /* ---------- UPDATED MATERIAL CHANGE HANDLER ---------- */
+        $(document).on('change', '.material-select', function () {
+          const row = $(this).closest('tr')[0];
+          const materialCode = $(this).val();
+          const plant = $("#plant").val();
+
+          if (!plant) {
+            alert("Please select a Plant first!");
+            $(this).val('');
+            return;
+          }
+
+          if (!materialCode) {
+            alert("Please select a Material Code!");
+            return;
+          }
+
+          console.log("Fetching details for:", materialCode, "Plant:", plant);
+
+          fetch(`/getMaterialDetails?plant=${plant}&materialCode=${materialCode}`)
+            .then(res => {
+              if (!res.ok) throw new Error("Network error while fetching details.");
+              return res.json();
+            })
+            .then(data => {
+              console.log("Response Data:", data);
+
+              // ✅ Data validation & alerts
+              if (!data || data.length === 0) {
+                alert("Material not found in selected Plant!");
+                row.querySelector('[name="uom"]').value = "";
+                row.querySelector('[name="casNoHid"]').value = "";
+                row.querySelector('[name="materialGroup"]').value = "";
+                row.querySelector('[name="valPrice"]').value = "";
+                row.querySelector('[name="shortText"]').value = "";
+                return;
+              }
+
+              const mat = data[0];
+              //alert("✅ Material details fetched successfully!");
+
+              // ✅ Populate fields safely
+               const descSelect = row.querySelector('[name="shortText"]');
+              descSelect.innerHTML = `<option value="${mat.description}">${mat.description}</option>`;
+              descSelect.value = mat.description || "";
+
+              row.querySelector('[name="uom"]').value = mat.uom || "";
+              row.querySelector('[name="casNoHid"]').value = mat.casNo || "";
+              row.querySelector('[name="materialGroup"]').value = mat.materialGroup || "";
+              row.querySelector('[name="valPrice"]').value = mat.unitPrice || "";
+
+              // ✅ Enable and reset agreements dropdown when material changes
+              const subRow = row.nextElementSibling;
+              if (subRow && subRow.classList.contains('sub-row')) {
+                const $agreementsDropdown = $(subRow).find('.agreement-dd');
+
+                // Clear previous selection and reset fields
+                $agreementsDropdown.val(null).trigger('change');
+                $(subRow).find('[name="aggrItem"]').val('');
+                $(subRow).find('[name="fixVendor"]').val('');
+
+                // Enable the dropdown and update placeholder
+                $agreementsDropdown.prop('disabled', false);
+
+                // Destroy and reinitialize Select2 with updated placeholder
+                if ($agreementsDropdown.data('select2')) {
+                  $agreementsDropdown.select2('destroy');
+                }
+
+                $agreementsDropdown.select2({
+                  placeholder: "-- Type to search Agreements --",
+                  allowClear: true,
+                  width: '100%',
+                  minimumInputLength: 0,
+                  ajax: {
+                    url: '/getAggrements',
+                    dataType: 'json',
+                    delay: 300,
+                    data: function(params) {
+                      const materialCodeInput = $(row).find('[name="matNumber"]').val();
+                      const plant = $('#plant').val();
+                      console.log(`   🔍 Fetching agreements for Material: ${materialCodeInput}, Plant: ${plant}`);
+
+                      if (!materialCodeInput) {
+                        console.warn("   ⚠️ Material code not selected");
+                        return null;
+                      }
+
+                      return {
+                        plant: plant,
+                        materialCode: materialCodeInput
+                      };
+                    },
+                    processResults: function(data) {
+                      console.log(`   ✅ Received ${data.length} Agreements from backend`);
+                      if (!data || data.length === 0) {
+                        console.warn("   ⚠️ No agreements found for this material");
+                      }
+                      return {
+                        results: data.map(a => ({
+                          id: a.aggKey,
+                          text: a.aggValue
+                        }))
+                      };
+                    },
+                    cache: false
+                  }
+                });
+
+                // Re-attach the select handler
+                $agreementsDropdown.on('select2:select', function(e) {
+                  const selectedKey = e.params.data.id;
+                  console.log(`   ✅ Agreement selected: ${selectedKey}`);
+                  const parts = selectedKey.split('#');
+
+                  if (parts.length === 3) {
+                    const itemNo = parts[2];
+                    const vendor = parts[1];
+
+                    $(subRow).find('[name="aggrItem"]').val(itemNo);
+                    $(subRow).find('[name="fixVendor"]').val(vendor);
+                    console.log(`   ✅ Auto-populated - Item: ${itemNo}, Vendor: ${vendor}`);
+                  } else {
+                    console.error(`   ❌ Invalid aggKey format: ${selectedKey}`);
+                  }
+                });
+
+                console.log(`   ✅ Agreements dropdown enabled and reinitialized for material: ${materialCode}`);
+              }
+            })
+            .catch(err => {
+              console.error("❌ Error fetching material details:", err);
+              alert("Error fetching material details. Check console or backend logs.");
+            });
+        });
+/*----------LOAD WBS----------*/
+
+
+/*
+$(document).on('focus', '.wbsElement-dd', function () {
+
+    if (!$(this).data('select2')) {
+        const plant = $('#plant').val();
+        if (!plant) {
+            alert("Please select a Plant first!");
+            return;
+        }
+alert("plant"+plant);
+        $(this).select2({
+            placeholder: "&#45;&#45; Type to search WBS Element &#45;&#45;",
+            minimumInputLength: 4,  // ✅ trigger only after 5 characters
+            ajax: {
+                url: `/getWBSElements`,
+                dataType: 'json',
+                delay: 300,
+                data: function (params) {
+                console.log("Calling /getWBSElements with:", params.term);
+                    return {
+                        plant: plant,
+                        query: params.term  // backend should use this to filter
+                    };
+                },
+                processResults: function (data) {
+                    return {
+                        results: data.map(wbs => ({
+                            id: wbs.wbsCode,
+                            text: `${wbs.wbsCode} - ${wbs.wbsCodeDesc}`
+                        }))
+                    };
+                },
+                cache: true
+            }
+        });
+    }
+});
+
+*/
+        function loadWBSElements(row, plant) {
+        alert("loadWBSElements");
+            const dropdown = row.querySelector('.wbsElement-dd');
+            dropdown.innerHTML = `<option>Loading...</option>`;
+            if (!plant) {
+                dropdown.innerHTML = `<option value="">-- Select Wbs Element --</option>`;
+                return;
+            }
+
+
+          fetch(`/getWBSElements?plant=${plant}`)
+            .then(res => {
+              if (!res.ok) throw new Error("Network error while fetching details.");
+              return res.json();
+            })
+            .then(data => {
+              console.log("Response Data:", data);
+
+
+                    const wbsSelect = row.querySelector('[name="wbsElement"]');
+                    wbsSelect.innerHTML = '<option value="">-- Select WBS --</option>';
+
+                    if (Array.isArray(data) && data.length > 0) {
+                        data.forEach(wbs => {
+                            const opt = document.createElement("option");
+                            opt.value = wbs.wbsCode;
+                            opt.textContent = `${wbs.wbsCode} - ${wbs.wbsCodeDesc}`;
+                            wbsSelect.appendChild(opt);
+                        });
+                    } else {
+                        alert("No WBS Elements found for the selected Project Code.");
+                    }
+                })
+                .catch(err => {
+                    console.error("Error fetching WBS elements:", err);
+                    alert("Error while fetching WBS Elements!");
+                });
+        }
+function loadInternalOrders(row, plant) {
+    const dropdown = row.querySelector('.internalOrder-dd');
+    dropdown.innerHTML = `<option>Loading...</option>`;
+
+    fetch(`/getInternalOrders`)
+        .then(res => res.json())
+        .then(data => {
+            dropdown.innerHTML = `<option value="">-- Select Internal Order --</option>`;
+            data.forEach(io => {
+                const opt = document.createElement('option');
+                opt.value = io.emdValue1;
+                opt.text = `${io.emdValue1} - ${io.emdValue2}`;
+                dropdown.appendChild(opt);
+            });
+        })
+        .catch(err => {
+            console.error("Error loading internal orders:", err);
+            dropdown.innerHTML = `<option>Error loading</option>`;
+        });
+}
+function loadNetwork(row, plant) {
+    const dropdown = row.querySelector('.network-dd');
+    dropdown.innerHTML = `<option>Loading...</option>`;
+
+    fetch(`/getNetwork?plant=${plant}`)
+        .then(res => res.json())
+        .then(data => {
+            dropdown.innerHTML = `<option value="">-- Select Network --</option>`;
+            data.forEach(io => {
+               const opt = document.createElement('option');
+                opt.value = net.emdValue1.split("#")[0];
+                opt.textContent = `${net.emdValue2} (${net.emdValue1.split("#")[0]})`;
+                     dropdown.appendChild(opt);
+            });
+        })
+        .catch(err => {
+            console.error("Error loading Network:", err);
+            dropdown.innerHTML = `<option>Error loading</option>`;
+        });
+}
+
+
+
+                // 🔹 PR Header Hover Functionality (like createServicePR)
+                document.addEventListener("DOMContentLoaded", function () {
+                    const filterPanel = document.querySelector(".filter-panel");
+                    const filterContent = document.getElementById("headerContent");
+                    const toggleIcon = document.getElementById("toggleIcon");
+
+                    // 🔹 Initially closed
+                    filterContent.classList.add("hidden");
+                    toggleIcon.classList.remove("bi-chevron-up");
+                    toggleIcon.classList.add("bi-chevron-down");
+
+                    // 🔹 Open on hover in
+                    filterPanel.addEventListener("mouseenter", () => {
+                        filterContent.classList.remove("hidden");
+                        toggleIcon.classList.remove("bi-chevron-down");
+                        toggleIcon.classList.add("bi-chevron-up");
+                    });
+
+                    // 🔹 Close on hover out (only if not focused inside)
+                    filterPanel.addEventListener("mouseleave", (e) => {
+                        // Check if focus is inside the panel (e.g., dropdowns, inputs)
+                        if (!filterPanel.contains(document.activeElement)) {
+                            filterContent.classList.add("hidden");
+                            toggleIcon.classList.remove("bi-chevron-up");
+                            toggleIcon.classList.add("bi-chevron-down");
+                        }
+                    });
+
+                    // 🔹 Optional: close when chevron is clicked
+                    window.toggleHeaderSection = function () {
+                        filterContent.classList.toggle("hidden");
+                        toggleIcon.classList.toggle("bi-chevron-up");
+                        toggleIcon.classList.toggle("bi-chevron-down");
+                    };
+                });
+
+
+async function checkReleaseAndAdd(plant, purGrp, division, department) {
+  const headerFields = document.querySelectorAll("#headerContent select, #headerContent input");
+  // disable header fields already done by caller if required
+
+  try {
+    const res = await fetch(`/checkReleaseStrategy?plant=${plant}&purGrp=${purGrp}&division=${division}&department=${department}`);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json();
+    console.log('checkReleaseStrategy raw response:', data);
+
+    // Normalize to boolean
+    let isMaintained = false;
+    if (typeof data === 'boolean') isMaintained = data;
+    else if (typeof data === 'string') isMaintained = data.toLowerCase() === 'true';
+    else if (typeof data === 'number') isMaintained = data !== 0;
+    else if (data && typeof data === 'object') {
+      isMaintained = !!(data.maintained || data.isMaintained || data.success || data.is_maintained);
+    }
+
+    if (isMaintained) {
+      console.log("Release Strategy found, adding item row...");
+      actuallyAddItemRow();
+    } else {
+      // Re-enable header fields because we aborted
+      headerFields.forEach(f => f.removeAttribute("disabled"));
+        Swal.fire({
+        icon: 'error',
+        title: 'Release Strategy Missing',
+        text: 'Release Strategy is not maintained for the selected Plant, Purchase Group, Division, and Department. Please update the configuration before adding items.'
+    });
+    }
+  } catch (err) {
+    headerFields.forEach(f => f.removeAttribute("disabled"));
+    console.error("Error checking release strategy:", err);
+    alert("Error checking release strategy. Please try again.");
+  }
+}
+
+function addItemRow()
+{
+    console.log("🔹 addItemRow() called - Closing all sub-rows and PR header details");
+
+    // 🔹 Close all open sub-rows before adding new item
+    const allSubRows = document.querySelectorAll(".sub-row");
+    allSubRows.forEach(subRow => {
+        if (subRow.style.display === "table-row") {
+            subRow.style.display = "none";
+            const mainRow = subRow.previousElementSibling;
+            const btn = mainRow.querySelector(".btn-addinfo");
+            if (btn) {
+                const icon = btn.querySelector("i");
+                icon.classList.remove("bi-dash-circle");
+                icon.classList.add("bi-plus-circle");
+                btn.title = "Add Info";
+            }
+        }
+    });
+    console.log("✅ All sub-rows closed");
+
+    // 🔹 Hide PR Header Details panel
+    const filterContent = document.getElementById("headerContent");
+    const toggleIcon = document.getElementById("toggleIcon");
+    if (filterContent && !filterContent.classList.contains("hidden")) {
+        filterContent.classList.add("hidden");
+        toggleIcon.classList.remove("bi-chevron-up");
+        toggleIcon.classList.add("bi-chevron-down");
+        console.log("✅ PR Header Details hidden");
+    }
+
+    const plant = document.getElementById("plant")?.value;
+    const purGrp = document.getElementById("purGrp")?.value;
+    const division = document.getElementById("division")?.value;
+    const department = $('#department').val();
+    const docType = document.getElementById("docType").value;
+
+    if (!docType)
+    {
+    Swal.fire({
+        icon: 'warning',
+        title: 'Document Type Required',
+        text: 'Please select a Document Type before adding items!'
+    });
+    return;
+    }
+
+    if (!plant || !purGrp || !division || !department) {
+    alert("Please select Plant, Purchase Group, Division, and Department before adding an item!");
+    return;
+    }
+
+    // Disable all header fields
+    const headerFields = document.querySelectorAll("#headerContent select, #headerContent input");
+    headerFields.forEach(f => f.setAttribute("disabled", true));
+    checkReleaseAndAdd(plant, purGrp, division, department);
+         }
+            function actuallyAddItemRow() {
+
+                    const tbody = document.querySelector("#itemTable tbody");
+                    const mainRow = document.createElement("tr");
+                    const subRow = document.createElement("tr");
+         const headerDivision = document.getElementById("division").value || "";
+                    const headerDept = document.getElementById("department").value || "";
+                    mainRow.innerHTML = `
+                        <td style="width: 70px;">${++rowCount}<input type="hidden" name="casNoHid" id="casNoHid" value=""></td>
+                        <td style="width: 180px;"><select name="matNumber" class="form-control material-select material-code">
+                         <option value="">-- Select Material --</option>
+                        </select>
+                        </td>
+                        <td style="width: 250px;"> <select name="shortText" class="form-control material-select material-desc">
+                        <option value="">-- Select Description --</option>
+                        </select>
+                        </td>
+
+                        <td style="width: 60px;"><input type="text" class="form-control" name="uom" readonly></td>
+
+                        <td style="width: 70px;"><input type="number" class="form-control" name="quantity" oninput="calcTotal(this)" ></td>
+                        <td style="width: 80px;"><input type="number" class="form-control" name="valPrice" step="0.01" oninput="calcTotal(this)" ></td>
+                        <td style="width: 80px;"><input type="text" class="form-control" name="total" readonly></td>
+                        <td style="width: 110px;"><input type="text" class="form-control" name="materialGroup" readonly></td>
+                       <!--  <td style="width: 320px;"> <select name="projCode" class="form-control projCode-dd">
+                        <option value="">-- Select Proj code --</option>
+                        </select>
+                        </td>-->
+
+                        <td style="width: 130px;"><input type="date" class="form-control" name="deliveryDate"></td>
+                        <td style="width: 250px;"> <select class="form-control storageLoc-dropdown" name="storageLoc">
+                            <option value="">-- Select Storage Loc --</option>
+                            </select>
+                        </td>
+                        <td style="width: 120px;"><input type="text" class="form-control" name="trackNo"></td>
+                        <td style="width: 90px;">
+                            <div class="btn-group">
+                                <button class="btn btn-addinfo btn-sm" type="button" title="Add Info" onclick="toggleSubRow(this)">
+                                    <i class="bi bi-plus-circle"></i>
+                                </button>
+                                <button class="btn btn-delete btn-sm" type="button" title="Delete Row" onclick="deleteItemRow(this)">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </div>
+                        </td>
+                    `;
+
+                    subRow.classList.add("sub-row");
+                    subRow.innerHTML = `
+                        <td colspan="12">
+                            <div class="row">
+                                <div class="col-md-1">
+                                    <label>Division</label>
+                                    <input type="text" class="form-control" name="diviItem" value="${headerDivision}" readonly>
+                                </div>
+                                <div class="col-md-1">
+                                    <label>Department</label>
+                                    <input type="text" class="form-control" name="departItem" value=${headerDept} readonly>
+                                </div>
+                                <div class="col-md-1">
+                                <label>CAS NO</label>
+                                    <input type="text" class="form-control" name="cas" readonly>
+                                 </div>
+                                 <div class="col-md-3 wbs-container">
+                                  <label>WBS ELEMENT</label>
+                                  <select name="wbsElement" class="form-control wbsElement-dd">
+                                    <option value="">-- Select WBS Element --</option>
+                                  </select>
+                                </div>
+                                 <div class="col-md-3 reason-container">
+                                  <label>REASON</label>
+                                  <select name="reason" class="form-control reason-dd">
+                                    <option value="">-- Select Reason --</option>
+                                   </select>
+                                </div>
+
+                                <div class="col-md-3 internalOrder-container" style="display: none;">
+                                  <label>INTERNAL ORDER</label>
+                                  <select name="internalOrder" class="form-control internalOrder-dd">
+                                    <option value="">-- Select Internal Order --</option>
+                                  </select>
+                                </div>
+
+                                 <div class="col-md-3 network-container" style="display: none;">
+                                  <label>NETWORK</label>
+                                  <select name="network" class="form-control network-dd">
+                                    <option value="">-- Select Network --</option>
+                                  </select>
+                                </div>
+                                  <div class="col-md-3 costCenter-container" style="display: none;">
+                                  <label>COST CENTER</label>
+                                  <select name="costCenter" class="form-control costCenter-dd">
+                                    <option value="">-- Select costCenter --</option>
+                                  </select>
+                                </div>
+                                <div class="col-md-1">
+                                    <label>pack size </label>
+                                     <select class="form-control" name="packSize">
+                                    <option value="">-- Select --</option>
+                                    <option value="0">0</option>
+                                    <option value="5">5</option>
+                                    <option value="10">10</option>
+                                    <option value="25">25</option>
+                                    <option value="100">100</option>
+                                    <option value="200">200</option>
+                                </select>
+
+                                </div>
+                                   <div class="col-md-1">
+                                    <label>COA</label>
+                                      <select class="form-control" name="coa">
+                                    <option value="">-- Select --</option>
+                                    <option value="Y">Yes</option>
+                                    <option value="N">No</option>
+                                </select>
+
+
+                                </div>
+                                   <div class="col-md-1">
+                                    <label>Pass Through </label>
+                                    <select class="form-control" name="passThrough">
+                                    <option value="">-- Select --</option>
+                                    <option value="YES">Yes</option>
+                                    <option value="No">No</option>
+                                </select>
+
+                                </div>
+                                 <div class="col-md-1">
+                                    <label>MSDS </label>
+                                     <select class="form-control" name="msds">
+                                    <option value="">-- Select --</option>
+                                    <option value="Y">Yes</option>
+                                    <option value="N">No</option>
+                                </select>
+                                </div>
+                              <div class="col-md-4 agreement-container" style="display: none;">
+                                  <label>AGREEMENTS</label>
+                                  <select name="agreement" class="form-control agreement-dd" disabled>
+                                    <option value="">-- Select Agreements --</option>
+                                   </select>
+                                </div>
+                                <div class="col-md-2 item-container" style="display: none;">
+                                  <label>ITEM</label>
+                                  <input type="text" class="form-control" name="aggrItem" disabled style="background-color: #e9ecef;">
+                                </div>
+                                <div class="col-md-2 vendor-container" style="display: none;">
+                                  <label>FIXED VENDOR</label>
+                                  <input type="text" class="form-control" name="fixVendor" disabled style="background-color: #e9ecef;">
+                                </div>
+
+                            </div>
+                        </td>
+                    `;
+
+            tbody.append(mainRow, subRow);
+            $(subRow).find('.wbsElement-dd').select2({
+            placeholder: "-- Select WBS Element --",
+            minimumInputLength: 3,
+    ajax: {
+      url: '/getWBSElements',
+      dataType: 'json',
+      delay: 300,
+      data: function (params) {
+        return { plant: $('#plant').val(), query: params.term ? params.term.toUpperCase() : ''};
+      },
+      processResults: function (data) {
+        return {
+          results: data.map(w => ({
+            id: w.wbsCode,
+            text: `${w.wbsCode} - ${w.wbsCodeDesc}`
+          }))
+        };
+      },
+      cache: true
+    }
+    });
+    $(subRow).find('.reason-dd').select2({
+  placeholder: "-- Select Reason --",
+  width: '100%',
+  allowClear: true,
+  data: [], // we'll load this once below
+});
+
+$.getJSON('/getReason', function(data) {
+
+   const formattedData = [{
+        id: "",
+        text: "-- Select Reason --"
+    }, ...data.map(w => ({
+        id: w.emdValue1,
+        text: `${w.emdValue1} - ${w.emdValue2}`
+    }))];
+ $(subRow).find('.reason-dd').empty().select2({
+    placeholder: "-- Select Reason --",
+    width: '100%',
+    allowClear: true,
+    data: formattedData
+  });
+});
+//***********INternal order**********************
+    $(subRow).find('.internalOrder-dd').select2({
+  placeholder: "-- Select Internal Order --",
+  width: '100%',
+  allowClear: true,
+  data: [], // we'll load this once below
+});
+
+// Load data once from backend and set it
+$.getJSON('/getInternalOrders', function(data) {
+  const formattedData = data.map(w => ({
+    id: w.emdValue1,
+    text: `${w.emdValue1} - ${w.emdValue2}`
+  }));
+
+  // Reinitialize select2 with preloaded data (local search)
+  $(subRow).find('.internalOrder-dd').empty().select2({
+    placeholder: "-- Select Internal Order --",
+    width: '100%',
+    allowClear: true,
+    data: formattedData
+  });
+});
+//****************NETWORK*******************
+    const $networkDropdown = $(subRow).find('.network-dd');
+
+$.ajax({
+    url: '/getNetwork',
+    dataType: 'json',
+    data: { plant: $('#plant').val() },
+    success: function(data) {
+        console.log(`✅ Received ${data.length || (data.content?.length ?? 0)} Networks`);
+
+        // Handle wrapped response
+        const list = Array.isArray(data) ? data : (data.content || []);
+
+        // Clear and populate options
+        $networkDropdown.empty();
+        $networkDropdown.append('<option value="">-- Select Network --</option>');
+
+        list.forEach(net => {
+            const networkId = net.emdValue1.split("#")[0];
+            const networkDesc = net.emdValue2;
+            $networkDropdown.append(
+                `<option value="${networkId}">${networkDesc} (${networkId})</option>`
+            );
+        });
+
+        // Initialize Select2 with local search
+        $networkDropdown.select2({
+            placeholder: "-- Type to search Network --",
+            allowClear: true,
+            width: '100%',
+            minimumInputLength: 0,
+            matcher: function(params, data) {
+                if ($.trim(params.term) === '') {
+                    return data;
+                }
+                const searchTerm = params.term.toLowerCase();
+                const text = (data.text || '').toLowerCase();
+                return text.includes(searchTerm) ? data : null;
+            }
+        });
+
+        console.log("✅ Select2 initialized with search for Network dropdown");
+    },
+    error: function(err) {
+        console.error("❌ Error loading Networks:", err);
+        $networkDropdown.empty().append('<option value="">Error loading</option>');
+    }
+});
+
+    //*************COSTCENTER**************
+     const $costCenterDropdown = $(subRow).find('.costCenter-dd');
+
+    $.ajax({
+        url: '/getCostCenter',
+        dataType: 'json',
+        success: function(data) {
+            console.log(`   ✅ Received ${data.length} Cost Centers`);
+
+            // Clear and populate options
+            $costCenterDropdown.empty();
+            $costCenterDropdown.append('<option value="">-- Select Cost Center --</option>');
+
+            data.forEach(cc => {
+                $costCenterDropdown.append(`<option value="${cc.emdValue1}">${cc.emdValue1} - ${cc.emdValue2}</option>`);
+            });
+
+            // Initialize Select2 with search
+            $costCenterDropdown.select2({
+                placeholder: "-- Type to search Cost Center --",
+                allowClear: true,
+                width: '100%',
+                minimumInputLength: 0,
+                matcher: function(params, data) {
+                    if ($.trim(params.term) === '') {
+                        return data;
+                    }
+                    const searchTerm = params.term.toLowerCase();
+                    const text = data.text.toLowerCase();
+                    if (text.indexOf(searchTerm) > -1) {
+                        return data;
+                    }
+                    return null;
+                }
+            });
+
+            console.log("   ✅ Select2 initialized with search for Cost Center dropdown");
+        },
+        error: function(err) {
+            console.error(`   ❌ Error loading Cost Centers:`, err);
+            $costCenterDropdown.append('<option value="">Error loading</option>');
+        }
+    });
+
+    //*************AGREEMENTS**************
+    const $agreementsDropdown = $(subRow).find('.agreement-dd');
+
+    $agreementsDropdown.select2({
+        placeholder: "-- Select Material First --",
+        allowClear: true,
+        width: '100%',
+        minimumInputLength: 0,
+        disabled: true, // Initially disabled
+        ajax: {
+            url: '/getAggrements',
+            dataType: 'json',
+            delay: 300,
+            data: function(params) {
+                const materialCode = $(subRow).prev('tr').find('[name="matNumber"]').val();
+                const plant = $('#plant').val();
+                console.log(`   🔍 Fetching agreements for Material: ${materialCode}, Plant: ${plant}`);
+
+                if (!materialCode) {
+                    console.warn("   ⚠️ Material code not selected yet");
+                    return null;
+                }
+
+                return {
+                    plant: plant,
+                    materialCode: materialCode
+                };
+            },
+            processResults: function(data) {
+                console.log(`   ✅ Received ${data.length} Agreements from backend`);
+                if (!data || data.length === 0) {
+                    console.warn("   ⚠️ No agreements found for this material");
+                }
+                return {
+                    results: data.map(a => ({
+                        id: a.aggKey,      // Format: "agreement#vendor#itemNo"
+                        text: a.aggValue   // Display: "agreement - itemNo - vendor - shortText"
+                    }))
+                };
+            },
+            cache: false
+        }
+    });
+
+    // Handle agreement selection to populate item and vendor fields
+    $agreementsDropdown.on('select2:select', function(e) {
+        const selectedKey = e.params.data.id; // Format: "agreement#vendor#itemNo"
+        console.log(`   ✅ Agreement selected: ${selectedKey}`);
+        const parts = selectedKey.split('#');
+
+        if (parts.length === 3) {
+            const agreement = parts[0];
+            const vendor = parts[1];
+            const itemNo = parts[2];
+
+            $(subRow).find('[name="aggrItem"]').val(itemNo);
+            $(subRow).find('[name="fixVendor"]').val(vendor);
+            console.log(`   ✅ Auto-populated - Item: ${itemNo}, Vendor: ${vendor}`);
+        } else {
+            console.error(`   ❌ Invalid aggKey format: ${selectedKey}`);
+        }
+    });
+
+    console.log("   ✅ Select2 initialized for Agreements dropdown");
+
+            $(mainRow).find('.storageLoc-dropdown').select2({
+            placeholder: "-- Select Storage Location --",
+            allowClear: true,
+            width: 'resolve'
+            });
+                    const plant = document.getElementById("plant").value;
+                    if (plant)
+                    {
+                loadStorageLocations(mainRow, plant);
+
+              //  loadWBSElements(subRow, plant);
+              //  loadGlAccount(mainRow,plant);
+            //    loadProjCode(mainRow,plant);
+            }
+                    if (allMaterialsCache.data.length > 0) {
+            populateMaterialDropdown(mainRow, allMaterialsCache.data);
+        }
+                     const matSelect = mainRow.querySelector(".material-select");
+                if (materialList.length > 0)
+                {
+                    materialList.forEach(m =>
+                    {
+                        const opt = document.createElement("option");
+                        opt.value = m.materialCode;
+                        opt.text = m.materialCode;
+                        matSelect.appendChild(opt);
+                    });
+                }
+               // alert("insiderow");
+                toggleWbsInternalOrder();
+                toggleAgreementsField(); // Show/hide agreements based on current docType
+            }
+         function loadStorageLocations(row, plant) {
+            const dropdown = row.querySelector('.storageLoc-dropdown');
+            dropdown.innerHTML = `<option>Loading...</option>`;
+
+            if (!plant) {
+                dropdown.innerHTML = `<option value="">-- Select Storage Loc --</option>`;
+                return;
+            }
+
+
+            fetch(`/getStorageLocations?plant=${plant}`)
+                .then(res => res.json())
+                .then(data => {
+                    dropdown.innerHTML = `<option value="">-- Select Storage Loc --</option>`;
+                    data.forEach(loc => {
+                        const opt = document.createElement('option');
+                        opt.value = loc.emdValue1.split("#")[0];
+                        opt.text = `${loc.emdValue2} (${loc.emdValue1.split("#")[0]})`;
+                        dropdown.appendChild(opt);
+                    });
+                })
+                .catch(err => {
+                    console.error("❌ Error loading storage locations:", err);
+                    dropdown.innerHTML = `<option>Error loading</option>`;
+                });
+        }
+
+        /*function loadGlAccount(row, plant) {
+            const dropdown = row.querySelector('.glacct-dd');
+            dropdown.innerHTML = `<option>Loading...</option>`;
+
+            if (!plant) {
+                dropdown.innerHTML = `<option value="">-- Select GL Account --</option>`;
+                return;
+            }
+
+
+            fetch(`/getGLAcct?plant=${plant}`)
+                .then(res => res.json())
+                .then(data => {
+                    dropdown.innerHTML = `<option value="">-- Select GL account --</option>`;
+                    data.forEach(loc => {
+                        const opt = document.createElement('option');
+                        opt.value = loc.glAcc;
+                        opt.text = `${loc.glAccDesc} (${loc.glAcc})`;
+                        dropdown.appendChild(opt);
+                    });
+                })
+                .catch(err => {
+                    console.error("❌ Error loading GL accoount", err);
+                    dropdown.innerHTML = `<option>Error loading</option>`;
+                });
+        }*/
+        function loadProjCode(row, plant) {
+            const dropdown = row.querySelector('.projCode-dd');
+            dropdown.innerHTML = `<option>Loading...</option>`;
+
+            if (!plant) {
+                dropdown.innerHTML = `<option value="">-- Select Project Code --</option>`;
+                return;
+            }
+
+
+            fetch(`/getProjCode?plant=${plant}`)
+                .then(res => res.json())
+                .then(data => {
+                    dropdown.innerHTML = `<option value="">-- Select Project Code --</option>`;
+                    data.forEach(loc => {
+                        const opt = document.createElement('option');
+                        opt.value = loc.projCode;
+                        opt.text = `${loc.projCodeDesc} (${loc.projCode})`;
+                        dropdown.appendChild(opt);
+                    });
+                })
+                .catch(err => {
+                    console.error("❌ Error loading Project code", err);
+                    dropdown.innerHTML = `<option>Error loading</option>`;
+                });
+        }
+                function toggleSubRow(btn)
+                {
+                    const mainRow = btn.closest("tr");
+                    const subRow = mainRow.nextElementSibling;
+                    const icon = btn.querySelector("i");
+                    const isOpening = subRow.style.display === "none" || subRow.style.display === "";
+
+                    console.log(`🔹 toggleSubRow() - isOpening: ${isOpening}`);
+
+                    // 🔹 If opening this sub-row, close all other sub-rows first
+                    if (isOpening) {
+                        console.log("🔹 Closing all other sub-rows...");
+                        const allSubRows = document.querySelectorAll(".sub-row");
+                        allSubRows.forEach(otherSubRow => {
+                            if (otherSubRow !== subRow && otherSubRow.style.display === "table-row") {
+                                otherSubRow.style.display = "none";
+                                const otherMainRow = otherSubRow.previousElementSibling;
+                                const otherBtn = otherMainRow.querySelector(".btn-addinfo");
+                                if (otherBtn) {
+                                    const otherIcon = otherBtn.querySelector("i");
+                                    otherIcon.classList.remove("bi-dash-circle");
+                                    otherIcon.classList.add("bi-plus-circle");
+                                    otherBtn.title = "Add Info";
+                                }
+                            }
+                        });
+                        console.log("✅ All other sub-rows closed");
+                    }
+
+                    const casNoHidden = mainRow.querySelector('[name="casNoHid"]').value;
+                    const casInput = subRow.querySelector('[name="cas"]');
+                    if (casInput) {
+                        casInput.value = casNoHidden;
+                    }
+            // Toggle visibility
+            subRow.style.display = isOpening ? "table-row" : "none";
+
+            // Toggle icon
+            icon.classList.toggle("bi-plus-circle", !isOpening);
+            icon.classList.toggle("bi-dash-circle", isOpening);
+            btn.title = isOpening ? "Hide Info" : "Add Info";
+
+            console.log(`✅ Sub-row ${isOpening ? 'opened' : 'closed'}`);
+
+            // Load data only when opening
+            if (isOpening) {
+                const plant = document.getElementById("plant").value;
+                //loadWBSElements(subRow, plant);   // ✅ Load WBS dropdown
+                 const pass = subRow.querySelector('[name="passThrough"]');
+                if (pass) pass.setAttribute('required', 'required');
+
+            }
+            }
+        function renumberItems() {
+            let itemRows = document.querySelectorAll(".itemRow");
+            let counter = 1;
+
+            itemRows.forEach(row => {
+                row.querySelector('[name="itemNo"]').value = counter;
+                counter += 1;
+            });
+        }
+
+                function deleteItemRow(btn) {
+                    const mainRow = btn.closest("tr");
+                    const subRow = mainRow.nextElementSibling;
+                    mainRow.remove();
+                    if (subRow && subRow.classList.contains("sub-row")) subRow.remove();
+                    renumberItems();
+                }
+
+                function calcTotal(input) {
+                    const row = input.closest("tr");
+                    const qty = parseFloat(row.querySelector('[name="quantity"]').value) || 0;
+                    const price = parseFloat(row.querySelector('[name="valPrice"]').value) || 0;
+                    row.querySelector('[name="total"]').value = (qty * price).toFixed(2);
+                }
+
+                function loadDepartments() {
+                    const plant = document.getElementById("plant").value;
+                    const division = document.getElementById("division").value;
+                    const departmentDropdown = document.getElementById("department");
+                    departmentDropdown.innerHTML = `<option>Loading...</option>`;
+
+                    if (plant && division) {
+                        fetch(`/getDepartments?plant=${plant}&division=${division}`)
+                            .then(res => res.json())
+                            .then(data => {
+                                departmentDropdown.innerHTML = `<option value="">-- Select Department --</option>`;
+                                data.forEach(d => {
+                                    const opt = document.createElement("option");
+                                    opt.value = d.emdValue1;
+                                    opt.text = `${d.emdValue1} → ${d.emdValue2}`;
+                                    departmentDropdown.appendChild(opt);
+                                });
+                            })
+                            .catch(() => {
+                                departmentDropdown.innerHTML = `<option>Error loading</option>`;
+                            });
+                    } else {
+                        departmentDropdown.innerHTML = `<option value="">-- Select Department --</option>`;
+                    }
+                }
+      async function submitPR() {
+    const plant = document.getElementById("plant").value;
+    const purGrp = document.getElementById("purGrp").value;
+    const accAsmt = document.getElementById("accAsmt").value;
+    const itemCat = document.getElementById("itemCat").value;
+    const division = document.getElementById("division").value;
+    const department = document.getElementById("department").value;
+    const docType = document.getElementById("docType").value;
+
+    // Basic header validation
+    if (!plant || !purGrp || !division || !department) {
+        Swal.fire({ icon: "warning", title: "Validation Error", text: "Please select Plant, Purchase Group, Division, and Department." });
+        return;
+    }
+    if (!docType) {
+        Swal.fire({ icon: "warning", title: "Validation Error", text: "Please select a Document Type before creating PR!" });
+        return;
+    }
+
+    // ✅ Check Release Strategy first (async)
+    try {
+        const res = await fetch(`/checkReleaseStrategy?plant=${plant}&purGrp=${purGrp}&division=${division}&department=${department}`);
+        const isMaintained = await res.json();
+        if (!isMaintained) {
+            Swal.fire({
+                icon: "warning",
+                title: "Release Strategy Missing",
+                text: "Release Strategy not maintained for this Plant, Purchase Group, Division, or Department!"
+            });
+            return;
+        }
+    } catch (err) {
+        console.error("Error checking release strategy:", err);
+        Swal.fire({ icon: "error", title: "Error", text: "Error checking release strategy. Please try again." });
+        return;
+    }
+
+    // ✅ Validate item table rows
+    const rows = document.querySelectorAll("#itemTable tbody tr:not(.sub-row)");
+    const errors = [];
+
+    rows.forEach((row, index) => {
+        const subRow = row.nextElementSibling;
+        const rowNum = index + 1;
+
+        const passThrough = subRow.querySelector('[name="passThrough"]')?.value?.trim();
+        const wbs = subRow.querySelector('[name="wbsElement"]')?.value?.trim();
+        const io = subRow.querySelector('[name="internalOrder"]')?.value?.trim();
+        const network = subRow.querySelector('[name="network"]')?.value?.trim();
+        const costCenter = subRow.querySelector('[name="costCenter"]')?.value?.trim();
+        const storage = row.querySelector('[name="storageLoc"]')?.value?.trim();
+        const qty = row.querySelector('[name="quantity"]')?.value?.trim();
+        const reason = subRow.querySelector('[name="reason"]')?.value?.trim();
+
+        if (!passThrough) errors.push(`Row ${rowNum}: Pass Through is required`);
+        if (!wbs && accAsmt=='P') errors.push(`Row ${rowNum}: WBS Element is required`);
+        if (!io && accAsmt=='F') errors.push(`Row ${rowNum}: Internal Order  is required`);
+
+        // ✅ Validate reason for ZCSP docType
+        if (docType === 'ZCSP' && !reason) {
+            errors.push(`Row ${rowNum}: Reason is mandatory for Document Type ZCSP`);
+        }
+
+      //  if (!storage) errors.push(`Row ${rowNum}: Storage Location is required`);
+        if (!qty || Number(qty) <= 0) errors.push(`Row ${rowNum}: Quantity must be greater than 0`);
+    });
+
+    if (errors.length > 0) {
+        Swal.fire({
+            icon: "warning",
+            title: "Validation Errors",
+            html: errors.join("<br>")
+        });
+        return; // Stop submission
+    }
+
+    // ✅ Prepare payload
+    const items = [];
+    rows.forEach(row => {
+        const subRow = row.nextElementSibling;
+        items.push({
+            matNumber: row.querySelector('[name="matNumber"]')?.value || "",
+            shortText: row.querySelector('[name="shortText"]')?.value || "",
+            uom: row.querySelector('[name="uom"]')?.value || "",
+            purGrp: purGrp,
+            plant: plant,
+            accAsmt: accAsmt,
+            cas: subRow.querySelector('[name="cas"]')?.value || "",
+            quantity: row.querySelector('[name="quantity"]')?.value || "",
+            valPrice: row.querySelector('[name="valPrice"]')?.value || "",
+            total: row.querySelector('[name="total"]')?.value || "",
+            materialGroup: row.querySelector('[name="materialGroup"]')?.value || "",
+            wbsElement: subRow.querySelector('[name="wbsElement"]')?.value || "",
+            internalOrder: subRow.querySelector('[name="internalOrder"]')?.value || "",
+            network: subRow.querySelector('[name="network"]')?.value || "",
+            costCenter: subRow.querySelector('[name="costCenter"]')?.value || "",
+            deliveryDate: row.querySelector('[name="deliveryDate"]')?.value || "",
+            storageLoc: row.querySelector('[name="storageLoc"]')?.value || "",
+            trackNo: row.querySelector('[name="trackNo"]')?.value || "",
+            division: subRow.querySelector('[name="diviItem"]')?.value || "",
+            department: subRow.querySelector('[name="departItem"]')?.value || "",
+            packSize: subRow.querySelector('[name="packSize"]')?.value || "",
+            coa: subRow.querySelector('[name="coa"]')?.value || "",
+            passThrough: subRow.querySelector('[name="passThrough"]')?.value || "",
+            msds: subRow.querySelector('[name="msds"]')?.value || "",
+            reason: subRow.querySelector('[name="reason"]')?.value || "",
+            agreement: subRow.querySelector('[name="agreement"]')?.value || "",
+            aggrItem: subRow.querySelector('[name="aggrItem"]')?.value || "",
+            fixVendor: subRow.querySelector('[name="fixVendor"]')?.value || ""
+        });
+    });
+
+    const payload = {
+        docType, plant, purGrp, accAsmt, itemCat, division, department, items
+    };
+
+    console.log("Submitting PR payload:", payload);
+
+    // ✅ Submit to Spring Boot
+    try {
+        const response = await fetch('/prCreate/postPR', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                [document.querySelector('meta[name="_csrf_header"]').content]:
+                    document.querySelector('meta[name="_csrf"]').content
+            },
+            body: JSON.stringify(payload)
+        });
+
+        const data = await response.json();
+
+        if (data.status === 'success') {
+            Swal.fire({
+                title: 'PR Created Successfully!',
+                html: `<b>SAP PR Number:</b> ${data.sapPrNumber}<br>${data.message}`,
+                icon: 'success',
+                confirmButtonText: 'Go to PR List',
+                confirmButtonColor: '#3085d6'
+            }).then(() => window.location.href = '/prCreate/list');
+        } else {
+            Swal.fire({
+                title: 'Error!',
+                text: data.message,
+                icon: 'error',
+                confirmButtonText: 'OK',
+                confirmButtonColor: '#d33'
+            });
+        }
+
+    } catch (err) {
+        console.error("Error submitting PR:", err);
+        Swal.fire({
+            title: 'Submission Failed',
+            text: 'Unexpected error. Please check logs.',
+            icon: 'error',
+            confirmButtonText: 'OK',
+            confirmButtonColor: '#d33'
+        });
+    }
+}
+
+function toggleWbsInternalOrder() {
+    const accAsmt = document.getElementById("accAsmt").value;
+    const wbsContainers = document.querySelectorAll(".wbs-container");
+    const internalOrderContainers = document.querySelectorAll(".internalOrder-container");
+    const networkContainers = document.querySelectorAll(".network-container");
+    const costCenterContainers = document.querySelectorAll(".costCenter-container");
+
+
+    if (accAsmt === 'F') {
+        wbsContainers.forEach(div => div.style.display = "none");
+        internalOrderContainers.forEach(div => div.style.display = "block");
+        networkContainers.forEach(div => div.style.display = "none");
+        costCenterContainers.forEach(div => div.style.display = "none");
+    }
+    else if (accAsmt === 'N'){
+    networkContainers.forEach(div => div.style.display = "block");
+        wbsContainers.forEach(div => div.style.display = "none");
+        internalOrderContainers.forEach(div => div.style.display = "none");
+        costCenterContainers.forEach(div => div.style.display = "none");
+    }
+     else if (accAsmt === 'K'){
+     costCenterContainers.forEach(div => div.style.display = "block");
+        networkContainers.forEach(div => div.style.display = "none");
+        wbsContainers.forEach(div => div.style.display = "none");
+        internalOrderContainers.forEach(div => div.style.display = "none");
+    }
+    else {
+        wbsContainers.forEach(div => div.style.display = "block");
+        internalOrderContainers.forEach(div => div.style.display = "none");
+        networkContainers.forEach(div => div.style.display = "none");
+        costCenterContainers.forEach(div => div.style.display = "none");
+    }
+}
+
+function toggleAgreementsField() {
+    const docType = document.getElementById("docType").value;
+    const agreementsContainers = document.querySelectorAll(".agreement-container");
+    const itemContainers = document.querySelectorAll(".item-container");
+    const vendorContainers = document.querySelectorAll(".vendor-container");
+
+    console.log(`🔹 toggleAgreementsField() - docType: ${docType}`);
+
+    if (docType === 'ZOSO') {
+        console.log("   ✅ Showing agreements, item, and vendor fields");
+        agreementsContainers.forEach(div => div.style.display = "block");
+        itemContainers.forEach(div => div.style.display = "block");
+        vendorContainers.forEach(div => div.style.display = "block");
+    } else {
+        console.log("   ✅ Hiding agreements, item, and vendor fields");
+        agreementsContainers.forEach(div => div.style.display = "none");
+        itemContainers.forEach(div => div.style.display = "none");
+        vendorContainers.forEach(div => div.style.display = "none");
+    }
+}
+
+ function autoCloseSidebar() {
+  const btn = document.querySelector('a.nav-link[data-widget="pushmenu"]');
+  if (!btn) return;
+  // Only click if sidebar is not already collapsed
+  if (!document.body.classList.contains('sidebar-collapse')) {
+    btn.click();
+  }
+}
+
+function initAutoClose() {
+  if (document.readyState === 'complete') {
+    autoCloseSidebar();
+  } else {
+    window.addEventListener('load', autoCloseSidebar, { once: true });
+  }
+}
+
+document.addEventListener('DOMContentLoaded', initAutoClose, { once: true });
+
+    </script>
+</div>
+</body>
+</html>

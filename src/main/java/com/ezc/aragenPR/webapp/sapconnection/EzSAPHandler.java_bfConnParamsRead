@@ -1,0 +1,98 @@
+package ezc.sapconnection;
+
+import com.sap.mw.jco.*;
+import java.util.*;
+
+public final class EzSAPHandler
+{
+	private static IRepository repository = null;
+	private static JCO.Pool pool = null;
+  	private static String SID = "R3";
+
+  	private static void createConnectionPool(){
+		try{
+       			JCO.PoolManager poolManager = JCO.getClientPoolManager();
+       			JCO.Pool pool = poolManager.getPool(SID);
+        		if(pool == null){
+           			JCO.addClientPool(SID,8,"900","zsap","copa321","EN","202.144.51.18","00");
+        			System.out.println("Connection Pool Created Successfully...");
+        		}
+		}
+		catch (JCO.Exception Ex){
+            		System.out.println(">>>>>>>>>Problem Occured while Creating Connection Pool:" + Ex.getMessage());
+			Ex.printStackTrace();
+  		}
+ 	}
+    	private static IRepository getRepository(){
+        	if (repository == null) {
+       			try{
+            			repository= JCO.createRepository("MYRepository",getSAPConnection());
+        		}
+        		catch (JCO.Exception Ex){
+		        	System.out.println(">>>>>>>>>>Problem Occured while creating Repository:"+ Ex.getMessage());
+				Ex.printStackTrace();
+         		}
+        	}
+  		return repository;
+  	}
+	public static JCO.Function getFunction(String funName){
+		try{
+			return new JCO.Function((EzSAPHandler.getRepository()).getFunctionTemplate(funName));
+		}
+		catch(Exception Ex){
+			System.out.println(">>>>>>>Problem occured while getting Function:"+Ex.getMessage());
+			Ex.printStackTrace();
+			return null;
+		}
+	}
+	public static JCO.Client getSAPConnection(){
+  		JCO.Client client = JCO.getClient(SID);
+ 		if (client==null){
+       			createConnectionPool();
+                   	try{
+      				client= JCO.getClient(SID);
+        		}
+        		catch (JCO.Exception Ex){
+		        	System.out.println(">>>>>>Problem while getting Connecton:" + Ex.getMessage());
+				Ex.printStackTrace();
+		        }
+		}
+		return client;
+  	}
+
+	public static boolean isJCOEnabled(String methodName){
+		methodName = methodName.toUpperCase();
+		ResourceBundle resBundle = null;
+		try{
+			resBundle=ResourceBundle.getBundle("JCOMethodNames");
+			if (resBundle.getString(methodName)!=null){
+				String opt = resBundle.getString(methodName);
+				System.out.println("Method Found..................."+methodName+">>>>>>>>>>>>>"+opt);
+				if ("Y".equalsIgnoreCase(opt.trim())){
+					return true;
+				}
+			}
+		}
+		catch(Exception ex){
+			System.out.println("Problem with Resource Bundle"+ex.getMessage());
+		}
+		return false;
+	}
+
+	public static void printNames(){
+		ResourceBundle resBundle = null;
+		try{
+			resBundle=ResourceBundle.getBundle("JCOMethodNames");
+			Enumeration enum = resBundle.getKeys();
+
+			while (enum.hasMoreElements()){
+				String key = (String) enum.nextElement();
+				System.out.println(key+">>>>>>>>"+resBundle.getString(key));
+			}
+		}
+		catch(Exception ex){
+			System.out.println("Problem with Resource Bundle"+ex.getMessage());
+		}
+	}
+
+}

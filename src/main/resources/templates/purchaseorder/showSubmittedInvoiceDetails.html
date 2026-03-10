@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+	xmlns:layout="http://www.ultraq.net.nz/web/thymeleaf/layout"
+	xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity5"
+	layout:decorate="layout">
+<head>
+<meta charset="UTF-8">
+
+<title>Uploaded Invoice Details</title>
+
+<style scoped>
+input::-webkit-outer-spin-button, input::-webkit-inner-spin-button {
+	-webkit-appearance: none;
+	margin: 0;
+}
+
+/* Firefox */
+input[type=number] {
+	-moz-appearance: textfield;
+}
+
+.highlight-orange {
+	background-color: orange !important;
+}
+
+.highlight-red {
+	background-color: #d95858 !important;
+}
+
+.w-15 {
+	width: 15px;
+}
+
+.h-15 {
+	height: 15px;
+}
+
+.max-height {
+	max-height: 1000px;
+	overflow-y: auto;
+}
+
+.bg-ee4e4e {
+	background-color: #ee4e4e
+}
+
+.background-primary {
+	background-color: #2B56A5 !important;
+}
+
+.text-primary {
+	color: #2B56A5 !important;
+}
+</style>
+<link rel="stylesheet" type="text/css"
+	href="../../../../resources/dist/css/table.css">
+
+<script>
+	function setFormAction(actionUrl) {
+		console.log(actionUrl)
+		const form = document.getElementById("invoiceForm");
+		form.action = actionUrl;
+		form.submit();
+	}
+</script>
+</head>
+<body>
+	<div class="container-fluid" layout:fragment="content">
+		<div class="row">
+			<div class="col-12">
+				<div class="card">
+					<div class="card-body">
+						<form data-toggle="validator" enctype="multipart/form-data"
+							role="form" name="invoiceForm" id="invoiceForm"
+							th:object="${ezInvoiceInputDto}" method="get">
+
+							<input type="hidden" autocomplete="off" th:field="*{docNo}"
+								class="form-control validate[required]" id="invoiceDocNo"
+								disabled name="invoiceNumber">
+							<div>
+								<h1 class="text-primary text-bold text-lg ml-2">Uploaded
+									Invoice Details</h1>
+								<p sec:authorize="hasAnyRole('ROLE_VEND')"
+								   th:if="${status == 'SUBMITTED'}"
+								   class="text-red my-2 text-bold ml-2">
+								   This invoice has been submitted for approval. You will be notified once it is approved.
+								</p> 
+								<div class="container-fluid">
+									<div class="row">
+										<div class="col-md-12">
+											<div class="card card-primary">
+												<div class="card-header background-primary">
+													<h3 class="card-title text-semibold mt-2">Invoice Details</h3>
+													<div class="btn-group btn-group-sm d-block text-right mr-2">
+														<a
+															th:href="@{'/view/' + ${uploadedInvoice} + '/' + ${docNo} + '/Invoice/Invoice'}"
+															class="btn btn-info" target="_blank"> View Uploaded Invoice 
+														</a> 	
+													</div>
+												</div>
+												<div class="card-body row">
+													<div class="form-group col-md-6">
+														<label for="selVendor">Invoice Number</label> <input
+															type="text" autocomplete="off"
+															th:field="${ezInvoiceInputDto.invoiceNumber}"
+															class="form-control validate[required]"
+															id="invoiceNumber" disabled name="invoiceNumber">
+													</div>
+													<div class="form-group col-md-6">
+														<label for="">Invoice Date</label> <input type="date"
+															th:value="${#dates.format(ezInvoiceInputDto.invoiceDate, 'yyyy-MM-dd')}"
+															autocomplete="off"
+															class="form-control validate[required]" disabled
+															id="invoiceDate" name="invoiceDate">
+													</div>
+													<div class="form-group col-md-6">
+														<label for="">Start Date</label> <input type="date"
+															th:value="${#dates.format(ezInvoiceInputDto.startDate, 'yyyy-MM-dd')}"
+															autocomplete="off"
+															class="form-control validate[required]" disabled
+															id="startDate" name="startDate">
+													</div>
+													<div class="form-group col-md-6">
+														<label for="">End Date</label> <input type="date"
+															autocomplete="off"
+															class="form-control validate[required]" disabled
+															id="endDate" name="endDate"
+															th:value="${#dates.format(ezInvoiceInputDto.endDate, 'yyyy-MM-dd')}">
+													</div>
+													<div class="form-group col-md-6">
+														<label for="">Invoice Value</label> <input type="number"
+															disabled autocomplete="off"
+															class="form-control validate[required]"
+															th:field="${ezInvoiceInputDto.invoiceValue}">
+													</div>
+												</div>
+											</div>
+										</div>
+									</div>
+								</div>
+							</div>
+							<div class="table-container">
+								<table id="poItemTable"
+									class="styled-table table table-striped table-responsive-md text-center table-bordered mt-4 w-100 rounded">
+									<thead>
+										<tr>
+											<th>Material</th>
+											<th>Short Text</th>
+											<th>UOM</th>
+											<th>Total Qty</th>
+											<th>Submitted Qty</th>
+											<!-- <th>Submitted Qty</th> -->
+											<th>Net Weight</th>
+											<th>Invoice Quantity</th>
+											<th>Price</th>
+											<th>Price [KG]</th>
+											<th>Value</th>
+											<th>Taxes</th>
+											<th>Total Value</th>
+										</tr>
+									</thead>
+									<tbody>
+										<tr th:each="item, itemStat : *{invoiceItems}" 
+											th:class="${item.submittedQty != item.quantity ? 'highlight-orange' : item.invoiceAmount != item.value ? 'highlight-red' : ''}">
+              			 				<!-- <tr th:each="item, itemStat : *{invoiceItems}"> -->  
+											<!--  $item.invoiceAmount != item.totalValue} ? 'highlight-red' : --> 
+											<td class="material-code" th:text="${item.material}"></td>
+											<td th:text="${item.matDesc}"></td>
+											<td th:text="${item.uom}"></td>
+											<td th:text="${item.totalQty}" class="total-qty"></td>
+											<td th:text="${item.submittedQty}" class="submitted-qty"></td>
+											<td th:text="${#numbers.formatDecimal(item.netWeight, 2, 2)}"
+												class="net-weight"></td>
+											<td th:text="${item.quantity}" class="unit-price-input"></td>
+											<td th:text="${item.price}" class="item-price"></td>
+											<td
+												th:text="${#numbers.formatDecimal(item.pricePerKg, 2, 2)}"></td>
+											<td class="amount-cell" th:text="${item.value}"></td>
+											<td class="calculated-tax" th:text="${item.taxes}"></td>
+											<td class="total-value" th:text="${item.totalValue}"></td>
+
+
+										</tr>
+									</tbody>
+									<tfoot>
+										<tr>
+											<td colspan="3">
+												<!-- <div class="d-flex font-italic">
+													<div class="d-flex gap-2 align-items-center mr-3">
+														<div class="h-15 w-15 bg-orange border"></div>
+														<span class="ml-1">Quantity mismatch</span>
+													</div>
+													<div class="d-flex gap-2 align-items-center">
+														<div class="h-15 w-15 bg-ee4e4e border"></div>
+														<span class="ml-1">Value mismatch</span>
+													</div>
+												</div> -->
+											</td>
+											<td id="total-qty"></td>
+											<td id="sub-qty"></td>
+											<td></td>
+											<td id="qty"></td>
+											<td></td>
+											<td></td>
+											<td id="value-sum"></td>
+											<td id="taxes-sum"></td>
+											<td id="total-value-sum"></td>
+										</tr>
+									</tfoot>
+								</table>
+							</div>
+							<!-- 							<div class="d-flex justify-content-between mt-4 align-items-start">
+								<div class="d-flex justify-content-between my-3 mx-2 gap-4">
+									<button onclick="history.go(-1)" type="button"
+										sec:authorize="hasAnyRole('ROLE_CPT', 'ROLE_FIN')"
+										class="btn btn-outline-danger mr-4">Go Back</button>
+										<div th:if="${status != 'REJECTED'}">
+											<button sec:authorize="hasAnyRole('ROLE_CPT', 'ROLE_FIN')" 
+												type="button"
+												data-toggle="modal" data-target="#rejectModal"
+												class="btn btn-outline-danger">Reject</button>
+											<button sec:authorize="hasAnyRole('ROLE_CPT', 'ROLE_FIN')"
+												onclick="setFormAction('/invoice/miro-call/' + document.getElementById('invoiceNumber').value)"
+												class="btn btn-outline-primary" type="submit">Post
+												MIRO</button>
+										</div>
+								</div>
+								<div th:if="${status == 'REJECTED'}" class="p-2 bg-light border rounded w-50">
+									<span class="text-red font-weight-bold">Reject Reason:</span>
+									<span th:text="${rejectReason}" class="text-red"></span>
+								</div>
+							</div> -->
+
+							<div class="row mt-4 align-items-center">
+								<!-- Left Section: Go Back Button -->
+								<div class="col-md-6"
+									th:classappend="${status == 'REJECTED'} ? 'd-flex justify-content-between' : ''">
+									<button onclick="history.go(-1)" type="button"
+										class="btn btn-secondary">Go Back</button>
+								</div>
+
+								<!-- Right Section: Buttons or Reject Reason -->
+								<div class="col-md-6 d-flex justify-content-end"
+									th:if="${status == 'SUBMITTED'}">
+									<button sec:authorize="hasAnyRole('ROLE_CPT', 'ROLE_FIN')"
+										type="button" data-toggle="modal" data-target="#rejectModal"
+										class="btn btn-danger">Reject</button>
+
+									<button sec:authorize="hasAnyRole('ROLE_CPT', 'ROLE_FIN')"
+										onclick="setFormAction('/invoice/miro-call/' + document.getElementById('invoiceDocNo').value)"
+										class="btn btn-primary ml-2">Post MIRO</button>
+								</div>
+
+								<div th:if="${status == 'REJECTED'}"
+									class="col-md-6 d-flex justify-content-start p-2 bg-light border rounded">
+									<span class="text-danger font-weight-bold">Reject
+										Reason: </span> <span th:text="${rejectReason}"
+										class="text-danger ml-2"></span>
+								</div>
+							</div>
+
+
+						</form>
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<div class="modal fade" id="rejectModal" tabindex="-1"
+			aria-labelledby="rejectModalLabel" aria-hidden="true">
+			<div class="modal-dialog">
+				<form th:action="@{/invoice/reject/{docNo}(docNo=${docNo})}"
+					method="post">
+					<div class="modal-content">
+						<div class="modal-header bg-danger text-white">
+							<h5 class="modal-title" id="rejectModalLabel">Reject Request</h5>
+							<button type="button" class="btn-close" data-dismiss="modal"
+								aria-label="Close">X</button>
+						</div>
+						<div class="modal-body">
+							<form id="rejectForm">
+								<input type="hidden" id="rejectItemId" name="itemId" value="">
+
+								<div class="mb-3">
+									<label for="rejectComment" class="form-label">Reason
+										for Rejection:</label>
+									<textarea class="form-control" id="rejectComment"
+										name="comment" rows="3" required></textarea>
+								</div>
+							</form>
+						</div>
+						<div class="modal-footer">
+							<button type="button" class="btn btn-secondary"
+								data-dismiss="modal">Cancel</button>
+							<button type="submit" class="btn btn-danger"
+								onclick="setFormAction('/invoice/reject/' + document.getElementById('invoiceDocNo').value)">Reject</button>
+						</div>
+					</div>
+				</form>
+			</div>
+		</div>
+	</div>
+
+
+
+
+	<div layout:fragment="scriptContent">
+		<script th:inline="javascript">
+			$(document)
+					.ready(
+							function() {
+								calculateSums();
+								//addQtyOfDuplRow()
+
+								function calculateSums() {
+									let valueSum = 0;
+									let taxesSum = 0;
+									let totalValueSum = 0;
+									let totalQty = 0;
+									let subQty = 0;
+									let qty = 0;
+
+									$('table tbody tr')
+											.each(
+													function() {
+														valueSum += parseFloat($(
+																this).find(
+																'.amount-cell')
+																.text()) || 0;
+														taxesSum += parseFloat($(
+																this)
+																.find(
+																		'.calculated-tax')
+																.text()) || 0;
+														totalValueSum += parseFloat($(
+																this).find(
+																'.total-value')
+																.text()) || 0;
+														totalQty += parseFloat($(
+																this).find(
+																'.total-qty')
+																.text()) || 0;
+														subQty += parseFloat($(
+																this)
+																.find(
+																		'.submitted-qty')
+																.text()) || 0;
+														qty += parseFloat($(
+																this)
+																.find(
+																		'.unit-price-input')
+																.text()) || 0;
+													});
+
+									$('#value-sum').text(valueSum.toFixed(2));
+									$('#taxes-sum').text(taxesSum.toFixed(2));
+									$('#total-value-sum').text(
+											totalValueSum.toFixed(2));
+									$("#total-qty").text(totalQty);
+									$("#sub-qty").text(subQty);
+									$("#qty").text(qty);
+									$('#hidden-total-value-sum').val(
+											totalValueSum.toFixed(2));
+								}
+
+								function addQtyOfDuplRow() {
+								    var materialData = {}; // Object to store material data
+
+								    // Iterate through each row in the table body
+								    $("#poItemTable tbody tr").each(function () {
+								        var $row = $(this);
+								        var material = $row.find(".material-code").text().trim(); // Get Material Code
+								        var totalQty = parseFloat($row.find(".total-qty").text().trim()) || 0; // Get Total Qty
+								        var unitPriceQty = parseFloat($row.find(".unit-price-input").text().trim()) || 0; // ✅ Add unit-price-input
+								        var value = parseFloat($row.find(".amount-cell").text().trim()) || 0;
+								        var taxes = parseFloat($row.find(".calculated-tax").text().trim()) || 0;
+								        var totalValue = parseFloat($row.find(".total-value").text().trim()) || 0;
+
+								        if (materialData[material]) {
+								            // Sum up all values
+								            materialData[material].totalQty += totalQty;
+								            materialData[material].unitPriceQty += unitPriceQty;
+								            materialData[material].value += value;
+								            materialData[material].taxes += taxes;
+								            materialData[material].totalValue += totalValue;
+
+								            $row.remove(); // Remove duplicate row
+								        } else {
+								            // Store the first occurrence of the material
+								            materialData[material] = {
+								                row: $row,
+								                totalQty: totalQty,
+								                unitPriceQty: unitPriceQty,
+								                value: value,
+								                taxes: taxes,
+								                totalValue: totalValue
+								            };
+								        }
+								    });
+								    // Update the first occurrence of each material with the summed-up values
+								    $.each(materialData, function (material, data) {
+								        data.row.find(".total-qty").text(data.totalQty.toFixed(2));
+								        data.row.find(".unit-price-input").text(data.unitPriceQty.toFixed(2)); // ✅ Update unit-price-input
+								        data.row.find(".amount-cell").text(data.value.toFixed(2));
+								        data.row.find(".calculated-tax").text(data.taxes.toFixed(2));
+								        data.row.find(".total-value").text(data.totalValue.toFixed(2));
+								    });
+								}
+
+
+							});
+		</script>
+	</div>
+</body>
+</html>

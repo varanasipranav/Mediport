@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+	xmlns:layout="http://www.ultraq.net.nz/web/thymeleaf/layout"
+	layout:decorate="layout">
+<head>
+<title>Monthly Performance Report</title>
+<style>
+.dataTables_filter {
+	display: inline;
+	float: right;
+}
+
+.dataTables_length {
+	display: inline;
+}
+
+.dt-buttons {
+	margin-left: 25%;
+}
+
+.input-group-addon {
+	padding: 2px 12px !important;
+}
+</style>
+</head>
+<body>
+
+	<section layout:fragment="header">
+		<div class="container-fluid">
+			<div class="row mb-2">
+				<div class="col-sm-6">
+					<h1>Action Response</h1>
+				</div>
+				<div class="col-sm-6">
+					<ol class="breadcrumb float-sm-right">
+						<li class="breadcrumb-item"><a href="#">EHS</a></li>
+						<li class="breadcrumb-item active">Corrective Action</li>
+					</ol>
+				</div>
+			</div>
+		</div>
+	</section>
+
+	<div class="container-fluid" layout:fragment="content">
+		<div class="row">
+			<div class="col-12">
+				<div class="card">
+					<div class="card-body">
+						<form role="form" th:action="@{/ehs/ActionResponse}" method="get">
+							<div class="table-responsive hidden-xs">
+								<table class="table table-striped" style="margin-bottom: 1%;">
+									<tbody>
+										<tr>
+											<td><label>From Date:</label>
+												<div class="input-group date">
+													<div class="input-group-addon">
+														<i class="fa fa-calendar"></i>
+													</div>
+													<input type="date" class="form-control" name="fromDate"
+														th:value="${#dates.format(fromDate, 'yyyy-MM-dd')}" />
+												</div></td>
+											<td><label>To Date:</label>
+												<div class="input-group date">
+													<div class="input-group-addon">
+														<i class="fa fa-calendar"></i>
+													</div>
+													<input type="date" class="form-control" name="toDate"
+														th:value="${#dates.format(toDate, 'yyyy-MM-dd')}" />
+												</div></td>
+											<td><label>Status</label><br> <select
+												class="form-control input-sm" name="status">
+													<option value="">All</option>
+													<option value="Opened" th:selected="${status == 'Opened'}">Opened</option>
+													<option value="Completed"
+														th:selected="${status == 'Completed'}">Completed</option>
+											</select></td>
+											<td>
+												<button type="submit" class="btn btn-primary pull-right"
+													style="margin-right: 5px;">
+													Go <i class="fa fa-paper-plane"></i>
+												</button>
+											</td>
+										</tr>
+									</tbody>
+								</table>
+							</div>
+						</form>
+
+
+						<div class="table-responsive">
+							<table id="example"
+								class="table table-bordered dt-responsive nowrap"
+								cellspacing="0" width="100%">
+
+								<thead>
+									<tr>
+										<th>CAPA ID</th>
+										<th>Action</th>
+										<th>Vendor</th>
+										<th>Due Date</th>
+										<th>Status</th>
+										<th>Open</th>
+									</tr>
+								</thead>
+								<tbody>
+									<tr th:each="action : ${actions}">
+										<td th:text="${action.actionId + '-' + action.capa.capaId}"></td>
+										<td th:text="${action.action}"></td>
+										<td th:text="${action.createdBy}"></td>
+										<!-- <td th:text="${#temporals.format(action.completionDate, 'dd-MM-yyyy')}"></td> -->
+										<td><span
+											th:text="${#temporals.format(action.completionDate, 'dd-MM-yyyy')}"></span>
+
+											<span th:if="${action.status == 'Opened'}"> <span
+												th:if="${action.completionDate != null}"> 
+													<span
+													th:if="${action.completionDate.isAfter(T(java.time.LocalDate).now())}"
+													class="badge bg-warning"
+													th:text="${T(java.time.temporal.ChronoUnit).DAYS.between(T(java.time.LocalDate).now(), action.completionDate) + ' days left'}">
+												</span> <!-- Overdue - Red text --> <span
+													th:if="${action.completionDate.isBefore(T(java.time.LocalDate).now())}"
+													class="text-danger" style="font-weight: bold;">
+														Overdue </span>
+											</span>
+										</span></td>
+
+										<td th:text="${action.status}"></td>
+
+										<td><a
+											th:href="@{/ehs/actionDetails(actionId=${action.actionId})}"
+											class="btn btn-primary btn-sm">Open</a></td>
+									</tr>
+								</tbody>
+
+
+							</table>
+						</div>
+						<!-- /.table-responsive -->
+					</div>
+					<!-- /.card-body -->
+				</div>
+				<!-- /.card -->
+			</div>
+			<!-- /.col-12 -->
+		</div>
+		<!-- /.row -->
+	</div>
+	<!-- /.container-fluid -->
+
+	<div layout:fragment="scriptContent">
+		<script th:inline="javascript">
+			$(document)
+					.ready(
+							function() {
+
+								$('.datepicker').datepicker({
+									autoclose : true,
+									format : 'dd/mm/yyyy'
+								});
+
+								$('#example')
+										.DataTable(
+												{
+													dom : 'lBfrtip',
+													buttons : [
+															{
+																extend : 'excel',
+																text : '<i class="fa fa-file-excel-o" style="color:green"> </i> EXCEL',
+																title : null,
+																filename : 'Download'
+															},
+															{
+																extend : 'pdf',
+																text : '<i class="fa fa-file-pdf-o" style="color:red"></i> PDF',
+																title : null
+															} ]
+												}
+
+										);
+
+							});
+		</script>
+	</div>
+
+</body>
+</html>

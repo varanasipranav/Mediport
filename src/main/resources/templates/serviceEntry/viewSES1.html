@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title th:text="'Service Entry Sheet - ' + ${ses.sesNumber}">SES</title>
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/jquery.dataTables.min.css">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
+
+    <style>
+        body { font-family: Arial, sans-serif; background:#f4f6fa; margin:0; }
+        header { background:#ff5f00; color:white; padding:12px 20px; font-size:18px; font-weight:bold; }
+
+        .container { padding:20px; }
+
+        /* Header Card */
+        .header-card {
+            background:white;
+            border-radius:10px;
+            padding:20px;
+            box-shadow:0 2px 8px rgba(0,0,0,0.1);
+            margin-bottom:20px;
+        }
+        .header-grid {
+            display:grid;
+            grid-template-columns:repeat(2,1fr);
+            gap:12px;
+        }
+        label { font-weight:bold; color:#033882; display:block; margin-top:6px; }
+        span.field-value { display:inline-block; color:#222; }
+
+        /* Tabs */
+        .tabs { display:flex; border-bottom:2px solid #033882; margin-top:10px; }
+        .tab {
+            padding:10px 20px;
+            cursor:pointer;
+            background:#eaeaea;
+            color:#033882;
+            border-top-left-radius:8px;
+            border-top-right-radius:8px;
+            margin-right:4px;
+        }
+        .tab.active {
+            background:#033882;
+            color:white;
+            font-weight:bold;
+        }
+
+        .tab-content {
+            display:none;
+            background:white;
+            border-radius:0 0 10px 10px;
+            box-shadow:0 2px 8px rgba(0,0,0,0.1);
+            padding:20px;
+            margin-bottom:20px;
+        }
+        .tab-content.active { display:block; }
+
+        /* Table */
+        table.dataTable thead { background:#033882; color:white; }
+        table { width:100%; border-collapse:collapse; }
+
+        .btn-back {
+            background:#033882; color:white;
+            border:none; padding:6px 12px;
+            border-radius:4px; cursor:pointer;
+        }
+        .btn-back:hover { background:#ff5f00; }
+    </style>
+</head>
+<body>
+
+<header>Service Entry Sheet - <span th:text="${ses.sesNumber}"></span></header>
+
+<div class="container">
+
+    <!-- Entry Sheet Header -->
+    <div class="header-card">
+        <h3 style="color:#033882; border-bottom:2px solid #033882; padding-bottom:4px;">Entry Sheet Basic Data</h3>
+        <div class="header-grid">
+            <div>
+                <label>SES Number:</label>
+                <span class="field-value" th:text="${ses.sesNumber}"></span>
+            </div>
+            <div>
+                <label>Purchase Order:</label>
+                <span class="field-value" th:text="${ses.poNumber}"></span>
+            </div>
+            <div>
+                <label>Vendor Name:</label>
+                <span class="field-value" th:text="${ses.vendorName}"></span>
+            </div>
+            <div>
+                <label>Status:</label>
+                <span class="field-value" th:text="${ses.status}"></span>
+            </div>
+            <div>
+                <label>Service Entry Date:</label>
+                <span class="field-value" th:text="${#temporals.format(ses.entryDate,'dd-MMM-yyyy')}"></span>
+            </div>
+            <div>
+                <label>Posting Date:</label>
+                <span class="field-value" th:text="${#temporals.format(ses.postingDate,'dd-MMM-yyyy')}"></span>
+            </div>
+            <div>
+                <label>Service Location:</label>
+                <span class="field-value" th:text="${ses.serviceLocation}"></span>
+            </div>
+            <div>
+                <label>Total Amount:</label>
+                <span class="field-value" th:text="${#numbers.formatDecimal(ses.totalAmount,2,2)}"></span>
+            </div>
+            <div style="grid-column:1/3;">
+                <label>Short Text / Description:</label>
+                <span class="field-value" th:text="${ses.shortText}"></span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tabs Row -->
+    <div class="tabs">
+        <div class="tab active" data-tab="basic">Basic Data</div>
+        <div class="tab" data-tab="accepted">Accepted Data</div>
+        <div class="tab" data-tab="remarks">Texts / Remarks</div>
+    </div>
+
+    <!-- Tab 1 -->
+    <div id="tab-basic" class="tab-content active">
+        <h4 style="color:#033882;">General Information</h4>
+        <p><strong>Entry Sheet Type:</strong> Standard Service Sheet</p>
+        <p><strong>Created By:</strong> <span th:text="${ses.vendorName}"></span></p>
+        <p><strong>Document Date:</strong> <span th:text="${#temporals.format(ses.entryDate,'dd-MMM-yyyy')}"></span></p>
+    </div>
+
+    <!-- Tab 2 -->
+    <div id="tab-accepted" class="tab-content">
+        <h4 style="color:#033882;">Accepted Data</h4>
+        <p>All service line items that have been accepted for this entry sheet are shown below.</p>
+    </div>
+
+    <!-- Tab 3 -->
+    <div id="tab-remarks" class="tab-content">
+        <h4 style="color:#033882;">Texts / Remarks</h4>
+        <p>Any additional remarks or notes from SAP can be displayed here.</p>
+    </div>
+
+    <!-- Service Line Items Table -->
+    <div class="card">
+        <h3 style="color:#033882;">Service Line Items</h3>
+        <table id="itemTable" class="display">
+            <thead>
+            <tr>
+                <th>Line #</th>
+                <th>Service No</th>
+                <th>Description</th>
+                <th>Qty</th>
+                <th>Unit</th>
+                <th>Gross Price</th>
+                <th>Period From</th>
+                <th>Period To</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="item : ${ses.lineItems}">
+                <td th:text="${item.lineNumber}"></td>
+                <td th:text="${item.serviceNumber}"></td>
+                <td th:text="${item.shortText}"></td>
+                <td th:text="${item.quantity}"></td>
+                <td th:text="${item.unit}"></td>
+                <td th:text="${#numbers.formatDecimal(item.grossPrice,2,2)}"></td>
+                <td th:text="${#temporals.format(item.periodFrom,'dd-MMM-yyyy')}"></td>
+                <td th:text="${#temporals.format(item.periodTo,'dd-MMM-yyyy')}"></td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <button onclick="window.history.back()" class="btn-back">← Back</button>
+</div>
+
+<script>
+    $(document).ready(function() {
+        $('#itemTable').DataTable();
+
+        $('.tab').click(function() {
+            $('.tab').removeClass('active');
+            $(this).addClass('active');
+            const tabName = $(this).data('tab');
+            $('.tab-content').removeClass('active');
+            $('#tab-' + tabName).addClass('active');
+        });
+    });
+</script>
+
+</body>
+</html>

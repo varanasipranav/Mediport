@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/web/thymeleaf/layout"
+      layout:decorate="layout">
+<head>
+    <meta charset="ISO-8859-1">
+    <title>Sync Master Data</title>
+
+    <style>
+        .dataTables_filter { display: inline; float: right; }
+        .dataTables_length { display: inline; }
+        .dt-buttons { margin-left:25%; }
+
+        /* Theme colors */
+        :root {
+            --blue: #033882;
+            --orange: #ff5f00;
+        }
+
+        .sync-panel {
+            background: #f8f9fa;
+            border: 2px solid var(--blue);
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .sync-title {
+            font-weight: bold;
+            font-size: 20px;
+            margin-bottom: 15px;
+            color: var(--blue);
+            border-left: 5px solid var(--orange);
+            padding-left: 10px;
+        }
+
+        .sync-options {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 25px;
+            margin-bottom: 20px;
+        }
+
+        .sync-options label {
+            font-weight: 500;
+            color: var(--blue);
+        }
+
+        .btn-custom {
+            padding: 10px 25px;
+            border: none;
+            border-radius: 6px;
+            font-size: 15px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .btn-show {
+            background-color: var(--orange);
+            color: white;
+            margin-right: 10px;
+        }
+
+        .btn-show:hover {
+            background-color: #e85700;
+        }
+
+        .btn-sync {
+            background-color: var(--blue);
+            color: white;
+        }
+
+        .btn-sync:hover {
+            background-color: #022b65;
+        }
+
+        .sync-message {
+            margin-top: 15px;
+            font-weight: 500;
+        }
+    </style>
+</head>
+
+<body>
+<section layout:fragment="header">
+    <h1 style="color: var(--blue);">Master Data Sync</h1>
+    <ol class="breadcrumb">
+        <li><a th:href="@{/dashboard/index.html}"><i class="fa fa-dashboard"></i> Dashboard</a></li>
+        <li class="active">Sync Master Data</li>
+    </ol>
+</section>
+
+<div layout:fragment="content">
+    <!-- Selection Panel -->
+    <div class="sync-panel">
+        <div class="sync-title">Select Master Type to View or Sync</div>
+        <div class="sync-options">
+            <label><input type="radio" name="masterType" value="DIVISION" checked> Division</label>
+            <label><input type="radio" name="masterType" value="PURGRP"> Purchase Group</label>
+            <label><input type="radio" name="masterType" value="ACCASSG"> Account Assignment</label>
+            <label><input type="radio" name="masterType" value="PLANT"> Plant</label>
+            <label><input type="radio" name="masterType" value="ITEMCATEG"> Item Category</label>
+            <label><input type="radio" name="masterType" value="STRGLOC"> Storage Location</label>
+            <label><input type="radio" name="masterType" value="PURORG"> Purchase Org</label>
+            <label><input type="radio" name="masterType" value="DEPART"> Department</label>
+            <label><input type="radio" name="masterType" value="MATGRP"> Material Group</label>
+            <label><input type="radio" name="masterType" value="SERVICECD"> Service Code</label>
+            <label><input type="radio" name="masterType" value="NETWORK"> Network</label>
+            <label><input type="radio" name="masterType" value="IO"> Internal Order</label>
+            <label><input type="radio" name="masterType" value="COSTCENTER"> Cost Center</label>
+            <label><input type="radio" name="masterType" value="GLACCOUNT"> GL ACCOUNT</label>
+            <label><input type="radio" name="masterType" value="BATCH"> BATCH</label>
+        </div>
+
+        <div>
+            <button type="button" class="btn-custom btn-show" onclick="showData()">
+                <i class="fas fa-eye"></i> Show Data
+            </button>
+            <button type="button" class="btn-custom btn-sync" onclick="syncSAP(event)">
+                <i class="fas fa-sync-alt"></i> Sync from SAP
+            </button>
+        </div>
+
+        <div id="syncMessage" class="sync-message"></div>
+    </div>
+
+    <!-- DataTable -->
+    <div class="box">
+        <div class="box-body">
+            <table id="example" class="table table-bordered table-hover dt-responsive nowrap" width="100%">
+                <thead style="background-color: var(--blue); color: white;">
+                <tr>
+                    <th>Code</th>
+                    <th>Description</th>
+                </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<div layout:fragment="scriptContent">
+    <script th:inline="javascript">
+        let dataTable;
+
+        $(document).ready(function() {
+            dataTable = $('#example').DataTable({
+                dom: 'lBfrtip',
+                buttons: [
+                    {
+                        extend: 'excel',
+                        text: '<i class="fa fa-file-excel-o" style="color:green"></i> Excel',
+                        title: null,
+                        filename: 'Download'
+                    },
+                    {
+                        extend: 'pdf',
+                        text: '<i class="fa fa-file-pdf-o" style="color:red"></i> PDF',
+                        title: null
+                    }
+                ]
+            });
+        });
+
+        function getSelectedKey() {
+            return document.querySelector('input[name="masterType"]:checked').value;
+        }
+
+        // Show Data (AJAX)
+        function showData() {
+            const key = getSelectedKey();
+            const msg = document.getElementById('syncMessage');
+            msg.innerHTML = `<span style="color:orange">Fetching ${key} data...</span>`;
+
+            fetch(`/master/show/${key}`)
+                .then(response => response.json())
+                .then(data => {
+                    dataTable.clear();
+                    data.forEach(item => {
+                        dataTable.row.add([item.emdValue1, item.emdValue2]);
+                    });
+                    dataTable.draw();
+                    msg.innerHTML = `<span style="color:green">? Loaded ${data.length} records for ${key}.</span>`;
+                })
+                .catch(err => {
+                    msg.innerHTML = `<span style="color:red">? Error fetching data: ${err}</span>`;
+                });
+        }
+
+        // Sync from SAP
+        function syncSAP(event) {
+            const key = getSelectedKey();
+            const btn = event.target;
+            const msg = document.getElementById('syncMessage');
+
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Syncing...';
+            msg.innerHTML = `<span style="color:orange">Syncing ${key} data from SAP...</span>`;
+
+            fetch(`/master/sync/${key}`)
+                .then(response => response.json())
+                .then(result => {
+                    btn.innerHTML = '<i class="fas fa-sync-alt"></i> Sync from SAP';
+                    msg.innerHTML = `<span style="color:green"> Sync complete. ${result.length} records updated.</span>`;
+                    dataTable.clear();
+                    result.forEach(item => {
+                        dataTable.row.add([item.emdValue1, item.emdValue2]);
+                    });
+                    dataTable.draw();
+                })
+                .catch(err => {
+                    btn.innerHTML = '<i class="fas fa-sync-alt"></i> Sync from SAP';
+                    msg.innerHTML = `<span style="color:red">? Error syncing: ${err}</span>`;
+                });
+        }
+    </script>
+</div>
+</body>
+</html>

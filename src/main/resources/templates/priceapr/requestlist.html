@@ -1,0 +1,176 @@
+<!DOCTYPE html SYSTEM "http://www.thymeleaf.org/dtd/xhtml1-strict-thymeleaf-spring4-4.dtd">
+<html xmlns:th="http://www.thymeleaf.org"
+	xmlns:layout="http://www.ultraq.net.nz/web/thymeleaf/layout"
+	layout:decorate="layout">
+<head>
+    <title>List</title>
+    <style type="text/css">
+    #rejectModal {
+    width: 50%;
+    height: 40%;
+    margin-left: 35%;
+    padding: 0;
+}
+#apprModal {
+    width: 90%;
+    height: 90%;
+    margin-left: 5%;
+    padding: 0;
+}
+.modal-content {
+  height: auto;
+  min-height: 100%;
+  border-radius: 0;
+}
+.group
+{
+	/* background: #eeeeee; */
+}
+#nullifyModal {
+	z-index: 1080 !important;
+}
+    </style>
+<style>
+.dataTables_filter
+{
+    display: inline;
+    float: right;
+}
+
+.dataTables_length
+{
+   display: inline;
+}
+.dt-buttons
+{
+   margin-left:25%;
+}
+.input-group-addon {
+    padding: 2px 12px !important;
+ }
+</style>
+</head>
+<body>
+<section layout:fragment="header">
+<div class="container-fluid">
+        <div class="row mb-2">
+          <div class="col-sm-6">
+            <h1>List</h1>
+          </div>
+          <div class="col-sm-6">
+            <ol class="breadcrumb float-sm-right">
+              <li class="breadcrumb-item"><a href="#">Price Approval</a></li>
+              <li class="breadcrumb-item active">List</li>
+            </ol>
+          </div>
+        </div>
+      </div><!-- /.container-fluid -->
+</section>
+<div class="container-fluid" layout:fragment="content">
+    <div class="row">
+          <div class="col-12">
+            <div class="card">
+            <div class="card-body">
+        
+ <form role="form"  th:object="${listSelector}" th:action="@{/priceapr/list}" method="get" name="myForm">
+ <div class="table-responsive hidden-xs">
+<table class="table table-striped" style="margin-bottom: 1%;">
+  <tbody><tr>  
+	<td>
+		<label>From Date:</label>
+                <div class="input-group date">
+                  <div class="input-group-addon">
+                    <i class="fa fa-calendar"></i>
+                  </div>
+                  <input type="text" class="form-control pull-right datepicker" th:field="*{fromDate}">
+                </div>
+                <!-- /.input group -->
+	</td>
+	<td>
+                <label>To Date:</label>
+                <div class="input-group date">
+                  <div class="input-group-addon">
+                    <i class="fa fa-calendar"></i>
+                  </div>
+                  <input type="text" class="form-control pull-right datepicker" th:field="*{toDate}">
+                </div>
+                <!-- /.input group -->
+  	</td>
+  	<td>	
+  		 <label for="listType">Status</label><br>	
+		  <div class="input-group">
+			 <select class="form-control input-sm"  th:field="*{status}">  
+				<option value="" th:selected="*{status==''}">All</option>
+				<option value="S" th:selected="*{status=='S'}">Submitted</option>
+				<option value="A" th:selected="*{status=='A'}">Approved</option>
+				<option value="R" th:selected="*{status=='A'}">Rejected</option>
+				<option value="P" th:selected="*{status=='P'}">Posted To SAP</option> 
+			 </select>
+		  </div>
+  	</td>
+ 
+  	<td>
+  		<button type="submit" class="btn btn-primary pull-right"  style="margin-right: 5px;">Go <i class="fa fa-paper-plane"></i></button>
+  	</td>
+  </tr>
+  
+  </tbody></table>
+  </div>
+  </form>
+  <div class="table-responsive">
+                   <table id="example" class="table  table-bordered dt-responsive nowrap" cellspacing="0" width="100%">
+                       <thead>			
+                <tr>
+                    <th>Request No</th>
+                    <th>Condition</th>
+                    <th>Created By</th>
+                    <th>Created On</th>
+                    <th>Status</th>
+                    <th>Pending With</th>
+                </tr>
+                    </thead>
+           		<tbody>	
+                <tr th:each="row : ${reqList}">
+                    <td><a th:href="${'/priceapr/view/' + {row.id}}" th:text="${row.id}"></a></td>
+                    <td th:text="${row.condType+'['+row.condDesc+']'}"></td>
+                    <td th:text="${row.createdBy}"></td>
+                    <td th:text="${#dates.format(row.createdOn, 'dd/MM/yyyy')}"></td>
+                    <td th:text="${row.status == 'S'?'Submitted':row.status == 'A'?'Approved':row.status == 'R'?'Rejected':'Posted To SAP'}"></td>
+                    <td th:text="${row.modifiedBy}"></td>
+                </tr>
+            	</tbody>
+            </table>
+            </div>
+        </div>
+    </div>
+</div>
+</div>
+</div>
+<div layout:fragment="scriptContent">
+
+<script type="text/javascript">
+$(document).ready(function() {
+		
+	  
+    $('.datepicker').datepicker({
+    	 autoclose: true,
+         format: 'dd/mm/yyyy'
+    });
+    
+    $('#example').DataTable({
+		 dom: 'lBfrtip',
+		 buttons: [  { extend: 'excel', text: '<i class="fa fa-file-excel-o" style="color:green"> </i> EXCEL',title:null,filename:'Download' },{ extend: 'pdf', text: '<i class="fa fa-file-pdf-o" style="color:red"></i> PDF',title:null }]
+	
+		}
+			
+	);
+    
+	 
+});
+</script>
+
+
+</div>
+
+</body>
+</html>

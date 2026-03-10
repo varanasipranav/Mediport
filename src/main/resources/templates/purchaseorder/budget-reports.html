@@ -1,0 +1,175 @@
+<!DOCTYPE html SYSTEM "http://www.thymeleaf.org/dtd/xhtml1-strict-thymeleaf-spring4-4.dtd">
+<html xmlns:th="http://www.thymeleaf.org"
+	xmlns:layout="http://www.ultraq.net.nz/web/thymeleaf/layout"
+	layout:decorate="layout">
+
+<head>
+<title>List</title>
+<style type="text/css">
+#rejectModal {
+	width: 50%;
+	height: 40%;
+	margin-left: 35%;
+	padding: 0;
+}
+
+#apprModal {
+	width: 90%;
+	height: 90%;
+	margin-left: 5%;
+	padding: 0;
+}
+
+.modal-content {
+	height: auto;
+	min-height: 100%;
+	border-radius: 0;
+}
+
+.group {
+	/* background: #eeeeee; */
+	
+}
+
+#nullifyModal {
+	z-index: 1080 !important;
+}
+</style>
+<style>
+.dataTables_filter {
+	display: inline;
+	float: right;
+}
+
+.dataTables_length {
+	display: inline;
+}
+
+.dt-buttons {
+	margin-left: 25%;
+}
+
+.input-group-addon {
+	padding: 2px 12px !important;
+}
+
+.text-primary {
+	color: #2B56A5 !important;
+}
+
+.dt-buttons {
+    margin-left: 40% !important;
+}
+
+.dataTables_filter {
+	margin-right: 16px !important;
+}
+</style>
+<link rel="stylesheet" type="text/css"
+	href="../../../../resources/dist/css/table.css">
+</head>
+<body>
+	<section layout:fragment="header">
+		<div class="container-fluid">
+			<div class="row mb-2">
+				<div class="col-sm-6">
+					<h1 class="text-primary text-bold text-lg ml-2">Budget Reports</h1>
+				</div>
+				<div class="col-sm-6">
+					<ol class="breadcrumb float-sm-right">
+						<li class="breadcrumb-item"><a href="#">Invoice</a></li>
+						<li class="breadcrumb-item active">Budget Reports</li>
+					</ol>
+				</div>
+			</div>
+		</div>
+		<!-- /.container-fluid -->
+	</section>
+	<div class="container-fluid" layout:fragment="content">
+		<div class="row">
+			<div class="col-12">
+				<div class="card">
+					<div class="card-body">
+						<form method="get" th:action="@{/budget-reports/{year}(year=${selectedYear})}" class="mb-4">
+					        <div class="row g-2 align-items-center">
+					            <div class="col-auto">
+					                <label for="year" class="col-form-label">Select Year:</label>
+					            </div>
+					            <div class="col-auto">
+					                <select id="year" name="year" class="form-select" onchange="this.form.submit()">
+					                    <option th:each="y : ${#numbers.sequence(2020, 2025)}"
+					                            th:value="${y}"
+					                            th:text="${y}"
+					                            th:selected="${y == selectedYear}">
+					                    </option>
+					                </select>
+					            </div>
+					        </div>
+					    </form>
+					    
+					    <form method="POST" action="/invoice/upload-excel" enctype="multipart/form-data">
+					        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+					     
+						    <input type="file" name="file" accept=".xls,.xlsx" required />
+						    <button type="submit">Upload</button>
+						</form>
+					
+					    <!-- Report Table -->
+					    <div th:if="${#lists.isEmpty(reports)}">
+					        <div class="alert alert-warning">No records found for year <span th:text="${selectedYear}"></span>.</div>
+					    </div>
+					
+					    <table class="table table-bordered table-striped" th:if="${!#lists.isEmpty(reports)}">
+					        <thead class="table-dark">
+					        <tr>
+					            <th>Plant</th>
+					            <th>Material Type</th>
+					            <th>Budget Kgs</th>
+					            <th>Budget CC</th>
+					            <th>Budget Mix</th>
+					            <th>Budget Rt</th>
+					            <th>Actual Kgs</th>
+					            <th>Actual CC</th>
+					            <th>Per KG</th>
+					            <th>Volume</th>
+					            <th>Vol Impact</th>
+					            <th>Rt Impact</th>
+					            <th>Month</th>
+					            <th>Year</th>
+					        </tr>
+					        </thead>
+					        <tbody>
+					        <tr th:each="report : ${reports}">
+					            <td th:text="${report.plant}"></td>
+					            <td th:text="${report.materialType}"></td>
+					            <td th:text="${report.budgetKgs}"></td>
+					            <td th:text="${report.budgetCC}"></td>
+					            <td th:text="${report.budgetMix}"></td>
+					            <td th:text="${report.budgetRt}"></td>
+					            <td th:text="${report.actualKgs}"></td>
+					            <td th:text="${report.actualCC}"></td>
+					            <td th:text="${report.perKg}"></td>
+					            <td th:text="${report.volume}"></td>
+					            <td th:text="${report.volImpact}"></td>
+					            <td th:text="${report.rtImpact}"></td>
+					            <td th:text="${report.month}"></td>
+					            <td th:text="${report.year}"></td>
+					        </tr>
+					        </tbody>
+					    </table>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+	<div layout:fragment="scriptContent">
+
+		<script type="text/javascript">
+		
+		</script>
+
+
+	</div>
+
+</body>
+</html>

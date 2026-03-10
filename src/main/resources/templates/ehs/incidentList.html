@@ -1,0 +1,469 @@
+<!DOCTYPE html SYSTEM "http://www.thymeleaf.org/dtd/xhtml1-strict-thymeleaf-spring4-4.dtd">
+<html xmlns:th="http://www.thymeleaf.org"
+	xmlns:layout="http://www.ultraq.net.nz/web/thymeleaf/layout"
+	layout:decorate="layout">
+<head>
+<title>List</title>
+<style type="text/css">
+#rejectModal {
+	width: 50%;
+	height: 40%;
+	margin-left: 35%;
+	padding: 0;
+}
+
+#apprModal {
+	width: 90%;
+	height: 90%;
+	margin-left: 5%;
+	padding: 0;
+}
+
+.modal-content {
+	height: auto;
+	min-height: 100%;
+	border-radius: 0;
+}
+
+#nullifyModal {
+	z-index: 1080 !important;
+}
+</style>
+<style>
+.dataTables_filter {
+	display: inline;
+	float: right;
+}
+
+.dataTables_length {
+	display: inline;
+}
+
+.dt-buttons {
+	margin-left: 25%;
+}
+
+.input-group-addon {
+	padding: 2px 12px !important;
+}
+</style>
+</head>
+<body>
+	<section layout:fragment="header">
+		<div class="container-fluid">
+			<div class="row mb-2">
+				<div class="col-sm-6">
+					<h1>List</h1>
+				</div>
+				<div class="col-sm-6">
+					<ol class="breadcrumb float-sm-right">
+						<li class="breadcrumb-item"><a href="#">EHS</a></li>
+						<li class="breadcrumb-item active">List of Incidents</li>
+					</ol>
+				</div>
+			</div>
+		</div>
+		<!-- /.container-fluid -->
+	</section>
+	<div th:if="${success!= null}"
+		class="alert alert-success alert-dismissible">
+		<i class="icon fa fa-check"></i> <span th:text="${success}"></span>
+	</div>
+	<div th:if="${error!= null}"
+		class="alert alert-danger alert-dismissible">
+		<i class="icon fa fa-check"></i> <span th:text="${error}"></span>
+	</div>
+	<div class="container-fluid" layout:fragment="content">
+		<div class="row">
+			<div class="col-12">
+				<div class="card">
+					<div class="card-body">
+
+						<form role="form" th:action="@{/ehs/list}" method="get">
+							<div class="table-responsive hidden-xs">
+								<table class="table table-striped" style="margin-bottom: 1%;">
+									<tbody>
+										<tr>
+											<td><label>From Date:</label>
+												<div class="input-group date">
+													<div class="input-group-addon">
+														<i class="fa fa-calendar"></i>
+													</div>
+													<input type="date" class="form-control" name="fromDate"
+														th:value="${#dates.format(fromDate, 'yyyy-MM-dd')}" />
+												</div> <!-- /.input group --></td>
+											<td><label>To Date:</label>
+												<div class="input-group date">
+													<div class="input-group-addon">
+														<i class="fa fa-calendar"></i>
+													</div>
+													<input type="date" class="form-control" name="toDate"
+														th:value="${#dates.format(toDate, 'yyyy-MM-dd')}" />
+												</div> <!-- /.input group --></td>
+											<!-- Observation  -->
+
+											<td><label for="listType">Observation Type</label><br>
+												<div class="input-group">
+													<select class="form-control input-sm"
+														name="typeOfObservation">
+														<option value="">All</option>
+														<option value="Near Miss"
+															th:selected="${typeOfObservation == 'Near Miss'}">Near
+															Miss</option>
+														<option value="Unsafe Condition"
+															th:selected="${typeOfObservation == 'Unsafe Condition'}">Unsafe
+															Condition</option>
+														<option value="Unsafe Action"
+															th:selected="${typeOfObservation == 'Unsafe Action'}">Unsafe
+															Action</option>
+													</select>
+												</div></td>
+
+
+											<td><label for="listType">Status</label><br>
+												<div class="input-group">
+													<select class="form-control input-sm" name="status">
+														<option value="">All</option>
+														<option value="Not Completed"
+															th:selected="${status == 'Not Completed'}">Open</option>
+														<option value="Submitted"
+															th:selected="${status == 'Submitted'}">Submitted</option>
+														<option value="Approved"
+															th:selected="${status == 'Approved'}">Closed</option>
+													</select>
+												</div></td>
+
+											<td>
+												<button type="submit" class="btn btn-primary pull-right"
+													style="margin-right: 5px;">
+													Go <i class="fa fa-paper-plane"></i>
+												</button>
+											</td>
+										</tr>
+
+									</tbody>
+								</table>
+							</div>
+						</form>
+						<!-- Toggle Switch -->
+						<div class="form-check form-switch my-3">
+							<input class="form-check-input" type="checkbox" id="toggleView"
+								checked> <label class="form-check-label"
+								for="toggleView">Toggle Table / Chart</label>
+						</div>
+
+						<!-- Chart Container -->
+						<div id="chartContainer" class="mb-4"
+							style="display: none; max-width: 400px; margin: auto;">
+							<canvas id="observationPieChart" width="300" height="300"></canvas>
+							<p class="mt-3 text-center">
+								<strong>Total Incidents:</strong> <span id="totalIncidents"></span>
+							</p>
+						</div>
+
+						<!-- Bar Chart Section (Initially Hidden) -->
+						<div id="barChartSection"
+							style="display: none; max-width: 500px; margin: auto;">
+							<canvas id="barChart"></canvas>
+							<button class="btn btn-secondary mt-3" onclick="backToPie()">Back
+								to Overview</button>
+						</div>
+
+
+
+
+						<div class="table-responsive" id="example1">
+							<table id="example"
+								class="table table-bordered dt-responsive nowrap"
+								cellspacing="0" width="100%">
+								<thead>
+									<tr>
+										<th>ID</th>
+										<th>Date</th>
+										<th>Reporting Person</th>
+										<th>Observation Type</th>
+										<th>Status</th>
+										<th>Actions</th>
+									</tr>
+								</thead>
+								<tbody>
+									<tr th:each="incident : ${incidents}">
+										<td
+											th:text="${#dates.format(incident.reportingDate, 'ddMMyyyy') + '-' + incident.id}"></td>
+										<td
+											th:text="${#dates.format(incident.reportingDate, 'dd-MM-yyyy')}"></td>
+
+
+
+										<td th:text="${incident.reportingPerson}"></td>
+										<td th:text="${incident.typeOfObservation}"></td>
+
+										<td class="text-center align-middle" style="min-width: 140px;">
+											<span th:if="${incident.status == 'Not Completed'}"
+											class="badge rounded-pill bg-danger px-4 py-2 fs-6 w-100 d-inline-block">Open</span>
+
+											<span th:if="${incident.status == 'Submitted'}"
+											class="badge rounded-pill bg-warning text-dark px-4 py-2 fs-6 w-100 d-inline-block">Submitted</span>
+
+											<span th:if="${incident.status == 'Approved'}"
+											class="badge rounded-pill bg-success px-4 py-2 fs-6 w-100 d-inline-block">Closed</span>
+
+											<span
+											th:if="${incident.status != 'Not Completed' and incident.status != 'Submitted' and incident.status != 'Approved'}"
+											class="badge rounded-pill bg-secondary px-4 py-2 fs-6 w-100 d-inline-block"
+											th:text="${incident.status}">Unknown</span>
+										</td>
+
+
+										<td><a th:href="@{/ehs/view/{id}(id=${incident.id})}"
+											class="btn btn-info btn-sm">View</a></td>
+									</tr>
+								</tbody>
+							</table>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+	<div layout:fragment="scriptContent">
+
+		<script th:inline="javascript">
+			$(document)
+					.ready(
+							function() {
+
+								$('.datepicker').datepicker({
+									autoclose : true,
+									format : 'dd/mm/yyyy'
+								});
+
+								$('#example')
+										.DataTable(
+												{
+													dom : 'lBfrtip',
+												    buttons: [
+												        {
+												            extend: 'excel',
+												            text: '<i class="fa fa-file-excel" style="color:green"> </i> EXCEL',
+												            title: null,
+												            filename: 'Download'
+												        },
+												        {
+												            extend: 'pdf',
+												            text: '<i class="fa fa-file-pdf" style="color:red"></i> PDF',
+												            title: null
+												        }
+												    ]
+												}
+
+										);
+
+							});
+ 
+			// GRAPH
+
+  document.addEventListener("DOMContentLoaded", function () {
+  $.fn.dataTable.ext.errMode = 'none';
+
+  // Initialize DataTable only once
+  let dataTable;
+
+    dataTable = $('#example').DataTable(
+			{
+				dom : 'lBfrtip',
+				buttons : [
+						{
+							extend : 'excel',
+							text : '<i class="fa fa-file-excel-o" style="color:green"> </i> EXCEL',
+							title : null,
+							filename : 'Download'
+						},
+						{
+							extend : 'pdf',
+							text : '<i class="fa fa-file-pdf-o" style="color:red"></i> PDF',
+							title : null
+						} 
+				]
+			}
+
+	);
+    
+
+  const toggle = document.getElementById("toggleView");
+  const tableWrapper = document.getElementById("example1");
+  const chartContainer = document.getElementById("chartContainer");
+  const barChartSection = document.getElementById("barChartSection");
+  // const tableWrapper = tableElement.parentElement;
+
+  // View toggle switch
+  toggle.addEventListener("change", function () {
+    if (this.checked) {
+      chartContainer.style.display = "none";
+      barChartSection.style.display = "none";
+      tableWrapper.style.display = "block"; 
+    } else {
+      tableWrapper.style.display = "none";
+      barChartSection.style.display = "none";
+      chartContainer.style.display = "block";
+      generatePieChart();
+    }
+  });
+
+  function generatePieChart() {
+    const counts = {
+      "Near Miss": 0,
+      "Unsafe Action": 0,
+      "Unsafe Condition": 0
+    };
+
+    const allData = dataTable.rows().data();
+
+    for (let i = 0; i < allData.length; i++) {
+      const row = allData[i];
+      const observation = row[3].trim();
+
+      if (counts.hasOwnProperty(observation)) {
+        counts[observation]++;
+      }
+    }
+
+    const total = Object.values(counts).reduce((a, b) => a + b, 0);
+    document.getElementById("totalIncidents").innerText = total;
+
+    const ctx = document.getElementById("observationPieChart").getContext("2d");
+
+    if (window.pieChartInstance) {
+      window.pieChartInstance.destroy();
+    }
+
+    window.pieChartInstance = new Chart(ctx, {
+      type: 'doughnut',
+      data: {
+        labels: Object.keys(counts),
+        datasets: [{
+          data: Object.values(counts),
+          backgroundColor: ['#36A2EB', '#FF6384', '#FFCE56'],
+          borderWidth: 1
+        }]
+      },
+      options: {
+        responsive: true,
+        onClick: function (event, elements) {
+          if (elements.length > 0) { 
+            const clickedLabel = this.data.labels[elements[0]._index]; 
+            generateBarChart(clickedLabel);
+          }
+        },
+        plugins: {
+          legend: {
+            position: 'bottom'
+          },
+          tooltip: {
+            callbacks: {
+              label: function (tooltipItem) {
+                const label = tooltipItem.label;
+                const value = tooltipItem.raw;
+                const percent = ((value / total) * 100).toFixed(1);
+                return `${label}: ${value} (${percent}%)`;
+              }
+            }
+          }
+        }
+      }
+    });
+  }
+
+  function generateBarChart(observationType) {
+	  const statusCounts = {
+	    "Opened": 0,
+	    "Closed": 0,
+	    "Total": 0
+	  };
+
+	  const allData = dataTable.rows().data();
+
+	  for (let i = 0; i < allData.length; i++) {
+	    const row = allData[i];
+	    const type = row[3]?.trim();
+	    const status = row[4]?.trim();
+	    
+	
+
+
+	    if (type === observationType) {
+	    	const normalizedStatus = status?.toLowerCase().trim();
+	    	console.log("1");
+	    	if (type === observationType) {
+	    	  if (normalizedStatus === "submitted") statusCounts["Opened"]++;
+	    	  else if (normalizedStatus === "approved") statusCounts["Closed"]++;
+	    	  else statusCounts["Opened"]++;
+	    	}
+
+	    }
+	  }
+	  
+	  statusCounts["Total"] = statusCounts["Closed"]+statusCounts["Opened"];
+	  
+	  
+
+	  const ctx = document.getElementById("barChart").getContext("2d");
+
+	  if (window.barChartInstance) {
+	    window.barChartInstance.destroy();
+	  }
+
+	  window.barChartInstance = new Chart(ctx, {
+	    type: 'bar',
+	    data: {
+	      labels: Object.keys(statusCounts),
+	      datasets: [{
+	        label: `${observationType} - Status Distribution`,
+	        data: Object.values(statusCounts),
+	        backgroundColor: ['#36A2EB', '#4BC0C0', '#FF9F40','#FF6384']
+	      }]
+	    },
+	    options: {
+	      responsive: true,
+	      plugins: {
+	        legend: { display: false }
+	      },
+	      scales: {
+	        y: {
+	          beginAtZero: true,
+	          title: { display: true, text: 'Count' }
+	        },
+	        x: {
+	          title: { display: true, text: 'Status' }
+	        }
+	      }
+	    }
+	  });
+
+	  // Switch view
+	  chartContainer.style.display = "none";
+	  barChartSection.style.display = "block";
+	}
+
+
+  // Back button function
+  window.backToPie = function () {
+    barChartSection.style.display = "none";
+    chartContainer.style.display = "block";
+  };
+
+  // Optional: auto-load chart on page load (if toggle is off)
+  if (!toggle.checked) {
+    generatePieChart();
+    chartContainer.style.display = "block";
+    tableWrapper.style.display = "none";
+  }
+});
+
+		</script>
+
+
+	</div>
+
+</body>
+</html>

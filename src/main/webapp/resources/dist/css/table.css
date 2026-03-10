@@ -1,0 +1,261 @@
+@charset "UTF-8";
+/* .table-bordered thead th {
+	background-color: #2B56A5 !important;
+}
+	.styled-table {
+    border-collapse: collapse;
+    overflow: hidden;
+    background: #ffffff;
+    border-radius: 6px;
+    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+Header Styling
+.styled-table thead {
+    background-color: #007bff; Primary color
+    color: #ffffff;
+    font-weight: bold;
+    text-transform: uppercase;
+    font-size: 0.9rem;
+    
+    position: sticky;
+            top: 0; 
+            z-index: 1;
+}
+
+Row and Cell Styling
+.styled-table tbody tr {
+    transition: background-color 0.3s, box-shadow 0.3s;
+}
+
+.styled-table tbody tr:hover {
+    box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.2);
+    box-shadow: 8px 5px 6px 6px rgba(0, 0, 0, 0.2);
+    
+    box-shadow: 4px 4px 6px rgba(0, 0, 0, 0.2), 
+                -4px -4px 6px rgba(0, 0, 0, 0.2);
+}
+
+.styled-table td {
+    padding: 8px;
+    vertical-align: middle;
+    
+    color: #333333;
+}
+
+Input Field Styling
+.styled-table input.form-control {
+    border: 1px solid #cccccc;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    width: 90%;
+    margin: auto;
+    text-align: center;
+    height: 24px;
+}
+
+.styled-table input.form-control:focus {
+    border-color: #007bff;
+    box-shadow: 0px 0px 4px rgba(0, 123, 255, 0.5);
+}
+
+Footer (if needed)
+.styled-table tfoot td {
+    font-weight: bold;
+    background-color: #f8f9fa;
+}
+
+Highlight Columns
+.styled-table td.total-qty,
+.styled-table td.submitted-qty,
+.styled-table td.amount-cell,
+.styled-table td.total-value {
+    font-weight: bold;
+    color: #2B56A5;
+}
+
+Zebra Striping
+
+
+Adjust for Small Screens
+@media screen and (max-width: 768px) {
+    .styled-table {
+        font-size: 0.85rem;
+    }
+    .styled-table input.form-control {
+        width: 100%;
+    }
+} */
+
+/* Ensure proper layout */
+.table-container {
+    width: 100%;
+    max-height: 500px; /* Adjust height as needed */
+    overflow: auto;
+    position: relative;
+     border-radius: 6px;
+    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+/* Table styles */
+.styled-table {
+    width: 100%;
+    border-collapse: collapse;    
+    background: #ffffff;
+    border-radius: 6px;
+    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+    margin: 0 !important;
+}
+
+
+.styled-table thead {
+    background-color: #007bff;
+    color: #ffffff;
+    font-weight: bold;
+    text-transform: uppercase;
+    font-size: 0.9rem;
+        position: sticky;
+    top: 0;
+    z-index: 10;
+}
+
+.table-bordered thead th, .table-bordered tfoot td {
+	background-color: #6083E8 !important;
+}
+
+/* Table Footer */
+.styled-table tfoot {
+    background-color: #007bff;
+    color: #ffffff;
+    font-weight: bold;
+    font-size: 0.9rem;
+    position: sticky;
+    bottom: 0;
+    z-index: 10;
+}
+
+.styled-table tfoot td {
+	color: #ffffff;
+}
+
+/* Table Cells */
+.styled-table th, .styled-table td {
+    padding: 8px;
+    text-align: center;
+    border: 1px solid #ddd;
+}
+
+.styled-table tbody tr {
+    transition: background-color 0.3s, box-shadow 0.3s;
+}
+
+.styled-table tbody tr:hover {
+    box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.2);
+    box-shadow: 8px 5px 6px 6px rgba(0, 0, 0, 0.2);
+    
+    box-shadow: 4px 4px 6px rgba(0, 0, 0, 0.2), 
+                -4px -4px 6px rgba(0, 0, 0, 0.2);
+}
+
+.styled-table td {
+    padding: 8px;
+    vertical-align: middle;
+    color: #333333;
+}
+
+.styled-table input.form-control {
+    border: 1px solid #cccccc;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    width: 90%;
+    margin: auto;
+    text-align: center;
+    height: 24px;
+}
+
+.styled-table input.form-control:focus {
+    border-color: #007bff;
+    box-shadow: 0px 0px 4px rgba(0, 123, 255, 0.5);
+}
+
+.styled-table td.total-qty,
+.styled-table td.submitted-qty,
+.styled-table td.amount-cell,
+.styled-table td.total-value {
+    font-weight: bold;
+    color: #2B56A5;
+}
+
+.table-container::-webkit-scrollbar {
+    width: 8px; /* Thin scrollbar */
+    height: 8px;
+}
+
+.dataTables_wrapper .dataTables_scrollBody::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+/* Scrollbar thumb (the moving part) */
+.table-container::-webkit-scrollbar-thumb {
+    background: #2B56A5; /* Blue color */
+    border-radius: 4px;
+}
+
+.dataTables_wrapper .dataTables_scrollBody::-webkit-scrollbar-thumb {
+  background-color: #2B56A5;
+  border-radius: 4px;
+}
+
+/* Scrollbar track (background) */
+.table-container::-webkit-scrollbar-track {
+    background: #f1f1f1; /* Light gray */
+    border-radius: 4px;
+}
+
+.dataTables_wrapper .dataTables_scrollBody::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 4px;
+}
+
+/* Scrollbar on hover */
+.table-container::-webkit-scrollbar-thumb:hover {
+    background: #1d3b7a; /* Darker blue */
+}
+
+.dataTables_wrapper .dataTables_scrollBody::-webkit-scrollbar-thumb:hover {
+  background: #1d3b7a;
+}
+
+.text-primary {
+	color: #2B56A5 !important;
+}
+
+.bg-2B56A5 {
+	background-color: #2B56A5
+}
+
+.dt-buttons .buttons-pdf {
+	border-radius: 5px !important;
+}
+
+.dt-buttons .buttons-excel {
+	border-radius: 5px !important;
+  	margin-right: 8px !important;
+}
+
+/* Optional: tighten pagination spacing */
+.dataTables_wrapper .dataTables_paginate {
+  margin-top: -32px !important;
+}
+
+
+
+@media screen and (max-width: 768px) {
+    .styled-table {
+        font-size: 0.85rem;
+    }
+    .styled-table input.form-control {
+        width: 100%;
+    }
+}

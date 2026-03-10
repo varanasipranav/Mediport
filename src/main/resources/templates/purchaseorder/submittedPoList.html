@@ -1,0 +1,271 @@
+<!DOCTYPE html SYSTEM "http://www.thymeleaf.org/dtd/xhtml1-strict-thymeleaf-spring4-4.dtd">
+<html xmlns:th="http://www.thymeleaf.org"
+	xmlns:layout="http://www.ultraq.net.nz/web/thymeleaf/layout"
+	layout:decorate="layout">
+
+<head>
+<title>List</title>
+<style type="text/css">
+#rejectModal {
+	width: 50%;
+	height: 40%;
+	margin-left: 35%;
+	padding: 0;
+}
+
+#apprModal {
+	width: 90%;
+	height: 90%;
+	margin-left: 5%;
+	padding: 0;
+}
+
+.modal-content {
+	height: auto;
+	min-height: 100%;
+	border-radius: 0;
+}
+
+.group {
+	/* background: #eeeeee; */
+	
+}
+
+#nullifyModal {
+	z-index: 1080 !important;
+}
+</style>
+<style>
+.dataTables_filter {
+	display: inline;
+	float: right;
+}
+
+.dataTables_length {
+	display: inline;
+}
+
+.dt-buttons {
+	margin-left: 25%;
+}
+
+.input-group-addon {
+	padding: 2px 12px !important;
+}
+
+.text-primary {
+	color: #2B56A5 !important;
+}
+
+.dt-buttons {
+    margin-left: 40% !important;
+}
+
+.dataTables_filter {
+	margin-right: 16px !important;
+}
+</style>
+<link rel="stylesheet" type="text/css"
+	href="../../../../resources/dist/css/table.css">
+</head>
+<body>
+	<section layout:fragment="header">
+		<div class="container-fluid">
+			<div class="row mb-2">
+				<div class="col-sm-6">
+					<h1 class="text-primary text-bold text-lg ml-2">PO List</h1>
+				</div>
+				<div class="col-sm-6">
+					<ol class="breadcrumb float-sm-right">
+						<li class="breadcrumb-item"><a href="#">Invoice</a></li>
+						<li class="breadcrumb-item active">PO List</li>
+					</ol>
+				</div>
+			</div>
+		</div>
+		<!-- /.container-fluid -->
+	</section>
+	<div class="container-fluid" layout:fragment="content">
+		<div th:if="${success!= null}"
+			class="alert alert-success alert-dismissible auto-dismiss">
+			<i class="icon fa fa-check"></i> <span th:text="${success}"></span>
+		</div>
+		<div th:if="${error!= null}"
+			class="alert alert-danger alert-dismissible auto-dismiss">
+			<i class="icon fa fa-check"></i> <span th:text="${error}"></span>
+		</div>
+		<div class="row">
+			<div class="col-12">
+				<div class="card">
+					<div class="card-body">
+
+						<form role="form" th:object="${listSelector}"
+							th:action="@{/purchase-orders/list}" method="get" name="myForm">
+							<div class="table-responsive hidden-xs">
+								<table class="table table-striped" style="margin-bottom: 1%;">
+									<tbody>
+										<tr>
+											<td><label>From Date:</label>
+												<div class="input-group mb-3">
+													<span class="input-group-text border-right-0"
+														id="basic-addon1"><i class="fa fa-calendar"></i></span> <input
+														type="text" th:field="*{fromDate}"
+														class="form-control datepicker" placeholder="Start Date"
+														aria-label="Username" aria-describedby="basic-addon1">
+												</div></td>
+											<td><label>To Date:</label>
+												<div class="input-group mb-3">
+													<span class="input-group-text border-right-0"
+														id="basic-addon1"><i class="fa fa-calendar"></i></span> <input
+														type="text" th:field="*{toDate}"
+														class="form-control datepicker" placeholder="End Date"
+														aria-label="Username" aria-describedby="basic-addon1">
+												</div></td>
+
+											<td>
+												<div
+													class="d-flex align-items-center justify-content-center mt-3">
+													<button type="submit"
+														class="btn btn-primary pull-right mt-3 w-100">
+														Apply
+														<!-- <i class="fa fa-paper-plane ml-4"></i> -->
+													</button>
+												</div>
+											</td>
+										</tr>
+
+									</tbody>
+								</table>
+							</div>
+						</form>
+						<div class="table-responsive">
+							<form th:action="@{/showPoDetail}" method="post" id="poForm">
+ 							<table id="example"
+								class="styled-table table text-center table-striped table-bordered dt-responsive nowrap"
+								cellspacing="0" width="100%">
+								<thead>
+									<tr>
+										<th>
+											<input type="checkbox" id="selectAllCheckbox" onclick="toggleSelectAll(this)">
+										</th>
+										<th>PO No.</th>
+										<th>Document Date</th>
+										<th>Purchase Group</th>
+									</tr>
+								</thead>
+								<tbody>
+									
+										<tr th:each="po: ${reqList}">
+												<input type="hidden" name="vendor" th:value="${paddedLoggedInUser}" />
+										
+											<td><input type="checkbox" name="selectedPoNos"
+												th:value="${po.poNo}" onclick="handleCheckboxClick(this)" />
+											</td>
+											<td th:text="${po.poNo}"></td>
+											<td th:text="${#dates.format(po.docDate, 'dd/MM/yyyy')}"></td>
+											<td th:text="${po.purGrp}"></td>
+										</tr>
+									
+								</tbody>
+							</table> 
+							<div class="d-flex justify-content-end">
+								<button type="submit" class="btn btn-primary"
+									id="proceedBtn" disabled>Proceed</button>
+							</div>
+							</form>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+	<div layout:fragment="scriptContent">
+
+		<script type="text/javascript">
+			$(document)
+					.ready(
+							function() {
+
+								$('.datepicker').datepicker({
+									autoclose : true,
+									format : 'dd/mm/yyyy'
+								});
+								
+								$('#example').DataTable({
+								    dom: 'lBfrtip',
+								    paging: false, // ❌ Disable pagination
+								    scrollY: '400px', // ✅ Vertical scroll height
+								    scrollCollapse: true,
+								    scrollX: true, // ✅ Optional: horizontal scroll if needed
+								    ordering: false, // ❌ Disable column sorting
+								    buttons: [
+								        {
+								            extend: 'excel',
+								            text: '<i class="fa fa-file-excel" style="color:green"> </i> EXCEL',
+								            title: null,
+								            filename: 'Download'
+								        },
+								        {
+								            extend: 'pdf',
+								            text: '<i class="fa fa-file-pdf" style="color:red"></i> PDF',
+								            title: null
+								        }
+								    ]
+								});
+								$('.auto-dismiss').each(function() {
+									const alert = $(this);
+
+									// Set a timeout to hide the alert after 5 seconds
+									setTimeout(function() {
+										alert.fadeOut(500, function() {
+											// Remove the element from the DOM after fading out
+											alert.remove();
+										});
+									}, 5000);
+								});
+
+							});
+			function toggleSelectAll(source) {
+			    const checkboxes = document.querySelectorAll('input[name="selectedPoNos"]');
+			    checkboxes.forEach(cb => {
+			        cb.checked = source.checked;
+			    });
+			    toggleProceedBtn();
+			}
+
+			function handleCheckboxClick(checkbox) {
+			    const maxAllowed = 5;
+			    const selectedCheckboxes = document.querySelectorAll('input[name="selectedPoNos"]:checked');
+			    const proceedBtn = document.getElementById('proceedBtn');
+
+/* 			    if (selectedCheckboxes.length > maxAllowed) {
+			        alert('You can select a maximum of 5 items.');
+			        checkbox.checked = false;
+			    } */
+
+			    // Uncheck "Select All" if any individual is unchecked
+			    const allCheckboxes = document.querySelectorAll('input[name="selectedPoNos"]');
+			    const selectAll = document.getElementById('selectAllCheckbox');
+
+			    if (!checkbox.checked) {
+			        selectAll.checked = false;
+			    } else if (selectedCheckboxes.length === allCheckboxes.length) {
+			        selectAll.checked = true;
+			    }
+
+			    toggleProceedBtn();
+			}
+
+			function toggleProceedBtn() {
+			    const selectedCheckboxes = document.querySelectorAll('input[name="selectedPoNos"]:checked');
+			    const proceedBtn = document.getElementById('proceedBtn');
+			    proceedBtn.disabled = selectedCheckboxes.length === 0;
+			}
+
+		</script>
+
+
+	</div>
+
+</body>
+</html>

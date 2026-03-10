@@ -1,0 +1,845 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+	xmlns:layout="http://www.ultraq.net.nz/web/thymeleaf/layout"
+	xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity5"
+	layout:decorate="layout">
+<head>
+
+<link rel="stylesheet" type="text/css"
+	href="../../../../resources/dist/css/table.css">
+<style type="text/css">
+.hide {
+	display: none;
+}
+
+.datepicker {
+	width: 30%;
+}
+.hiderow {
+    display: none;
+}
+.highlightcol
+{
+	background-color: orange !important;
+}
+</style>
+
+<title>Price Approval</title>
+</head>
+<body>
+	<section layout:fragment="header">
+		<div class="container-fluid">
+			<div class="row mb-2">
+				<div class="col-sm-3">
+					<h1 class="text-primary text-bold text-lg ml-2">Production
+						Plan</h1>
+				</div>
+				<div class="col-sm-6">
+					<ul class="nav nav-pills ml-auto p-2" sec:authorize="hasAnyRole('ROLE_CPT')">
+						  <li class="nav-item" th:each="item : ${otherPlantPlans}">
+						    <a class="nav-link" th:classappend="${item[2]} == ${prdPlanFormDetInput.selOutPlant} ? ' active'" th:href="${'/prdplan/viewweeklyplanall/' + {item[0]}+'/'+{prdPlanFormDetInput.selWeek}}" th:text="${item[2]}">Active</a>
+						  </li>
+						</ul>
+				</div>
+				<div class="col-sm-3">
+					<ol class="breadcrumb float-sm-right">
+						<li class="breadcrumb-item"><a href="#">Production Plan</a></li>
+						<li class="breadcrumb-item active">Create</li>
+					</ol>
+				</div>
+			</div>
+		</div>
+		<!-- /.container-fluid -->
+	</section>
+	<div layout:fragment="content">
+		<div class="card card-primary">
+			<form data-toggle="validator" role="form" id="myForm" name="myForm"
+				th:object="${prdPlanFormDetInput}"
+				th:action="@{/prdplan/updateRequest}" method="post">
+				<div class="card-body">
+					<input type="hidden" th:field="*{docId}" />
+					<input type="hidden" th:field="*{selWeek}"/>  
+					<input type="hidden" th:field="*{selVendor}" /> 
+					<input type="hidden" th:field="*{selOutPlant}" /> 
+					<input type="hidden" th:field="*{selMonthYr}" /> 
+					<input type="hidden" th:field="*{selPurGrp}" />
+					<input type="hidden" th:field="*{showSubmitToVendor}" />
+					<input type="hidden" th:field="*{showAcceptCPT}" />
+					<input type="hidden" th:field="*{showAmmendCPT}" />
+					<input type="hidden" th:field="*{maxLineNo}" />
+<!-- 					<div class="row bg-light px-2 pt-1">
+						<div class="col-md-2">
+							<strong>Vendor:</strong>
+						</div>
+						<div class="col-md-2">
+							<span th:text="*{selVendor}"></span>
+						</div>
+						<div class="col-md-2">
+							<strong>Month/Year:</strong>
+						</div>
+						<div class="col-md-2">
+							<span th:text="*{selMonthYr}"></span>
+						</div>
+						<div class="col-md-2">
+							<strong>Plant:</strong>
+						</div>
+						<div class="col-md-2">
+							<span th:text="*{selOutPlant}"></span>
+						</div>
+						<div class="mt-3 col-md-2">
+							<p class="text-green pull-right " style="margin-right: 10px">
+								<Strong>Count :<span
+									th:text="*{#lists.size(prdPlanRequestItems)}"></span>
+								</Strong>
+							</p>
+						</div>
+						
+						
+
+					</div>
+					<div class="form-inline justify-content-end" style="margin-top: -35px;">
+					    <button id="exportBtn" type="button" class="btn btn-sm btn-warning px-3 mr-2">Export to Excel</button>
+					
+					    <div class="custom-file mr-2" style="width: 180px;">
+					        <input type="file" id="uploadExcel" class="custom-file-input" accept=".xlsx, .xls">
+					        <label class="custom-file-label text-truncate" for="uploadExcel"></label>
+					    </div>
+					
+					    <button id="uploadBtn" type="button" class="btn btn-sm btn-success px-3 mr-3">Upload Excel</button>
+					
+					    Material Input
+					    <input type="text" id="materialInput" class="form-control form-control-sm mr-2" placeholder="Material" style="width: 150px;">
+					
+					    Storage Location Input
+					    <input type="text" id="storageLocationInput" class="form-control form-control-sm mr-2" placeholder="Storage Location" style="width: 180px;">
+					    
+					    Storage Location Input
+					    <input type="text" id="uomInput" class="form-control form-control-sm mr-2" placeholder="UOM" style="width: 80px;">
+					
+					    Add Button with Plus Icon
+					    <button id="addBtn" type="button" onclick="callAddQtyApi()" class="btn btn-sm btn-primary">
+					        <i class="fas fa-plus"></i> Add
+					    </button>
+					</div> -->
+					
+					
+					<!-- Summary Row -->
+<div class="row bg-light py-2 px-3 mb-3 rounded shadow-sm">
+  <div class="col-md-2">
+    <strong>Vendor:</strong> <br>
+    <span th:text="*{selVendor}"></span>
+  </div>
+  <div class="col-md-2">
+    <strong>Month/Year:</strong> <br>
+    <span th:text="*{selMonthYr}"></span>
+  </div>
+  <div class="col-md-2">
+    <strong>Plant:</strong> <br>
+    <span th:text="*{selOutPlant}"></span>
+  </div>
+  <div class="col-md-2 ml-auto text-right">
+    <p class="text-success font-weight-bold mb-0">
+      Count: <span th:text="*{#lists.size(prdPlanRequestItems)}"></span>
+    </p>
+  </div>
+</div>
+
+<!-- Actions and Inputs --> 
+<div sec:authorize="hasAnyRole('ROLE_CPT')" class="d-flex flex-wrap align-items-center justify-content-center my-2 gap-2">
+  <!-- Export Button -->
+  <button id="exportBtn" type="button" class="btn btn-warning btn-sm mr-2">
+    Export to Excel
+  </button>
+
+  <!-- File Upload -->
+  <div class="custom-file mr-2" style="width: 200px;">
+    <input type="file" id="uploadExcel" class="custom-file-input" accept=".xlsx, .xls">
+    <label class="custom-file-label text-truncate" for="uploadExcel">Choose file</label>
+  </div>
+
+  <!-- Upload Button -->
+  <button id="uploadBtn" type="button" class="btn btn-success btn-sm mr-2">
+    Upload Excel
+  </button>
+
+  <!-- Material Input -->
+  <input type="text" id="materialInput" class="form-control form-control-sm mr-2" placeholder="Material" style="width: 140px;">
+
+  <!-- Storage Location -->
+  <input type="text" id="storageLocationInput" class="form-control form-control-sm mr-2" placeholder="Storage Location" style="width: 160px;">
+
+  <!-- UOM Input -->
+  <input type="text" id="uomInput" class="form-control form-control-sm mr-2" placeholder="UOM" style="width: 100px;">
+
+  <!-- Add Button -->
+  <button id="addBtn" type="button" onclick="callAddQtyApi()" class="btn btn-primary btn-sm">
+    <i class="fas fa-plus"></i> Add
+  </button>
+</div>
+					
+					
+					<div class="table-responsive table-container"
+						style="margin-top: 2%" th:if="*{!prdPlanRequestItems.empty}">
+						<table id="poPlanTable"
+							class="col-sm-12 table table-bordered no-wrap styled-table table-striped">
+							<thead class="primary">
+								<tr>
+									<th rowspan=2>Category</th>
+									<th rowspan=2>Line No</th>
+									<th rowspan=2>Material</th>
+									<th rowspan=2>Description</th>
+									<th rowspan=2>Weight</th>
+									<th rowspan=2>UOM</th>
+									<th rowspan=2>Storage Loc.</th>
+									<th th:styleappend="*{selWeek == '1' ? 'background-color: orange !important;' : ''}">Week1</th>
+									<th th:styleappend="*{selWeek == '2' ? 'background-color: orange !important;' : ''}">Week2</th>
+									<th th:styleappend="*{selWeek == '3' ? 'background-color: orange !important;' : ''}">Week3</th>
+									<th th:styleappend="*{selWeek == '4' ? 'background-color: orange !important;' : ''}">Week4</th>
+									<th rowspan=2>Monthly Total</th>
+									<th rowspan=2>Week <span th:text="*{selWeek}"></span><br> Loading %</th>
+									<th rowspan=2 th:unless="*{showSubmitToVendor}" style="width: 60px;">Vendor Quantity</th>
+									<th rowspan=2 th:unless="*{showSubmitToVendor}">Vendor Remarks</th>
+									<!--  <th rowspan=2>Proposed Qty</th>
+									<th rowspan=2>Vendor Qty</th>
+									<th rowspan=2>Final Qty</th>
+									<th rowspan=2>Vendor Remarks</th>
+									<th rowspan=2>CPT Remarks</th>-->
+								</tr>
+								<tr class="skipExport">
+
+									<th th:styleappend="*{selWeek == '1' ? 'background-color: orange !important;' : ''}" th:text="*{w1PO}"></th>
+									<th th:styleappend="*{selWeek == '2' ? 'background-color: orange !important;' : ''}" th:text="*{w2PO}"></th>
+									<th th:styleappend="*{selWeek == '3' ? 'background-color: orange !important;' : ''}" th:text="*{w3PO}"></th>
+									<th th:styleappend="*{selWeek == '4' ? 'background-color: orange !important;' : ''}" th:text="*{w4PO}"></th>
+
+								</tr>
+							</thead>
+							<tbody>
+								<tr th:if="*{prdPlanRequestItems.empty}">
+									<td colspan="2">No Data</td>
+								</tr>
+								<tr th:classappend="${row.itemIndicator == 'I'} ? 'hiderow'" th:data-id="${row.lineNo}" th:each="row, itemStat : *{prdPlanRequestItems}">
+									<td
+										class="matCatClass" th:text="*{prdPlanRequestItems[__${itemStat.index}__].category}"></td>
+									<td
+										class="lineNoClass" th:text="*{prdPlanRequestItems[__${itemStat.index}__].lineNo}"></td>
+									
+									<td
+										class="materialClass" th:text="*{prdPlanRequestItems[__${itemStat.index}__].material}"></td>
+									<td
+										class="matDescClass" th:text="*{prdPlanRequestItems[__${itemStat.index}__].materialDesc}"></td>
+									<td
+										class="matWeightClass"
+										th:text="*{prdPlanRequestItems[__${itemStat.index}__].weight}"></td>
+									<td class="matUomClass" th:text="*{prdPlanRequestItems[__${itemStat.index}__].uom}"></td>
+									<td
+										class="matStorLocClass" th:text="*{prdPlanRequestItems[__${itemStat.index}__].storageLocation}"></td>
+									<td th:styleappend="*{prdPlanRequestItems[__${itemStat.index}__].week1Qty == 0 ? 'background-color: red !important;' : (selWeek == '1' ? 'background-color: orange !important;' : '')}">
+									<input type="text" class="form-control week1Qty"
+										readonly
+										th:field="*{prdPlanRequestItems[__${itemStat.index}__].week1Qty}" /><strong>KG:</strong><span class="week1Wt"
+										th:text="*{#numbers.formatDecimal(prdPlanRequestItems[__${itemStat.index}__].week1Qty*prdPlanRequestItems[__${itemStat.index}__].netWt, 0, 'COMMA', 2, 'POINT')}"></span></td>
+									<td th:styleappend="*{prdPlanRequestItems[__${itemStat.index}__].week2Qty == 0 ? 'background-color: red !important;' : (selWeek == '2' ? 'background-color: orange !important;' : '')}">
+									<input type="text" class="form-control week2Qty"
+										readonly
+										th:field="*{prdPlanRequestItems[__${itemStat.index}__].week2Qty}" /><strong>KG:</strong><span class="week2Wt"
+										th:text="*{#numbers.formatDecimal(prdPlanRequestItems[__${itemStat.index}__].week2Qty*prdPlanRequestItems[__${itemStat.index}__].netWt, 0, 'COMMA', 2, 'POINT')}"></span></td>
+									<td th:styleappend="*{prdPlanRequestItems[__${itemStat.index}__].week3Qty == 0 ? 'background-color: red !important;' : (selWeek == '3' ? 'background-color: orange !important;' : '')}">
+									<input type="text" class="form-control week3Qty"
+										readonly
+										th:field="*{prdPlanRequestItems[__${itemStat.index}__].week3Qty}" /><strong>KG:</strong><span class="week3Wt"
+										th:text="*{#numbers.formatDecimal(prdPlanRequestItems[__${itemStat.index}__].week3Qty*prdPlanRequestItems[__${itemStat.index}__].netWt, 0, 'COMMA', 2, 'POINT')}"></span></td>
+									<td th:styleappend="*{prdPlanRequestItems[__${itemStat.index}__].week4Qty == 0 ? 'background-color: red !important;' : (selWeek == '4' ? 'background-color: orange !important;' : '')}">
+									 
+									<input type="text" class="form-control week4Qty"
+										readonly
+										th:field="*{prdPlanRequestItems[__${itemStat.index}__].week4Qty}" /><strong>KG:</strong><span class="week4Wt"
+										th:text="*{#numbers.formatDecimal(prdPlanRequestItems[__${itemStat.index}__].week4Qty*prdPlanRequestItems[__${itemStat.index}__].netWt, 0, 'COMMA', 2, 'POINT')}"></span></td>
+									 <td>
+									 <input readonly type="text" class="form-control prop-qty monthlyTotal"   th:value="*{prdPlanRequestItems[__${itemStat.index}__].week1Qty+prdPlanRequestItems[__${itemStat.index}__].week2Qty+prdPlanRequestItems[__${itemStat.index}__].week3Qty+prdPlanRequestItems[__${itemStat.index}__].week4Qty}"/>
+									 <input type="hidden" class="insertTxt" th:field="*{prdPlanRequestItems[__${itemStat.index}__].insertTxt}" />
+									 	<input type="hidden" class="lineNo" th:field="*{prdPlanRequestItems[__${itemStat.index}__].lineNo}" />
+									 	<input type="hidden" class="itemIndicator"  th:field="*{prdPlanRequestItems[__${itemStat.index}__].itemIndicator}">
+									 
+									 </td>
+									<td>
+									
+									<span class="loadingPer"></span>
+									</td>
+									 <td th:unless="*{showSubmitToVendor}">
+									 
+						                <!-- <button type="button" class="btn btn-sm btn-danger deleteRow">Delete</button> -->
+						                <input th:if="*{showSubmitToCPT}" type="text" class="form-control vend-qty" th:field="*{prdPlanRequestItems[__${itemStat.index}__].vendWeekPropQty}" style="width: 70px;"/>
+										<span th:unless="*{showSubmitToCPT}" th:text="*{prdPlanRequestItems[__${itemStat.index}__].vendWeekPropQty}" class="vend-qty"></span>
+						            </td>
+						             <td th:unless="*{showSubmitToVendor}">
+										<input th:if="*{showSubmitToCPT}" type="text" class="form-control" placeholder="+ Add a reason" list="list-reasons" id="input-datalist" th:field="*{prdPlanRequestItems[__${itemStat.index}__].vendAcpRemarks}">
+										<datalist id="list-reasons">
+											<option>Machine Breakdown</option>
+											<option>Raw Material Shortage</option>
+										</datalist> 
+										<span th:unless="*{showSubmitToCPT}" th:text="*{prdPlanRequestItems[__${itemStat.index}__].vendAcpRemarks}"></span>
+									</td>
+									<!--  
+									<td
+										 class="prop-qty">
+										<span th:text="*{prdPlanRequestItems[__${itemStat.index}__].total}"></span>
+										<strong>KG:</strong><span class="proposedQty"></span>
+										</td> 
+									<td><input th:if="*{showSubmit}" type="text"
+										class="form-control vend-qty"
+										th:field="*{prdPlanRequestItems[__${itemStat.index}__].totVendAcpQty}" />
+										<span th:unless="*{showSubmit}"
+										th:text="*{prdPlanRequestItems[__${itemStat.index}__].totVendAcpQty}" class="vend-qty"></span>
+									</td>
+									<td><span
+										th:text="*{prdPlanRequestItems[__${itemStat.index}__].totCPTAcpQty}" class="final-qty"></span>
+									</td>
+
+									<td><input th:if="*{showApprove}" type="text"
+										class="form-control" placeholder="+ Add a reason"
+										th:field="*{prdPlanRequestItems[__${itemStat.index}__].cptAcpRemarks}">
+										<span th:unless="*{showApprove}"
+										th:text="*{prdPlanRequestItems[__${itemStat.index}__].cptAcpRemarks}"></span>
+									</td>-->
+								</tr>
+							</tbody>
+							<tfoot>
+								<tr class="skipExport">
+									<td colspan="7"> Total </td>		
+									<td id="week1Sum"></td>	
+									<td id="week2Sum"></td>	
+									<td id="week3Sum"></td>	
+									<td id="week4Sum"></td>
+									<td id="propQtySum"></td>	
+									<!--<td id="vendorQtySum"></td>	
+  									<td id="finalQtySum"></td>-->	
+									<td colspan="3"></td>				
+								</tr>
+							</tfoot>
+						</table>
+
+					</div>
+				</div>
+				<div class="card-footer d-flex justify-content-end ">
+					<button type="button" th:if="*{showSubmitToVendor}"
+						id="btnSubToVendor" class="btn btn-success pull-right"
+						style="margin-left: 5px">
+						<i class="fa fa-check fa-lg"></i>&nbsp;Submit To Vendor
+					</button>
+					<button type="button" th:if="*{showSubmitToCPT}" id="btnSubToCPT"
+						class="btn btn-success pull-right" style="margin-left: 5px">
+						<i class="fa fa-check fa-lg"></i>&nbsp;Submit Plan
+					</button>
+					<button type="button" th:if="*{showAcceptCPT}" id="btnAccept"
+						class="btn btn-success pull-right" style="margin-left: 5px">
+						<i class="fa fa-check fa-lg"></i>&nbsp;Approve
+					</button>
+					<button type="button" th:if="*{showAmmendCPT}" id="btnAmmend"
+						class="btn btn-success pull-right" style="margin-left: 5px">
+						<i class="fa fa-check fa-lg"></i>&nbsp;Ammend
+					</button>
+				</div>
+			</form>
+		</div>
+		<div id="woModal" class="modal fade" tabindex="-1" role="dialog">
+			<div class="modal-dialog">
+				<div class="modal-content">
+					<div class="modal-body">
+						<button type="button" class="close" data-dismiss="modal"
+							aria-hidden="true">&times;</button>
+						<span id="modalcontent"></span>
+					</div>
+				</div>
+			</div>
+		</div>
+
+	</div>
+	<div layout:fragment="scriptContent">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
+		<script type="text/javascript">
+		 
+		let selectedWeek = document.getElementById('selWeek').value;
+		console.log("Selected Week: ", selectedWeek);  
+		  
+		function splitAverage(total, count) {
+			  const avg = Math.floor(total / count);        // Basic average without decimals
+			  const remainder = total % count;              // Remainder to distribute
+			  const result = [];
+
+			  for (let i = 0; i < count; i++) {
+			    if (i < remainder) {
+			      result.push(avg + 1);  // Add 1 to first 'remainder' items
+			    } else {
+			      result.push(avg);
+			    }
+			  }
+
+			  return result;
+			}
+		var maxLineNo = parseInt($("#maxLineNo").val());
+		
+		$(document).ready(function() {  
+
+			
+			
+			 $(".deleteRow").click(function () {
+			        let row = $(this).closest("tr");
+			        let deleteIndicator = row.find(".itemIndicator");
+
+			        // Toggle delete status
+			        if (row.hasClass("table-danger")) {
+			            row.removeClass("table-danger"); // Remove red highlight
+			            deleteIndicator.val("");    // Reset delete indicator
+			        } else {
+			            row.addClass("table-danger");    // Highlight row in red
+			            deleteIndicator.val("D");     // Mark for deletion
+			        }
+			    });
+			
+		    function updateProposedQty() {
+		    	console.log("CALLED");
+		        $("tr").each(function () {
+		            let row = $(this);
+		            let totalWeight = 0;
+
+		            // Loop through each week's weight (KG values) in the row
+		            row.find(".week1Wt, .week2Wt, .week3Wt, .week4Wt").each(function () {
+		                let weight = parseFloat($(this).text().replace(/,/g, "")) || 0;
+		                totalWeight += weight;
+		            });
+
+		            // Update the Proposed QTY column
+		            row.find(".proposedQty").text(totalWeight.toLocaleString());
+		        });
+		    }
+
+		    // Call function initially to calculate the proposed quantities
+		    updateProposedQty();
+
+		    // Recalculate when week input values change
+		    $(".week1Qty, .week2Qty, .week3Qty, .week4Qty").on("input", function () {
+		        setTimeout(updateProposedQty, 500); // Delay ensures the value is updated
+		    });
+			
+			
+			let week1Qty = 0;
+			let week2Qty = 0;
+			let week3Qty = 0;
+			let week4Qty = 0;
+			let week1Wt = 0;
+			let week2Wt = 0;
+			let week3Wt = 0;
+			let week4Wt = 0;
+			
+			let propQty = 0;
+			let vendQty = 0;
+			let finalQty = 0;
+			let totalProposedQty = 0;
+
+			$('table tbody tr').each(function () {
+	            week1Qty += parseFloat($(this).find('.week1Qty').val()) || 0;
+	            week2Qty += parseFloat($(this).find('.week2Qty').val()) || 0;
+	            week3Qty += parseFloat($(this).find('.week3Qty').val()) || 0;
+	            week4Qty += parseFloat($(this).find('.week4Qty').val()) || 0;
+	            
+	            week1Wt += parseFloat($(this).find('.week1Wt').text().replace(/,/g, '')) || 0;
+	            week2Wt += parseFloat($(this).find('.week2Wt').text().replace(/,/g, '')) || 0;
+	            week3Wt += parseFloat($(this).find('.week3Wt').text().replace(/,/g, '')) || 0;
+	            week4Wt += parseFloat($(this).find('.week4Wt').text().replace(/,/g, '')) || 0;
+	            
+	            propQty += parseFloat($(this).find('.prop-qty').val()) || 0;
+	            vendQty += parseFloat($(this).find('.vend-qty').val()) || parseFloat($(this).find('.vend-qty').text()) || 0;
+	            finalQty += parseFloat($(this).find('.final-qty').val()) || 0;
+	            totalProposedQty += parseFloat($(this).find('.week1Wt').text().replace(/,/g, '')) || 0;
+	            totalProposedQty += parseFloat($(this).find('.week2Wt').text().replace(/,/g, '')) || 0;
+	            totalProposedQty += parseFloat($(this).find('.week3Wt').text().replace(/,/g, '')) || 0;
+	            totalProposedQty += parseFloat($(this).find('.week4Wt').text().replace(/,/g, '')) || 0;
+	            
+	            const vendPropQty = parseFloat($(this).find(".vend-qty").text());
+	            
+	            if(vendPropQty && vendPropQty != $(this).find(".week"+selectedWeek+"Qty").val()) {
+	            	$(this).addClass("bg-info"); 
+	            }
+	             
+	            if(vendPropQty) parseFloat($(this).find(".week"+selectedWeek+"Qty").val(vendPropQty));  
+	            
+	        });
+			$("#week1Sum").text(`${week1Qty.toFixed(2)}  KG:${week1Wt.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`);
+			$("#week2Sum").text(`${week2Qty.toFixed(2)}  KG:${week2Wt.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`);
+			$("#week3Sum").text(`${week3Qty.toFixed(2)}  KG:${week3Wt.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`);
+			$("#week4Sum").text(`${week4Qty.toFixed(2)}  KG:${week4Wt.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`);
+			
+			$("#propQtySum").text(`${propQty.toFixed(2)} KG:${totalProposedQty.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`);
+			$("#vendorQtySum").text(vendQty.toFixed(2));
+			$("#finalQtySum").text(finalQty.toFixed(2));
+			
+			 let selWeek = $("#selWeek").val();
+			 let qtyEdit = $("#showSubmitToVendor").val() == 'true' || $("#showAcceptCPT").val() == 'true' || $("#showAmmendCPT").val() == 'true';
+
+			    if (selWeek == "1" && qtyEdit) {
+			    	
+			        $(".week1Qty, .monthlyTotal").removeAttr("readonly");
+
+			        $(".week1Qty, .monthlyTotal").on("input", function () {
+			        	debugger;
+			            let row = $(this).closest("tr"); // Get the current row
+			            let week1Qty = parseFloat(row.find(".week1Qty").val()) || 0;
+			            let monthlyTotal = parseFloat(row.find(".monthlyTotal").val()) || 0;
+
+			            if (monthlyTotal >= week1Qty) {
+			                let remaining = monthlyTotal - week1Qty;
+			                const result = splitAverage(remaining, 3);
+
+			                row.find(".week2Qty").val(result[0]);
+			                row.find(".week3Qty").val(result[1]);
+			                row.find(".week4Qty").val(result[2]);
+			            }
+			        });
+			    }
+			    else if (selWeek == "2" && qtyEdit) {
+
+			    	$(".week2Qty, .monthlyTotal").removeAttr("readonly");
+
+			    	$(".week2Qty, .monthlyTotal").on("input", function () {
+			    		debugger;
+			    	    let row = $(this).closest("tr"); // Get the current row
+			    	    let week1Qty = parseFloat(row.find(".week1Qty").val()) || 0;
+			    	    let week2Qty = parseFloat(row.find(".week2Qty").val()) || 0;
+			    	    let monthlyTotal = parseFloat(row.find(".monthlyTotal").val()) || 0;
+
+			    	    if (monthlyTotal >= week2Qty) {
+			    		let remaining = monthlyTotal - (week1Qty+week2Qty);
+			    		
+			    		const result = splitAverage(remaining, 2);
+
+
+		                row.find(".week3Qty").val(result[0]);
+		                row.find(".week4Qty").val(result[1]);
+			    		
+			    	    }
+			    	});
+			    	}
+			    else if (selWeek == "3" && qtyEdit) {
+
+			    	$(".week3Qty, .monthlyTotal").removeAttr("readonly");
+
+			    	$(".week3Qty, .monthlyTotal").on("input", function () {
+			    		debugger;
+			    	    let row = $(this).closest("tr"); // Get the current row
+			    	    let week1Qty = parseFloat(row.find(".week1Qty").val()) || 0;
+			    	    let week2Qty = parseFloat(row.find(".week2Qty").val()) || 0;
+			    	    let week3Qty = parseFloat(row.find(".week3Qty").val()) || 0;
+			    	    let monthlyTotal = parseFloat(row.find(".monthlyTotal").val()) || 0;
+
+			    	    if (monthlyTotal >= week3Qty) {
+			    		let remaining = monthlyTotal - (week1Qty+week2Qty+week3Qty);
+			    		let avg = (remaining).toFixed(2);
+			    		row.find(".week4Qty").val(avg);
+			    	    }
+			    	});
+			    	}
+			    else if (selWeek == "4" && qtyEdit) {
+
+			    	$(".week4Qty").removeAttr("readonly");
+
+			    	$(".week4Qty").on("input", function () {
+			    		debugger;
+			    	    let row = $(this).closest("tr"); // Get the current row
+			    	    let week1Qty = parseFloat(row.find(".week1Qty").val()) || 0;
+			    	    let week2Qty = parseFloat(row.find(".week2Qty").val()) || 0;
+			    	    let week3Qty = parseFloat(row.find(".week3Qty").val()) || 0;
+			    	    let week4Qty = parseFloat(row.find(".week4Qty").val()) || 0;
+			    	    let monthlyTotal = parseFloat(row.find(".monthlyTotal").val()) || 0;
+			    	    row.find(".monthlyTotal").val(week1Qty+week2Qty+week3Qty+week4Qty);
+			    	});
+			    	}	
+		//per cal
+		 function updateLoadingPercent() {
+        let selectedWeek = $("#selWeek").val(); // e.g., '1', '2', etc.
+
+        $('table tbody tr').each(function () {
+            let row = $(this);
+            let monthlyTotal = parseFloat(row.find('.monthlyTotal').val()) || 0;
+            let weekQty = 0;
+
+            if (selectedWeek == "1") {
+                weekQty = parseFloat(row.find('.week1Qty').val()) || 0;
+            } else if (selectedWeek == "2") {
+                weekQty = parseFloat(row.find('.week2Qty').val()) || 0;
+            } else if (selectedWeek == "3") {
+                weekQty = parseFloat(row.find('.week3Qty').val()) || 0;
+            } else if (selectedWeek == "4") {
+                weekQty = parseFloat(row.find('.week4Qty').val()) || 0;
+            }
+
+            let loadingPer = 0;
+            if (monthlyTotal > 0) {
+                loadingPer = (weekQty / monthlyTotal) * 100;
+            }
+
+            row.find('.loadingPer').text(loadingPer.toFixed(2) + "%");
+        });
+    }
+
+    // Call initially
+    updateLoadingPercent();
+
+    // Update whenever weekly qty or monthly total changes
+    $(".week1Qty, .week2Qty, .week3Qty, .week4Qty, .monthlyTotal").on('input', function() {
+        updateLoadingPercent();
+    });	    
+		//per cal end	    
+		});
+		
+document.addEventListener('DOMContentLoaded', e => {
+    $('#input-datalist').autocomplete()
+}, false);
+    $(function () {
+    	
+    	 $('.datepicker').datepicker({
+        	 autoclose: true,
+             format: 'dd/mm/yyyy'
+        });
+	
+		$("#backBtn").click(function(){
+			//Pace.restart();
+			$("#backBtn").hide();
+			$("#subBtn").hide();
+			$("#calBtn").hide();
+			$('#pleaseWaitDialog').modal('show');
+			$("#myForm").attr("action", "/priceapr/onBackToSelect");
+			$("#myForm").submit();
+			
+		});
+		$("#btnSubToVendor").click(
+				function() {
+					if ($("#myForm").validationEngine('validate')) {
+						$("#myForm").attr("action",
+								"/prdplan/submitweeklyplanall/CPT_INIT");
+						$("#myForm").submit();
+					}
+
+				});
+		$("#btnAccept").click(
+				function() {
+
+					if ($("#myForm").validationEngine('validate')) {
+						loader.start();
+						$("#myForm").attr("action",
+								"/prdplan/submitweeklyplanall/CPT_APR");
+						$("#myForm").submit();
+					}
+
+				});
+		$("#btnAmmend").click(
+				function() {
+
+					if ($("#myForm").validationEngine('validate')) {
+						loader.start();
+						$("#myForm").attr("action",
+								"/prdplan/submitweeklyplanall/CPT_AMD");
+						$("#myForm").submit();
+					}
+
+				});
+		$("#btnSubToCPT").click(
+				function() {
+
+					$("#myForm").attr("action",
+							"/prdplan/submitWeeklyPlanAllToVendor");
+					$("#myForm").submit();
+
+				});
+		 $("#uploadBtn").click(function () {
+		        let fileInput = document.getElementById("uploadExcel");
+		        let file = fileInput.files[0];
+
+		        if (!file) {
+		            alert("Please select an Excel file first.");
+		            return;
+		        }
+
+		        let reader = new FileReader();
+		        reader.readAsBinaryString(file);
+		        reader.onload = function (e) {
+		            let data = e.target.result;
+		            let workbook = XLSX.read(data, { type: "binary" });
+		            let sheet = workbook.Sheets[workbook.SheetNames[0]]; // Read first sheet
+		            let jsonData = XLSX.utils.sheet_to_json(sheet, { header: 1 });
+					
+		            // Assuming first row contains headers and data starts from row 2
+		            let headers = jsonData[0];
+		            console.log(headers, "HEADERS");
+		            //debugger;  
+		            let week1Index = headers.indexOf("WEEK" + selectedWeek);
+		            let totalIndex = headers.indexOf("MONTHLY TOTAL"); 
+		            let identifierIndex = headers.indexOf("LINE NO"); // Assuming ID exists to match rows
+
+		            if (week1Index === -1 || totalIndex === -1 || identifierIndex === -1) {
+		                alert("Invalid file format. Ensure columns: id, WEEK1, MONTHLY TOTAL exist.");
+		                return;
+		            }
+
+		            jsonData.slice(1).forEach(row => {
+		                let rowId = row[identifierIndex]; // Unique identifier
+		                let week1Value = row[week1Index];
+		                let totalValue = row[totalIndex];
+
+		                let matchingRow = $("tr[data-id='" + rowId + "']"); // Find row with same ID
+
+		                if (matchingRow.length > 0) {
+		                    matchingRow.find(".week"+selectedWeek+"Qty").val(week1Value);
+		                    matchingRow.find(".monthlyTotal").val(totalValue).trigger("input"); // Trigger change for recalculating weeks 2-4
+		                }
+		            });
+
+		            alert("Excel file uploaded successfully!");
+		        };
+		    });
+		   $("#uploadExcel").on("change", function () {
+		        let fileName = $(this).val().split("\\").pop();
+		        $(this).next(".custom-file-label").addClass("selected").text(fileName);
+		    });
+		
+	 });
+
+    function showLog(status,msg)
+	{
+    	$('#modalcontent').html(msg);
+		$('#woModal').modal({show:true});
+	}
+    function funSubmit()
+    {
+    	//$('#pleaseWaitDialog').modal('show');
+    	$("#backBtn").hide();
+		$("#subBtn").hide();
+		$("#calBtn").hide();
+    	document.myForm.action="/prdplan/updateRequest";
+    	document.myForm.submit();
+    }
+    
+    document.getElementById("exportBtn").addEventListener("click", function () {
+        let table = document.getElementById("poPlanTable");
+        let rows = table.rows;
+        
+        let excelContent = 
+            '<?xml version="1.0"?><?mso-application progid="Excel.Sheet"?>' +
+            '<Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet"' +
+            ' xmlns:o="urn:schemas-microsoft-com:office:office"' +
+            ' xmlns:x="urn:schemas-microsoft-com:office:excel"' +
+            ' xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet"' +
+            ' xmlns:html="http://www.w3.org/TR/REC-html40">' +
+            '<Worksheet ss:Name="Sheet1"><Table>';
+
+        // Loop through rows
+        for (let i = 0; i < rows.length; i++) {
+        	
+        	if(rows[i].className == "skipExport" || rows[i].className == "hiderow")
+        		continue;
+            excelContent += "<Row>";
+            let cols = rows[i].cells;
+
+            // Loop through columns
+            for (let j = 0; j < cols.length; j++) {
+                let cell = cols[j];
+                let data = "";
+
+                // Check if cell contains an input field
+                let input = cell.querySelector("input");
+                if (input) {
+                	debugger;
+                    data = input.value; // Get input value
+                } else {
+                    data = cell.innerText.trim(); // Get text content
+                }
+
+                excelContent += `<Cell><Data ss:Type="String">${data}</Data></Cell>`;
+            }
+            excelContent += "</Row>";
+        }
+
+        excelContent += "</Table></Worksheet></Workbook>";
+
+        // Convert to Blob
+        let blob = new Blob([excelContent], { type: "application/vnd.ms-excel" });
+
+        // Create download link
+        let a = document.createElement("a");
+        a.href = URL.createObjectURL(blob);
+        a.download = "Production_Plan.xls"; // Use .xls (works in Excel)
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+    });
+    function callAddQtyApi() {
+		{
+			
+			const plantNo = $("#selOutPlant").val();
+			const materialInput = $("#materialInput").val();
+			const storageLocationInput = $("#storageLocationInput").val();
+			const uomInput = $("#uomInput").val();
+			
+			if(materialInput == "")
+			{
+				alert("Please Enter Material");
+	            return;
+			}
+			if(storageLocationInput == "")
+			{
+				alert("Please Enter Storage Location");
+	            return;
+			}
+			const payload = {
+                    _csrf: $('input[name="_csrf"]').val()
+                };
+			$.ajax({
+                url: '/getmaterialdetapi',
+                type: 'GET',
+                headers: {
+                	"X-CSRF-TOKEN": payload._csrf
+                },
+                contentType: 'application/json',
+                data: {
+                	materials: materialInput,
+                	plant:plantNo
+                },
+                success: function (response) {
+                    
+                	debugger;
+                	response=response[materialInput];
+                    let respArr = response.split("##");
+                    if(respArr[0] == "NA")
+                    {
+                    	alert("Invalid material code");
+                    	return ;
+                    }
+                    let tempRowID = maxLineNo + 10;
+	                let matchingRow = $("tr[data-id='" + tempRowID + "']"); // Find row with same ID
+	                matchingRow.removeClass("hiderow")
+					
+	                if (matchingRow.length > 0) {
+	                	matchingRow.find(".matCatClass").html(respArr[1]);
+	                	matchingRow.find(".lineNoClass").html(tempRowID);
+	                	matchingRow.find(".materialClass").html(materialInput);
+	                	matchingRow.find(".matDescClass").html(respArr[0]);
+	                	matchingRow.find(".matWeightClass").html(respArr[2]);
+	                	matchingRow.find(".matUomClass").html(uomInput);
+	                	matchingRow.find(".matStorLocClass").html(storageLocationInput);
+	                	matchingRow.find(".insertTxt").val(respArr[1]+"##"+tempRowID+"##"+materialInput+"##"+respArr[0]+"##"+respArr[2]+"##"+uomInput+"##"+storageLocationInput);
+	                }
+	                maxLineNo=maxLineNo+10;
+                },
+                error: function (err) {
+                	
+                    console.error('Error:', err);
+                    
+                }
+            });
+		}
+	}
+   </script>
+	</div>
+</body>
+</html>

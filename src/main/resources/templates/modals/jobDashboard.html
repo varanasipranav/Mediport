@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/web/thymeleaf/layout"
+      xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity5"
+      layout:decorate="layout">
+
+<head>
+    <title>Job Dashboard</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+
+    <!-- jQuery 3.6.0 (latest stable version) -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+    <!-- jQuery Cron plugin -->
+    <link rel="stylesheet" href="https://shawnchin.github.io/jquery-cron/cron/jquery-cron.css">
+    <script src="https://shawnchin.github.io/jquery-cron/cron/jquery-cron.js"></script>
+    <link type="text/css" href="https://shawnchin.github.io/jquery-cron/gentleSelect/jquery-gentleSelect.css" rel="stylesheet" />
+    <script type="text/javascript" src="https://shawnchin.github.io/jquery-cron/gentleSelect/jquery-gentleSelect-min.js"></script>
+    <link href="https://sotux.github.io/jquery-cron-quartz/src/jquery-cron-quartz.css" rel="stylesheet"/>
+
+    <!-- Cron Builder JS -->
+    <script src="https://sotux.github.io/jquery-cron-quartz/src/jquery-cron-quartz.js"></script>
+
+
+    <style>
+        .cron-container { margin-top: 20px; }
+        .output { margin-top: 10px; font-family: monospace; color: green; }
+    </style>
+</head>
+
+<body class="bg-light">
+<div layout:fragment="content" class="container">
+    <div id="flash-success"
+         th:if="${success}"
+         class="alert alert-success alert-dismissible fade show position-fixed top-0 end-0 m-3"
+         role="alert"
+         style="z-index: 1055;">
+        <span th:text="${success}"></span>
+    </div>
+    <div id="flash-error"
+         th:if="${error}"
+         class="alert alert-danger alert-dismissible fade show position-fixed top-0 end-0 m-3"
+         role="alert"
+         style="z-index: 1055;">
+        <span th:text="${error}"></span>
+    </div>
+
+    <h1 class="text-center">Jobs Dashboard</h1>
+
+    <!-- Schedule Job Form -->
+    <div class="card shadow mb-4">
+        <div class="card-header bg-primary text-white">
+            <h5 class="mb-0">Schedule / Reschedule Job</h5>
+        </div>
+        <div class="card-body">
+            <form th:action="@{/schedule-job}" method="post" class="row g-3">
+                <div class="col-md-12">
+                    <label for="jobClassName" class="form-label">Select Job</label>
+                    <select name="jobClassName" id="jobClassName" class="form-select" required>
+                        <option disabled selected value="">-- Select Job --</option>
+                        <th:block th:each="jobClass : ${availableJobs}">
+                            <option th:value="${jobClass}"
+                                    th:text="${#strings.substring(jobClass, jobClass.lastIndexOf('.') + 1)}">
+                            </option>
+                        </th:block>
+                    </select>
+                </div>
+
+
+                <div class="col-md-12">
+                    <div class="demo">
+                        <div id="cronBuilder" class="cron-builder"></div>
+                        <input type="hidden" id="cronExpressionInput" name="cronExpression" />
+                        <div class="alert alert-warning">
+                            <p><strong>Cron Expression:</strong> <div id="cronExpression"></div></p>
+                        </div>
+                    </div>
+                    <script th:inline="javascript">
+                        $('#cronBuilder').cronBuilder({
+                           onChange: function(expression) {
+                                $('#cronExpressionInput').val(expression);
+                                $('#cronExpression').text(expression);
+                           }
+                       });
+                    </script>
+                </div>
+                <div class="col-12">
+                    <button type="submit" class="btn btn-success w-100">Schedule Job</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Scheduled Jobs Table -->
+    <div class="card shadow mb-4">
+        <div class="card-header bg-info text-white">
+            <h5 class="mb-0">Scheduled Jobs</h5>
+        </div>
+        <div class="card-body p-0">
+            <table class="table table-bordered mb-0">
+                <thead class="table-light">
+                <tr>
+                    <th>Job Name</th>
+                    <th>Next Execution</th>
+                    <th>Last Execution</th>
+                    <th>Actions</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="job : ${jobs}">
+                    <td th:text="${job.jobName}">Job Name</td>
+                    <td th:text="${job.nextExecution}">Next Execution</td>
+                    <td th:text="${job.lastExecution}">Last Execution</td>
+                    <td>
+                        <form th:action="@{/delete-job}" method="post" th:object="${job}">
+                            <input type="hidden" name="jobName" th:value="${job.jobName}" />
+                            <input type="hidden" name="groupName" value="dynamicGroup" />
+                            <button type="submit" class="btn btn-danger btn-sm"
+                                    onclick="return confirm('Are you sure you want to delete this job?');">
+                                Delete
+                            </button>
+                        </form>
+                    </td>
+                </tr>
+                <tr th:if="${#lists.isEmpty(jobs)}">
+                    <td colspan="3" class="text-center text-muted">No scheduled jobs found.</td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Execution History Table -->
+    <div class="card shadow mb-4">
+        <div class="card-header bg-secondary text-white">
+            <h5 class="mb-0">Execution History</h5>
+        </div>
+        <div class="card-body p-0">
+            <table class="table table-bordered mb-0">
+                <thead class="table-light">
+                <tr>
+                    <th>Job Name</th>
+                    <th>Status</th>
+                    <th>Message</th>
+                    <th>Executed At</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="log : ${history}">
+                    <td th:text="${log.jobName}">Job Name</td>
+                    <td>
+                        <span th:text="${log.status}"
+                              th:classappend="${log.status == 'SUCCESS'} ? 'badge bg-success' : 'badge bg-danger'">
+                        </span>
+                    </td>
+                    <td th:text="${log.message}">Message</td>
+                    <td th:text="${log.executedAt}">Executed At</td>
+                </tr>
+                <tr th:if="${#lists.isEmpty(history)}">
+                    <td colspan="4" class="text-center text-muted">No job history found.</td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</div>
+<div layout:fragment="scriptContent">
+    <script th:inline="javascript">
+        document.addEventListener("DOMContentLoaded", function () {
+            setTimeout(() => {
+                const success = document.getElementById("flash-success");
+                const error = document.getElementById("flash-error");
+
+                if (success) {
+                    success.classList.remove("show");
+                    setTimeout(() => success.remove(), 150);
+                }
+
+                if (error) {
+                    error.classList.remove("show");
+                    setTimeout(() => error.remove(), 150);
+                }
+            }, 3000);
+        });
+    </script>
+</div>
+<!-- Bootstrap JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+</body>
+</html>

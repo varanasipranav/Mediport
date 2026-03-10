@@ -1,0 +1,376 @@
+<!DOCTYPE html SYSTEM "http://www.thymeleaf.org/dtd/xhtml1-strict-thymeleaf-spring4-4.dtd">
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorator="layout">
+<head>
+	<style type="text/css">
+.hide {
+    display: none;
+}
+.table-container {
+    height: 10em;
+}
+table {
+    display: flex;
+    flex-flow: column;
+    height: 380px;
+    width: 100%;
+}
+table thead {
+    /* head takes the height it requires, 
+    and it's not scaled when table is resized */
+    flex: 0 0 auto;
+    width: calc(100% - 0.9em);
+}
+table tbody {
+    /* body takes all the remaining available space */
+    flex: 1 1 auto;
+    display: block;
+    overflow-y: scroll;
+}
+table tbody tr {
+    width: 100%;
+}
+table thead, table tbody tr {
+    display: table;
+    table-layout: fixed;
+}
+    td{
+    	padding:0px !important;
+    }
+    .datepicker
+    {
+    	width:30%;
+    }
+    .input-group-addon
+    {
+    	padding:0px !important;
+    }
+    </style>
+    <title>Price Approval</title>
+</head>
+<body>
+<section layout:fragment="header"> 
+    <h1>Create Request For <span th:text="${#strings.arraySplit(priceFormDetInput.condType, '##')[1]}"></span></h1>
+    <ol class="breadcrumb">
+        <li><a href="/"><i class="fa fa-dashboard"></i> Price Approval</a></li>
+        <li class="active">Create Request</li>
+    </ol>
+</section>
+<div layout:fragment="content">
+	<div th:if="${success!= null}" class="alert alert-success alert-dismissible">
+   			<i class="icon fa fa-check"></i>
+   			<span th:text="${success}" ></span>
+   	</div>
+    <div class="box">
+    	     <form data-toggle="validator" role="form" id="myForm" name="myForm" th:object="${priceFormDetInput}" th:action="@{/priceapr/createRequest}" method="post" >
+            <div class="box-body">
+            	<input type="hidden" th:field="*{priceSeqMasterObj.table}"/>
+            	<input type="hidden" th:field="*{priceSeqMasterObj.id}"/>
+            	<input type="hidden" th:field="*{comments}"/>
+            	<input type="hidden" th:field="*{condType}"/>
+            	<input type="hidden" th:field="*{valArea}"/>
+            	<input type="hidden" th:field="*{wfDistChnl}"/>
+            	<input type="hidden" th:field="*{distCat}"/>
+            	
+            	<input type="hidden" th:field="*{selDivision}"/>
+            	<input type="hidden" th:field="*{selDistChnl}"/>
+            	<input type="hidden" th:field="*{selMainChnl}"/>
+            	<input type="hidden" th:field="*{selSubChnl}"/>
+            	<input type="hidden" th:field="*{selBrand}"/>
+            	
+            	<input type="hidden" id="matWarnStr" th:field="*{matWarnStr}">
+                <div class="table-responsive" style="margin-top:2%" th:if="*{!priceRequestItems.empty}"> 
+                	 <p class="text-green pull-right" style="margin-right:10px"><Strong>Can Enter Or Copy+Paste From Excel. Maximum Of 200 Records.</Strong></p>
+                	 <p th:if="*{#strings.arraySplit(condType, '##')[0] == 'ZLP'}" class="text-red pull-left" style="margin-right:10px"><Strong>GST will be deducted on "List Price"</Strong></p>
+                    <table class="col-sm-12 table table-bordered table-condensed">
+                    <thead>
+                	<tr>
+                		<th th:if="*{priceSeqMasterObj.salesOrg == 'X'}">Sales Org.</th>
+                		<th th:if="*{priceSeqMasterObj.distChnl == 'X'}">Distr. Chl</th>
+                		<th th:if="*{priceSeqMasterObj.salesDocType == 'X'}">Sales doc. type</th>
+                		<th th:if="*{priceSeqMasterObj.mainChnl == 'X'}">Main.Chane</th>
+                		<th th:if="*{priceSeqMasterObj.subChnl == 'X'}">Sub.Chl</th>
+                		<th th:if="*{priceSeqMasterObj.custType == 'X'}">Cust. Type</th>
+                		<th th:if="*{priceSeqMasterObj.division == 'X'}">Division</th>
+                		<th th:if="*{priceSeqMasterObj.customer == 'X'}">Customer</th>
+                		<th th:if="*{priceSeqMasterObj.salesOffice == 'X'}">Sales Off.</th>
+                		<th th:if="*{priceSeqMasterObj.chainCode == 'X'}">Chain Code</th>
+                		<th th:if="*{priceSeqMasterObj.material == 'X'}">Material</th>
+                		<th th:if="*{priceSeqMasterObj.brand == 'X'}">Brand</th>
+                		<th th:if="*{priceSeqMasterObj.distCat == 'X'}">Dist.Categ</th>
+                		<th th:if="*{priceSeqMasterObj.prdType == 'X'}">Prd. Type</th>
+                		<th th:text="*{#strings.arraySplit(condType, '##')[0] == 'ZMRP' || #strings.arraySplit(condType, '##')[0] == 'ZLP'?'Value':'Discount %age'}"></th>
+                		<th>Valid From<br>
+                			<div class="input-group date">
+				            <div class="input-group-addon">
+				              <i class="fa fa-calendar"></i>
+				            </div>
+				            <input type="text" class="form-control pull-right datepicker" id="comvalidfrom" readonly>
+				          </div>
+                		</th>
+                		<th>Valid To
+      						<div class="input-group date">
+				            <div class="input-group-addon">
+				              <i class="fa fa-calendar"></i>
+				            </div>
+				            <input type="text" class="form-control pull-right datepicker" id="comvalidto" readonly>
+				          </div>
+      					</th>
+                		<th th:if="*{showMatDisc}">ZMRP</th>
+                		<th th:if="*{showMatDisc}">ZLP</th>
+                		<th sec:authorize="hasAnyRole('ROLE_APR')" th:if="*{showSubCond}">Trade Disc %</th>
+                		<th th:if="*{showSubCond}">Sub Total</th>
+                		<!-- <th th:if="*{showSubCond}" th:each="header: *{subCondList}" th:text="${header}" /> -->
+                		<th th:if="*{showSubCond}">Add Disc %</th>
+                		<th th:if="*{showMatDisc}">NLC</th>
+                		<th sec:authorize="hasAnyRole('ROLE_ST_HEAD')" th:if="*{showMatDisc}">COGS</th>
+                		
+                		<th sec:authorize="hasAnyRole('ROLE_ST_HEAD')" th:if="*{showMatDisc}">Variable O/H % On NLC</th>
+                		<th sec:authorize="hasAnyRole('ROLE_ST_HEAD')" th:if="*{showMatDisc}">GST</th>
+                		<th sec:authorize="hasAnyRole('ROLE_ST_HEAD')" th:if="*{showMatDisc}">TVC</th>
+                		<th sec:authorize="hasAnyRole('ROLE_ST_HEAD')" th:if="*{showMatDisc}">GC Amt</th>
+                		<th sec:authorize="hasAnyRole('ROLE_ST_HEAD')" th:if="*{showMatDisc}">Budgeted GC%</th>
+                		
+                		<th th:if="*{showMatDisc}">Margin % <br>After Discount</th>
+                		
+                		
+                		<!-- <th th:if="*{showMatDisc}">Margin <br> Before Discount</th> -->
+                		<th th:if="*{showSubmit}">Status</th>
+                	</tr>
+                	</thead>
+                	<tbody> 
+                	 <tr th:if="*{priceRequestItems.empty}">
+            			<td colspan="2"> No Data </td>
+       			   </tr>
+                	<tr th:each="row, itemStat : *{priceRequestItems}"> 
+						<td th:if="*{priceSeqMasterObj.salesOrg == 'X'}">
+							  <input type="hidden" th:field="*{priceRequestItems[__${itemStat.index}__].itemWFKey}"/>
+							  <input type="hidden" th:field="*{priceRequestItems[__${itemStat.index}__].errFlag}"/>	
+							  <input type="text"  autocomplete="off" class="form-control" th:field="*{priceRequestItems[__${itemStat.index}__].salesOrg}" />
+						</td>
+						<td th:if="*{priceSeqMasterObj.distChnl == 'X'}">
+							  <input type="text"  autocomplete="off" class="form-control" th:field="*{priceRequestItems[__${itemStat.index}__].distChnl}" />
+						</td>
+						<td th:if="*{priceSeqMasterObj.salesDocType == 'X'}">
+							<input type="text"  autocomplete="off" class="form-control" th:field="*{priceRequestItems[__${itemStat.index}__].salesDocType}" />
+						</td>
+						<td th:if="*{priceSeqMasterObj.mainChnl == 'X'}">
+							  <input type="text"  autocomplete="off" class="form-control" th:field="*{priceRequestItems[__${itemStat.index}__].mainChnl}" />
+						</td>
+						<td th:if="*{priceSeqMasterObj.subChnl == 'X'}">
+							  <input type="text"  autocomplete="off" class="form-control" th:field="*{priceRequestItems[__${itemStat.index}__].subChnl}" />
+						</td>
+						<td th:if="*{priceSeqMasterObj.custType == 'X'}">
+							<input type="text"  autocomplete="off" class="form-control" th:field="*{priceRequestItems[__${itemStat.index}__].custType}" />
+						</td>
+						<td th:if="*{priceSeqMasterObj.division == 'X'}">
+							<input type="text"  autocomplete="off" class="form-control" th:field="*{priceRequestItems[__${itemStat.index}__].division}" />
+						</td>
+							<td th:if="*{priceSeqMasterObj.customer == 'X'}">
+							  <input type="text"  autocomplete="off" class="form-control" th:field="*{priceRequestItems[__${itemStat.index}__].customer}" />
+						</td>
+						</td>
+							<td th:if="*{priceSeqMasterObj.salesOffice == 'X'}">
+							  <input type="text"  autocomplete="off" class="form-control" th:field="*{priceRequestItems[__${itemStat.index}__].salesOffice}" />
+						</td>
+						<td th:if="*{priceSeqMasterObj.chainCode == 'X'}">
+							<input type="text"  autocomplete="off" class="form-control" th:field="*{priceRequestItems[__${itemStat.index}__].chainCode}" />
+						</td>
+						<td th:if="*{priceSeqMasterObj.material == 'X'}">
+							<input type="text"  autocomplete="off" class="form-control" th:field="*{priceRequestItems[__${itemStat.index}__].material}" />
+						</td>
+						<td th:if="*{priceSeqMasterObj.brand == 'X'}">
+							<input type="text"  autocomplete="off" class="form-control" th:field="*{priceRequestItems[__${itemStat.index}__].brand}" />
+						</td>
+						<td th:if="*{priceSeqMasterObj.distCat == 'X'}">
+							<input type="text"  autocomplete="off" class="form-control" th:field="*{priceRequestItems[__${itemStat.index}__].distCat}" />
+						</td>
+						<td th:if="*{priceSeqMasterObj.prdType == 'X'}">
+							<input type="text"  autocomplete="off" class="form-control" th:field="*{priceRequestItems[__${itemStat.index}__].prdType}" />
+						</td>
+						<td>
+							<input type="text"  autocomplete="off" class="form-control" th:field="*{priceRequestItems[__${itemStat.index}__].value}"/>
+						</td>
+						<td>
+						  <div class="input-group date">
+				            <div class="input-group-addon">
+				              <i class="fa fa-calendar"></i>
+				            </div>
+				            <input type="text" class="form-control pull-right validfrom" readonly th:field="*{priceRequestItems[__${itemStat.index}__].validFrom}">
+				          </div>
+						</td>
+						<td>
+						  <div class="input-group date">
+				            <div class="input-group-addon">
+				              <i class="fa fa-calendar"></i>
+				            </div>
+				            <input type="text" class="form-control pull-right validto" readonly th:field="*{priceRequestItems[__${itemStat.index}__].validTo}">
+				          </div>
+						</td>
+						<td th:if="*{showMatDisc}">
+							<span th:text="*{priceRequestItems[__${itemStat.index}__].mrp}"></span>
+							<input type="hidden"  th:field="*{priceRequestItems[__${itemStat.index}__].mrp}">
+							<input type="hidden"  th:field="*{priceRequestItems[__${itemStat.index}__].lprice}">
+							<input type="hidden"  th:field="*{priceRequestItems[__${itemStat.index}__].subtot}">
+							<input type="hidden"  th:field="*{priceRequestItems[__${itemStat.index}__].vprs}">
+							<input type="hidden"  th:field="*{priceRequestItems[__${itemStat.index}__].marAftDis}">
+							<input type="hidden"  th:field="*{priceRequestItems[__${itemStat.index}__].conditions}">
+							<input type="hidden"  th:field="*{priceRequestItems[__${itemStat.index}__].condBefTotal}">
+							<input type="hidden"  th:field="*{priceRequestItems[__${itemStat.index}__].condTot}">
+							
+				       			<input type="hidden"  th:field="*{priceRequestItems[__${itemStat.index}__].marBefDis}">
+							<input type="hidden"  th:field="*{priceRequestItems[__${itemStat.index}__].trdDis}">
+							<input type="hidden"  th:field="*{priceRequestItems[__${itemStat.index}__].budgetGC}">
+							<input type="hidden"  th:field="*{priceRequestItems[__${itemStat.index}__].gcAmount}">
+							<input type="hidden"  th:field="*{priceRequestItems[__${itemStat.index}__].gstPer}">
+							<input type="hidden"  th:field="*{priceRequestItems[__${itemStat.index}__].gstVal}">
+							<input type="hidden"  th:field="*{priceRequestItems[__${itemStat.index}__].tvc}">
+							<input type="hidden"  th:field="*{priceRequestItems[__${itemStat.index}__].varOHDisPer}">
+							<input type="hidden"  th:field="*{priceRequestItems[__${itemStat.index}__].varOHDisVal}">
+							
+							
+						
+						</td>
+						<td th:if="*{showMatDisc}" th:text="*{priceRequestItems[__${itemStat.index}__].lprice}"></td>
+						<td sec:authorize="hasAnyRole('ROLE_APR')" th:if="*{showSubCond}" th:text="*{priceRequestItems[__${itemStat.index}__].trdDis}"></td>
+						<td th:if="*{showSubCond}" th:text="*{priceRequestItems[__${itemStat.index}__].condBefTotal}"></td>
+						<!-- <td th:if="*{showSubCond}" th:each="header: *{subCondList}" th:text="*{priceRequestItems[__${itemStat.index}__].hmCondMap.get('__${header}__')}" /> -->
+						<td th:if="*{showSubCond}" th:utext="*{priceRequestItems[__${itemStat.index}__].condDispStr}"></td>
+						<td  th:if="*{showMatDisc}" th:text="*{#numbers.formatDecimal(priceRequestItems[__${itemStat.index}__].subtot, 0, 'COMMA', 2, 'POINT')}"></td>
+						<td sec:authorize="hasAnyRole('ROLE_ST_HEAD')" th:if="*{showMatDisc}" th:text="*{priceRequestItems[__${itemStat.index}__].vprs}"></td>
+						<td sec:authorize="hasAnyRole('ROLE_ST_HEAD')" th:if="*{showMatDisc}" th:text="*{priceRequestItems[__${itemStat.index}__].varOHDisPer}"></td>
+						<td sec:authorize="hasAnyRole('ROLE_ST_HEAD')" th:if="*{showMatDisc}" th:text="*{priceRequestItems[__${itemStat.index}__].gstPer}"></td>
+						<td sec:authorize="hasAnyRole('ROLE_ST_HEAD')" th:if="*{showMatDisc}" th:text="*{#numbers.formatDecimal(priceRequestItems[__${itemStat.index}__].tvc, 0, 'COMMA', 2, 'POINT')}"></td>
+						<td sec:authorize="hasAnyRole('ROLE_ST_HEAD')" th:if="*{showMatDisc}" th:text="*{#numbers.formatDecimal(priceRequestItems[__${itemStat.index}__].gcAmount, 0, 'COMMA', 2, 'POINT')}"></td>
+						<td sec:authorize="hasAnyRole('ROLE_ST_HEAD')" th:if="*{showMatDisc}" th:text="*{#numbers.formatDecimal(priceRequestItems[__${itemStat.index}__].budgetGC, 0, 'COMMA', 2, 'POINT')}"></td>
+		
+						<td th:if="*{showMatDisc}"><span class="label" th:classappend="*{priceRequestItems[__${itemStat.index}__].marAftDis}>*{priceRequestItems[__${itemStat.index}__].budgetGC} ? label-success : label-danger" th:text="*{#numbers.formatDecimal(priceRequestItems[__${itemStat.index}__].marAftDis, 0, 'COMMA', 2, 'POINT')}"></span></td>
+						<!-- <td th:if="*{showMatDisc}" th:text="*{#numbers.formatDecimal(priceRequestItems[__${itemStat.index}__].marBefDis, 0, 'COMMA', 2, 'POINT')}"></td> -->
+						<td th:if="*{showSubmit}">
+							<span class="label label-success" th:if="*{priceRequestItems[__${itemStat.index}__].errFlag != 'Y'}">OK</span>
+							<span class="label label-danger" th:if="*{priceRequestItems[__${itemStat.index}__].value > 0 && priceRequestItems[__${itemStat.index}__].errFlag == 'Y'}" th:data-id="*{priceRequestItems[__${itemStat.index}__].errText}"  th:onclick="|showLog('E',this.getAttribute('data-id'))|">Error</span>
+						</td>
+                	</tr>
+                	</tbody>
+                </table>
+                
+            </div>
+            </div>
+            <div class="box-footer">
+                <button type="button" id="subBtn" th:class="*{showSubmit?'btn btn-primary pull-right':'btn btn-primary pull-right hide'}" style="margin-left:5px"><i class="fa fa-arrow-circle-right fa-lg"></i>&nbsp;Submit</button>
+                <button type="button" id="calBtn" class="btn btn-primary pull-right" style="margin-left:5px"><i class="fa fa-calculator fa-lg"></i>&nbsp;Calculate</button>
+                <button type="button" id="backBtn" class="btn btn-primary pull-right" style="margin-left:5px"><i class="fa fa-arrow-left fa-lg"></i>&nbsp;Back</button>
+            </div> 
+        </form>
+    </div>
+    <div id="woModal" class="modal fade" tabindex="-1" role="dialog">
+   <div class="modal-dialog">
+      <div class="modal-content">
+         <div class="modal-body">
+            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+            <span id="modalcontent"><</span>
+         </div>
+      </div>
+   </div>
+</div>
+    
+</div>
+<div layout:fragment="scriptContent">
+<script type="text/javascript">
+     
+    $(function () {
+    	 $('.datepicker').datepicker({
+        	 autoclose: true,
+             format: 'dd/mm/yyyy'
+        });
+		$('.select2').select2();
+		$("#subBtn").click(function(){
+			//Pace.restart();
+			$("#subBtn").hide();
+			$("#calBtn").hide();
+			$('#pleaseWaitDialog').modal('show');
+			$("#myForm").attr("action", "/priceapr/createRequest");
+			$("#myForm").submit();
+			
+		});
+		$("#backBtn").click(function(){
+			//Pace.restart();
+			$("#backBtn").hide();
+			$("#subBtn").hide();
+			$("#calBtn").hide();
+			$('#pleaseWaitDialog').modal('show');
+			$("#myForm").attr("action", "/priceapr/onBackToSelect");
+			$("#myForm").submit();
+			
+		});
+		$("#comvalidfrom").change(function(){
+			$(".validfrom").val($("#comvalidfrom").val());	
+		});
+		$("#comvalidto").change(function(){
+			$(".validto").val($("#comvalidto").val());	
+		});
+		$("#calBtn").click(function(){
+			//Pace.restart();
+			$("#calBtn").hide();
+			$('#pleaseWaitDialog').modal('show');
+			$("#myForm").attr("action", "/priceapr/calRequestDet");
+			$("#myForm").submit();
+		});
+		if($("#matWarnStr").val() != "")
+		{
+			$('#modalcontent').html("No Approval Limits Maintained For Materials : "+$("#matWarnStr").val());
+			$('#woModal').modal({show:true});
+		}
+	 });
+    $('input').on('paste', function(e){
+        var $this = $(this);
+        $.each(e.originalEvent.clipboardData.items, function(i, v){
+            if (v.type === 'text/plain'){
+                v.getAsString(function(text){
+                    var x = $this.closest('td').index(),
+                        y = $this.closest('tr').index()+1,
+                        obj = {};
+                    text = text.trim('\r\n');
+                    $.each(text.split('\r\n'), function(i2, v2){
+                        $.each(v2.split('\t'), function(i3, v3){
+                            var row = y+i2, col = x+i3;
+                            obj['cell-'+row+'-'+col] = v3;
+                            $this.closest('table').find('tr:eq('+row+') td:eq('+col+') input').val(v3);
+                        });
+                    });
+                    //$('div').text(JSON.stringify(obj));
+                });
+            }
+        });
+        return false;
+       
+    });
+    var $inputs = $('input');
+    $inputs.on('keyup change', function() {
+
+      var dataChanged = $inputs.filter(function() {
+        if ($(this).is(':checkbox')) {
+          var originalValue = this.defaultChecked;
+          var currentValue = this.checked;
+        } else {
+          var originalValue = this.defaultValue;
+          var currentValue = this.value;
+        }
+        return originalValue != currentValue;
+      }).length;    
+
+      if (dataChanged == 0) {
+        $('#subBtn').removeClass('hide') 
+      } else { 
+        $('#subBtn').addClass('hide');
+      }
+
+    });
+    function showLog(status,msg)
+	{
+    	$('#modalcontent').html(msg);
+		$('#woModal').modal({show:true});
+	}
+   </script>
+</div>
+</body>
+</html>

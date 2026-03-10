@@ -1,0 +1,171 @@
+<!DOCTYPE html SYSTEM "http://www.thymeleaf.org/dtd/xhtml1-strict-thymeleaf-spring4-4.dtd">
+<html xmlns:th="http://www.thymeleaf.org"
+	xmlns:layout="http://www.ultraq.net.nz/web/thymeleaf/layout"
+	layout:decorate="layout">
+<head>
+<title>List</title>
+<style type="text/css">
+#rejectModal {
+	width: 50%;
+	height: 40%;
+	margin-left: 35%;
+	padding: 0;
+}
+
+#apprModal {
+	width: 90%;
+	height: 90%;
+	margin-left: 5%;
+	padding: 0;
+}
+
+.modal-content {
+	height: auto;
+	min-height: 100%;
+	border-radius: 0;
+}
+
+.group {
+	/* background: #eeeeee; */
+	
+}
+
+#nullifyModal {
+	z-index: 1080 !important;
+}
+</style>
+<style>
+.dataTables_filter {
+	display: inline;
+	float: right;
+}
+
+.dataTables_length {
+	display: inline;
+}
+
+.dt-buttons {
+	margin-left: 25%;
+}
+
+.input-group-addon {
+	padding: 2px 12px !important;
+}
+
+.text-primary {
+	color: #2B56A5 !important;
+}
+</style>
+
+<link rel="stylesheet" type="text/css"
+	href="../../../../resources/dist/css/table.css">
+</head>
+<body>
+	<section layout:fragment="header">
+		<div class="container-fluid">
+			<div class="row mb-2">
+				<div class="col-sm-6">
+					<h1 class="text-primary text-bold text-lg ml-2">Invoice Report
+						(Open)</h1>
+				</div>
+				<div class="col-sm-6">
+					<ol class="breadcrumb float-sm-right">
+						<li class="breadcrumb-item"><a href="#">Invoice report</a></li>
+						<li class="breadcrumb-item active">List</li>
+					</ol>
+				</div>
+			</div>
+		</div>
+		<!-- /.container-fluid -->
+	</section>
+	<div class="container-fluid" layout:fragment="content">
+		<div th:if="${success!= null}"
+			class="alert alert-success alert-dismissible auto-dismiss">
+			<i class="icon fa fa-check"></i> <span th:text="${success}"></span>
+		</div>
+		<div th:if="${error!= null}"
+			class="alert alert-danger alert-dismissible auto-dismiss">
+			<i class="icon fa fa-check"></i> <span th:text="${error}"></span>
+		</div>
+		<div class="row">
+			<div class="col-12">
+				<div class="card">
+					<div class="card-body">
+
+						<div class="table-responsive">
+							<table id="invoiceReportTable"
+								class="styled-table table text-center table-striped table-bordered nowrap"
+								cellspacing="0" width="100%">
+								<thead>
+									<tr>
+										<th>Vendor</th>
+										<th>Vendor Inv. number</th>
+										<th>SAP Inv. number</th>
+										<th>Invoice Date</th>
+										<th>Pay. Due date</th>
+										<th>PO Number</th>
+										<th>Currency</th>
+										<th>Amount</th>
+									</tr>
+								</thead>
+								<tbody>
+									<tr th:each="report, reportind : *{invoiceReportList}">
+										<td th:text="${report.vendor}"></td>
+										<td th:text="${report.vendorInvNo}"></td>
+										<td th:text="${report.sapInvNo}"></td>
+										<td th:text="${report.invoiceDate}"></td>
+										<td th:text="${report.paymentDueDate}"></td>
+										<td th:text="${report.poNumber}" class="amount-cell"></td>
+										<td th:text="${report.currency}"></td>
+										<td th:text="${#numbers.formatDecimal(report.amount, 2, 2)}" class="amount-cell"></td>
+									</tr>
+
+								</tbody>
+							</table>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+	<div layout:fragment="scriptContent">
+		<script type="text/javascript">
+			$(document)
+					.ready(
+							function() {
+								$('#invoiceReportTable')
+								.DataTable(
+										{
+											dom : 'lBfrtip',
+											buttons : [
+													{
+														extend : 'excel',
+														text : '<i class="fa fa-file-excel" style="color:green"> </i> EXCEL',
+														title : null,
+														filename : 'Download'
+													},
+													{
+														extend : 'pdf',
+														text : '<i class="fa fa-file-pdf" style="color:red"></i> PDF',
+														title : null
+													} ],
+
+											language : {
+												lengthMenu : '_MENU_ entries per page',
+												paginate : {
+													previous : '‹',
+													next : '›'
+												}
+											}
+
+										}
+
+								);
+
+							});
+		</script>
+
+	</div>
+
+</body>
+</html>

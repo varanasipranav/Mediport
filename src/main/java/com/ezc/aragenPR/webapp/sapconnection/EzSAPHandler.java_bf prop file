@@ -1,0 +1,61 @@
+package ezc.sapconnection;
+
+import com.sap.mw.jco.*;
+
+public final class EzSAPHandler
+{
+	private static IRepository repository = null;
+	private static JCO.Pool pool = null;
+  	private static String SID = "R3";
+
+  	private static void createConnectionPool(){
+		try{
+       			JCO.PoolManager poolManager = JCO.getClientPoolManager();
+       			JCO.Pool pool = poolManager.getPool(SID);
+        		if(pool == null){
+           			JCO.addClientPool(SID,8,"999","ezcom","123456","EN","152.63.63.6","09");   
+        			System.out.println("Connection Pool Created Successfully...");
+        		}
+		}
+		catch (JCO.Exception Ex){
+            		System.out.println(">>>>>>>>>Problem Occured while Creating Connection Pool:" + Ex.getMessage());
+			Ex.printStackTrace();
+  		}
+ 	}
+    	private static IRepository getRepository(){
+        	if (repository == null) {
+       			try{
+            			repository= JCO.createRepository("MYRepository",getSAPConnection());
+        		}
+        		catch (JCO.Exception Ex){
+		        	System.out.println(">>>>>>>>>>Problem Occured while creating Repository:"+ Ex.getMessage());
+				Ex.printStackTrace();
+         		}
+        	}
+  		return repository;
+  	}
+	public static JCO.Function getFunction(String funName){
+		try{
+			return new JCO.Function((EzSAPHandler.getRepository()).getFunctionTemplate(funName));
+		}
+		catch(Exception Ex){
+			System.out.println(">>>>>>>Problem occured while getting Function:"+Ex.getMessage());
+			Ex.printStackTrace();
+			return null;
+		}
+	}
+	public static JCO.Client getSAPConnection(){
+  		JCO.Client client = JCO.getClient(SID);
+ 		if (client==null){
+       			createConnectionPool();
+                   	try{
+      				client= JCO.getClient(SID);
+        		}
+        		catch (JCO.Exception Ex){
+		        	System.out.println(">>>>>>Problem while getting Connecton:" + Ex.getMessage());
+				Ex.printStackTrace();
+		        }
+		}
+		return client;
+  	}
+}
