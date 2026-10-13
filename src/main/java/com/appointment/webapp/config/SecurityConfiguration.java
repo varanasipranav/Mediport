@@ -59,6 +59,9 @@ public class SecurityConfiguration {
         http
         	.csrf(csrf -> csrf
         		.csrfTokenRepository(new org.springframework.security.web.csrf.HttpSessionCsrfTokenRepository())
+        		// Load the token eagerly: with the deferred default, long pages (login) render the form after the
+        		// response buffer has flushed and the token can no longer create a session.
+        		.csrfTokenRequestHandler(eagerCsrfHandler())
         		.ignoringRequestMatchers("/api/whatsapp/webhook", "/api/whatsapp/webhook/**")  // Disable CSRF for WhatsApp webhooks
         	)
         	// Keep Spring Security's default headers (nosniff, HSTS, cache control); allow same-origin framing
@@ -117,6 +120,20 @@ public class SecurityConfiguration {
     @Bean
     public PersistentTokenRepository tokenRepository() {
         return new InMemoryTokenRepositoryImpl();
+    }
+
+    // Boot 4 no longer registers this dialect automatically; without it every sec:authorize tag is ignored
+    // and each role sees every other role's menu.
+    @Bean
+    public org.thymeleaf.extras.springsecurity6.dialect.SpringSecurityDialect springSecurityDialect() {
+        return new org.thymeleaf.extras.springsecurity6.dialect.SpringSecurityDialect();
+    }
+
+    private static org.springframework.security.web.csrf.CsrfTokenRequestHandler eagerCsrfHandler() {
+        org.springframework.security.web.csrf.CsrfTokenRequestAttributeHandler handler =
+                new org.springframework.security.web.csrf.CsrfTokenRequestAttributeHandler();
+        handler.setCsrfRequestAttributeName(null);
+        return handler;
     }
 
     // Falls back to a random per-start key when none is configured (remember-me cookies then reset on restart)

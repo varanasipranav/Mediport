@@ -13,9 +13,10 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="crossorigin"/>
 
     <!-- Font Awesome -->
-    <link rel="stylesheet" th:href="@{/resources/lte3dot2/plugins/fontawesome-free/css/all.min.css}"/>
+    <link rel="stylesheet" th:href="@{/vendor/fa/css/all.min.css}"/>
     <!-- AdminLTE base (needed for grid + modal infrastructure) -->
-    <link rel="stylesheet" th:href="@{/resources/lte3dot2/dist/css/adminlte.min.css}"/>
+    <link rel="stylesheet" th:href="@{/vendor/bootstrap/bootstrap.min.css}"/>
+    <link rel="stylesheet" th:href="@{/vendor/adminlte/adminlte.min.css}"/>
     <!-- Mediport design system — overrides AdminLTE -->
     <link rel="stylesheet" th:href="@{/css/mediport-tokens.css}"/>
 </head>
@@ -52,12 +53,12 @@
 <!-- ./wrapper -->
 
 <!-- jQuery + Bootstrap + AdminLTE bundle (needed for modals, dropdowns) -->
-<script th:src="@{/resources/lte3dot2/plugins/jquery/jquery.min.js}"></script>
-<script th:src="@{/resources/lte3dot2/plugins/bootstrap/js/bootstrap.bundle.min.js}"></script>
-<script th:src="@{/resources/lte3dot2/dist/js/adminlte.min.js}"></script>
+<script th:src="@{/vendor/jquery/jquery.min.js}"></script>
+<script th:src="@{/vendor/bootstrap/bootstrap.bundle.min.js}"></script>
+<script th:src="@{/vendor/adminlte/adminlte.min.js}"></script>
 <!-- SweetAlert2 -->
-<script th:src="@{/resources/lte3dot2/plugins/sweetalert2/sweetalert2.min.js}"></script>
-<link rel="stylesheet" th:href="@{/resources/lte3dot2/plugins/sweetalert2/sweetalert2.min.css}"/>
+<script th:src="@{/vendor/sweetalert2/sweetalert2.min.js}"></script>
+<link rel="stylesheet" th:href="@{/vendor/sweetalert2/sweetalert2.min.css}"/>
 
 <!-- SweetAlert2 theme override -->
 <script>

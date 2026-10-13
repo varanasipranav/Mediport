@@ -4,7 +4,6 @@
       layout:decorate="~{layout}">
 <head>
     <title>Create Doctor</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
     <style>
     /* Inlined admin-users styles (copied from admin-users.css) */
     :root{ --primary-dark: #2D3748; --primary: #4A5568; --accent: #3B82F6; --accent-light: #60A5FA; --success: #10B981; --warning: #F59E0B; --danger: #EF4444; --light-bg: #F7FAFC; --border: #E2E8F0; --text-primary: #1A202C; --text-secondary: #718096; --muted: rgba(26,32,44,0.65); }
@@ -214,7 +213,6 @@
 
 <!-- Custom Scripts -->
 <div layout:fragment="scriptContent">
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script th:inline="javascript">
         /*<![CDATA[*/
         const successMsg = /*[[${success}]]*/ null;

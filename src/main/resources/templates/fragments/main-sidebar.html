@@ -17,11 +17,11 @@
 
     <!-- Role label -->
     <div style="padding:16px 22px 8px;font-size:10px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--sidebar-text-dim);flex-shrink:0;">
-        <sec:authorize access="hasRole('ADMIN')">Administration</sec:authorize>
-        <sec:authorize access="hasRole('DOCTOR')">Doctor</sec:authorize>
-        <sec:authorize access="hasRole('PATIENT')">Patient</sec:authorize>
-        <sec:authorize access="hasRole('ATTENDANT')">Front Desk</sec:authorize>
-        <sec:authorize access="hasRole('PHARMA')">Pharmacist</sec:authorize>
+        <th:block sec:authorize="hasRole('ADMIN')">Administration</th:block>
+        <th:block sec:authorize="hasRole('DOCTOR')">Doctor</th:block>
+        <th:block sec:authorize="hasRole('PATIENT')">Patient</th:block>
+        <th:block sec:authorize="hasRole('ATTENDANT')">Front Desk</th:block>
+        <th:block sec:authorize="hasRole('PHARMA')">Pharmacist</th:block>
     </div>
 
     <!-- Navigation -->
@@ -29,10 +29,10 @@
         <ul style="list-style:none;padding:0;margin:0;">
 
             <!-- ── ADMIN ── -->
-            <sec:authorize access="hasRole('ADMIN')">
+            <th:block sec:authorize="hasRole('ADMIN')">
                 <li th:with="p='/dashboard'" style="margin:2px 0;">
                     <a th:href="@{/dashboard}" class="mp-nav-link"
-                       th:classappend="${#httpServletRequest.requestURI == '/dashboard'} ? ' mp-nav-active' : ''"
+                       th:classappend="${currentUri == '/dashboard'} ? ' mp-nav-active' : ''"
                        style="display:flex;align-items:center;gap:11px;padding:10px 14px;border-radius:8px;font-size:13px;font-weight:500;color:var(--sidebar-text);text-decoration:none;position:relative;transition:background 0.15s,color 0.15s;">
                         <i class="fas fa-tachometer-alt" style="width:17px;text-align:center;font-size:14px;color:var(--sidebar-text-dim);flex-shrink:0;"></i>
                         <span style="flex:1;">Overview</span>
@@ -40,7 +40,7 @@
                 </li>
                 <li style="margin:2px 0;">
                     <a th:href="@{/admin/users/list}" class="mp-nav-link"
-                       th:classappend="${#httpServletRequest.requestURI.startsWith('/admin/users')} ? ' mp-nav-active' : ''"
+                       th:classappend="${currentUri.startsWith('/admin/users')} ? ' mp-nav-active' : ''"
                        style="display:flex;align-items:center;gap:11px;padding:10px 14px;border-radius:8px;font-size:13px;font-weight:500;color:var(--sidebar-text);text-decoration:none;position:relative;transition:background 0.15s,color 0.15s;">
                         <i class="fas fa-users" style="width:17px;text-align:center;font-size:14px;color:var(--sidebar-text-dim);flex-shrink:0;"></i>
                         <span style="flex:1;">Staff &amp; Patients</span>
@@ -48,7 +48,7 @@
                 </li>
                 <li style="margin:2px 0;">
                     <a th:href="@{/admin/users/create-doctor}" class="mp-nav-link"
-                       th:classappend="${#httpServletRequest.requestURI.contains('create-doctor')} ? ' mp-nav-active' : ''"
+                       th:classappend="${currentUri.contains('create-doctor')} ? ' mp-nav-active' : ''"
                        style="display:flex;align-items:center;gap:11px;padding:10px 14px;border-radius:8px;font-size:13px;font-weight:500;color:var(--sidebar-text);text-decoration:none;position:relative;transition:background 0.15s,color 0.15s;">
                         <i class="fas fa-user-md" style="width:17px;text-align:center;font-size:14px;color:var(--sidebar-text-dim);flex-shrink:0;"></i>
                         <span style="flex:1;">Doctors</span>
@@ -56,7 +56,7 @@
                 </li>
                 <li style="margin:2px 0;">
                     <a th:href="@{/admin/users/create-patient}" class="mp-nav-link"
-                       th:classappend="${#httpServletRequest.requestURI.contains('create-patient')} ? ' mp-nav-active' : ''"
+                       th:classappend="${currentUri.contains('create-patient')} ? ' mp-nav-active' : ''"
                        style="display:flex;align-items:center;gap:11px;padding:10px 14px;border-radius:8px;font-size:13px;font-weight:500;color:var(--sidebar-text);text-decoration:none;position:relative;transition:background 0.15s,color 0.15s;">
                         <i class="fas fa-user-injured" style="width:17px;text-align:center;font-size:14px;color:var(--sidebar-text-dim);flex-shrink:0;"></i>
                         <span style="flex:1;">Patients</span>
@@ -76,13 +76,13 @@
                         <span style="flex:1;">Settings</span>
                     </a>
                 </li>
-            </sec:authorize>
+            </th:block>
 
             <!-- ── DOCTOR ── -->
-            <sec:authorize access="hasRole('DOCTOR')">
+            <th:block sec:authorize="hasRole('DOCTOR')">
                 <li style="margin:2px 0;">
                     <a th:href="@{/dashboard}" class="mp-nav-link"
-                       th:classappend="${#httpServletRequest.requestURI == '/dashboard'} ? ' mp-nav-active' : ''"
+                       th:classappend="${currentUri == '/dashboard'} ? ' mp-nav-active' : ''"
                        style="display:flex;align-items:center;gap:11px;padding:10px 14px;border-radius:8px;font-size:13px;font-weight:500;color:var(--sidebar-text);text-decoration:none;position:relative;transition:background 0.15s,color 0.15s;">
                         <i class="fas fa-tachometer-alt" style="width:17px;text-align:center;font-size:14px;color:var(--sidebar-text-dim);flex-shrink:0;"></i>
                         <span style="flex:1;">Dashboard</span>
@@ -90,7 +90,7 @@
                 </li>
                 <li style="margin:2px 0;">
                     <a th:href="@{/doctor/appointments/today}" class="mp-nav-link"
-                       th:classappend="${#httpServletRequest.requestURI.startsWith('/doctor/appointments')} ? ' mp-nav-active' : ''"
+                       th:classappend="${currentUri.startsWith('/doctor/appointments')} ? ' mp-nav-active' : ''"
                        style="display:flex;align-items:center;gap:11px;padding:10px 14px;border-radius:8px;font-size:13px;font-weight:500;color:var(--sidebar-text);text-decoration:none;position:relative;transition:background 0.15s,color 0.15s;">
                         <i class="fas fa-list-ol" style="width:17px;text-align:center;font-size:14px;color:var(--sidebar-text-dim);flex-shrink:0;"></i>
                         <span style="flex:1;">Today's Queue</span>
@@ -101,7 +101,7 @@
                 </li>
                 <li style="margin:2px 0;">
                     <a th:href="@{/doctor/weekly-schedule}" class="mp-nav-link"
-                       th:classappend="${#httpServletRequest.requestURI.startsWith('/doctor/weekly-schedule')} ? ' mp-nav-active' : ''"
+                       th:classappend="${currentUri.startsWith('/doctor/weekly-schedule')} ? ' mp-nav-active' : ''"
                        style="display:flex;align-items:center;gap:11px;padding:10px 14px;border-radius:8px;font-size:13px;font-weight:500;color:var(--sidebar-text);text-decoration:none;position:relative;transition:background 0.15s,color 0.15s;">
                         <i class="fas fa-calendar-week" style="width:17px;text-align:center;font-size:14px;color:var(--sidebar-text-dim);flex-shrink:0;"></i>
                         <span style="flex:1;">Weekly Schedule</span>
@@ -109,7 +109,7 @@
                 </li>
                 <li style="margin:2px 0;">
                     <a th:href="@{/doctor/schedule}" class="mp-nav-link"
-                       th:classappend="${#httpServletRequest.requestURI == '/doctor/schedule'} ? ' mp-nav-active' : ''"
+                       th:classappend="${currentUri == '/doctor/schedule'} ? ' mp-nav-active' : ''"
                        style="display:flex;align-items:center;gap:11px;padding:10px 14px;border-radius:8px;font-size:13px;font-weight:500;color:var(--sidebar-text);text-decoration:none;position:relative;transition:background 0.15s,color 0.15s;">
                         <i class="fas fa-calendar-day" style="width:17px;text-align:center;font-size:14px;color:var(--sidebar-text-dim);flex-shrink:0;"></i>
                         <span style="flex:1;">Daily Schedules</span>
@@ -117,7 +117,7 @@
                 </li>
                 <li style="margin:2px 0;">
                     <a th:href="@{/doctor/prescriptions/my-prescriptions}" class="mp-nav-link"
-                       th:classappend="${#httpServletRequest.requestURI.startsWith('/doctor/prescriptions')} ? ' mp-nav-active' : ''"
+                       th:classappend="${currentUri.startsWith('/doctor/prescriptions')} ? ' mp-nav-active' : ''"
                        style="display:flex;align-items:center;gap:11px;padding:10px 14px;border-radius:8px;font-size:13px;font-weight:500;color:var(--sidebar-text);text-decoration:none;position:relative;transition:background 0.15s,color 0.15s;">
                         <i class="fas fa-file-prescription" style="width:17px;text-align:center;font-size:14px;color:var(--sidebar-text-dim);flex-shrink:0;"></i>
                         <span style="flex:1;">Prescriptions</span>
@@ -130,13 +130,13 @@
                         <span style="flex:1;">WhatsApp Log</span>
                     </a>
                 </li>
-            </sec:authorize>
+            </th:block>
 
             <!-- ── PATIENT ── -->
-            <sec:authorize access="hasRole('PATIENT')">
+            <th:block sec:authorize="hasRole('PATIENT')">
                 <li style="margin:2px 0;">
                     <a th:href="@{/patient/dashboard}" class="mp-nav-link"
-                       th:classappend="${#httpServletRequest.requestURI == '/patient/dashboard'} ? ' mp-nav-active' : ''"
+                       th:classappend="${currentUri == '/patient/dashboard'} ? ' mp-nav-active' : ''"
                        style="display:flex;align-items:center;gap:11px;padding:10px 14px;border-radius:8px;font-size:13px;font-weight:500;color:var(--sidebar-text);text-decoration:none;position:relative;transition:background 0.15s,color 0.15s;">
                         <i class="fas fa-tachometer-alt" style="width:17px;text-align:center;font-size:14px;color:var(--sidebar-text-dim);flex-shrink:0;"></i>
                         <span style="flex:1;">My Dashboard</span>
@@ -144,7 +144,7 @@
                 </li>
                 <li style="margin:2px 0;">
                     <a th:href="@{/patient/book-appointment}" class="mp-nav-link"
-                       th:classappend="${#httpServletRequest.requestURI == '/patient/book-appointment'} ? ' mp-nav-active' : ''"
+                       th:classappend="${currentUri == '/patient/book-appointment'} ? ' mp-nav-active' : ''"
                        style="display:flex;align-items:center;gap:11px;padding:10px 14px;border-radius:8px;font-size:13px;font-weight:500;color:var(--sidebar-text);text-decoration:none;position:relative;transition:background 0.15s,color 0.15s;">
                         <i class="fas fa-calendar-plus" style="width:17px;text-align:center;font-size:14px;color:var(--sidebar-text-dim);flex-shrink:0;"></i>
                         <span style="flex:1;">Book Appointment</span>
@@ -152,7 +152,7 @@
                 </li>
                 <li style="margin:2px 0;">
                     <a th:href="@{/patient/appointments}" class="mp-nav-link"
-                       th:classappend="${#httpServletRequest.requestURI == '/patient/appointments'} ? ' mp-nav-active' : ''"
+                       th:classappend="${currentUri == '/patient/appointments'} ? ' mp-nav-active' : ''"
                        style="display:flex;align-items:center;gap:11px;padding:10px 14px;border-radius:8px;font-size:13px;font-weight:500;color:var(--sidebar-text);text-decoration:none;position:relative;transition:background 0.15s,color 0.15s;">
                         <i class="fas fa-calendar-check" style="width:17px;text-align:center;font-size:14px;color:var(--sidebar-text-dim);flex-shrink:0;"></i>
                         <span style="flex:1;">My Appointments</span>
@@ -160,19 +160,19 @@
                 </li>
                 <li style="margin:2px 0;">
                     <a th:href="@{/patient/prescriptions}" class="mp-nav-link"
-                       th:classappend="${#httpServletRequest.requestURI == '/patient/prescriptions'} ? ' mp-nav-active' : ''"
+                       th:classappend="${currentUri == '/patient/prescriptions'} ? ' mp-nav-active' : ''"
                        style="display:flex;align-items:center;gap:11px;padding:10px 14px;border-radius:8px;font-size:13px;font-weight:500;color:var(--sidebar-text);text-decoration:none;position:relative;transition:background 0.15s,color 0.15s;">
                         <i class="fas fa-pills" style="width:17px;text-align:center;font-size:14px;color:var(--sidebar-text-dim);flex-shrink:0;"></i>
                         <span style="flex:1;">Prescriptions</span>
                     </a>
                 </li>
-            </sec:authorize>
+            </th:block>
 
             <!-- ── ATTENDANT ── -->
-            <sec:authorize access="hasRole('ATTENDANT')">
+            <th:block sec:authorize="hasRole('ATTENDANT')">
                 <li style="margin:2px 0;">
                     <a th:href="@{/attendant/check-in}" class="mp-nav-link"
-                       th:classappend="${#httpServletRequest.requestURI.startsWith('/attendant/check-in')} ? ' mp-nav-active' : ''"
+                       th:classappend="${currentUri.startsWith('/attendant/check-in')} ? ' mp-nav-active' : ''"
                        style="display:flex;align-items:center;gap:11px;padding:10px 14px;border-radius:8px;font-size:13px;font-weight:500;color:var(--sidebar-text);text-decoration:none;position:relative;transition:background 0.15s,color 0.15s;">
                         <i class="fas fa-user-check" style="width:17px;text-align:center;font-size:14px;color:var(--sidebar-text-dim);flex-shrink:0;"></i>
                         <span style="flex:1;">Check-in</span>
@@ -180,7 +180,7 @@
                 </li>
                 <li style="margin:2px 0;">
                     <a th:href="@{/attendant/queue}" class="mp-nav-link"
-                       th:classappend="${#httpServletRequest.requestURI.startsWith('/attendant/queue')} ? ' mp-nav-active' : ''"
+                       th:classappend="${currentUri.startsWith('/attendant/queue')} ? ' mp-nav-active' : ''"
                        style="display:flex;align-items:center;gap:11px;padding:10px 14px;border-radius:8px;font-size:13px;font-weight:500;color:var(--sidebar-text);text-decoration:none;position:relative;transition:background 0.15s,color 0.15s;">
                         <i class="fas fa-list-ol" style="width:17px;text-align:center;font-size:14px;color:var(--sidebar-text-dim);flex-shrink:0;"></i>
                         <span style="flex:1;">Live Queue</span>
@@ -200,13 +200,13 @@
                         <span style="flex:1;">WhatsApp Log</span>
                     </a>
                 </li>
-            </sec:authorize>
+            </th:block>
 
             <!-- ── PHARMA ── -->
-            <sec:authorize access="hasRole('PHARMA')">
+            <th:block sec:authorize="hasRole('PHARMA')">
                 <li style="margin:2px 0;">
                     <a th:href="@{/pharma/dashboard}" class="mp-nav-link"
-                       th:classappend="${#httpServletRequest.requestURI.startsWith('/pharma/dashboard')} ? ' mp-nav-active' : ''"
+                       th:classappend="${currentUri.startsWith('/pharma/dashboard')} ? ' mp-nav-active' : ''"
                        style="display:flex;align-items:center;gap:11px;padding:10px 14px;border-radius:8px;font-size:13px;font-weight:500;color:var(--sidebar-text);text-decoration:none;position:relative;transition:background 0.15s,color 0.15s;">
                         <i class="fas fa-capsules" style="width:17px;text-align:center;font-size:14px;color:var(--sidebar-text-dim);flex-shrink:0;"></i>
                         <span style="flex:1;">Dispense Queue</span>
@@ -219,7 +219,7 @@
                         <span style="flex:1;">Prescriptions</span>
                     </a>
                 </li>
-            </sec:authorize>
+            </th:block>
 
         </ul>
     </div>
@@ -234,11 +234,11 @@
                 <div style="font-size:12px;font-weight:600;color:var(--sidebar-text-strong);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;"
                      th:text="${#authentication != null ? #authentication.name : 'User'}">User</div>
                 <div style="font-size:10px;color:var(--sidebar-text-dim);">
-                    <sec:authorize access="hasRole('ADMIN')">Administrator</sec:authorize>
-                    <sec:authorize access="hasRole('DOCTOR')">Doctor</sec:authorize>
-                    <sec:authorize access="hasRole('PATIENT')">Patient</sec:authorize>
-                    <sec:authorize access="hasRole('ATTENDANT')">Front Desk</sec:authorize>
-                    <sec:authorize access="hasRole('PHARMA')">Pharmacist</sec:authorize>
+                    <th:block sec:authorize="hasRole('ADMIN')">Administrator</th:block>
+                    <th:block sec:authorize="hasRole('DOCTOR')">Doctor</th:block>
+                    <th:block sec:authorize="hasRole('PATIENT')">Patient</th:block>
+                    <th:block sec:authorize="hasRole('ATTENDANT')">Front Desk</th:block>
+                    <th:block sec:authorize="hasRole('PHARMA')">Pharmacist</th:block>
                 </div>
             </div>
             <!-- Logout -->

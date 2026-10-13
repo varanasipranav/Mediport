@@ -15,11 +15,11 @@
         <!-- Page title / breadcrumbs area (filled by pages via data-* or just show role label) -->
         <div style="min-width:0;">
             <div style="font-family:var(--font-display);font-size:15px;font-weight:700;color:var(--text-strong);letter-spacing:-0.015em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
-                <sec:authorize access="hasRole('ADMIN')">Mediport Admin</sec:authorize>
-                <sec:authorize access="hasRole('DOCTOR')">Doctor Portal</sec:authorize>
-                <sec:authorize access="hasRole('PATIENT')">Patient Portal</sec:authorize>
-                <sec:authorize access="hasRole('ATTENDANT')">Front Desk</sec:authorize>
-                <sec:authorize access="hasRole('PHARMA')">Pharmacy</sec:authorize>
+                <th:block sec:authorize="hasRole('ADMIN')">Mediport Admin</th:block>
+                <th:block sec:authorize="hasRole('DOCTOR')">Doctor Portal</th:block>
+                <th:block sec:authorize="hasRole('PATIENT')">Patient Portal</th:block>
+                <th:block sec:authorize="hasRole('ATTENDANT')">Front Desk</th:block>
+                <th:block sec:authorize="hasRole('PHARMA')">Pharmacy</th:block>
             </div>
         </div>
     </div>
@@ -52,11 +52,11 @@
                 <div style="font-size:12px;font-weight:600;color:var(--text-strong);white-space:nowrap;"
                      th:text="${#authentication != null ? #authentication.name : 'User'}">User</div>
                 <div style="font-size:10px;color:var(--text-muted);">
-                    <sec:authorize access="hasRole('ADMIN')">Admin</sec:authorize>
-                    <sec:authorize access="hasRole('DOCTOR')">Doctor</sec:authorize>
-                    <sec:authorize access="hasRole('PATIENT')">Patient</sec:authorize>
-                    <sec:authorize access="hasRole('ATTENDANT')">Attendant</sec:authorize>
-                    <sec:authorize access="hasRole('PHARMA')">Pharmacist</sec:authorize>
+                    <th:block sec:authorize="hasRole('ADMIN')">Admin</th:block>
+                    <th:block sec:authorize="hasRole('DOCTOR')">Doctor</th:block>
+                    <th:block sec:authorize="hasRole('PATIENT')">Patient</th:block>
+                    <th:block sec:authorize="hasRole('ATTENDANT')">Attendant</th:block>
+                    <th:block sec:authorize="hasRole('PHARMA')">Pharmacist</th:block>
                 </div>
             </div>
             <!-- Logout button -->

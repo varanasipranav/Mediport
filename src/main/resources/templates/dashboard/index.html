@@ -51,45 +51,45 @@
     <div class="mp-page-header">
         <div>
             <h1 class="mp-page-title">
-                <sec:authorize access="hasRole('ADMIN')">Clinic overview</sec:authorize>
-                <sec:authorize access="hasRole('DOCTOR')">My Dashboard</sec:authorize>
-                <sec:authorize access="hasRole('PATIENT')">My Dashboard</sec:authorize>
-                <sec:authorize access="hasRole('ATTENDANT')">Front desk</sec:authorize>
-                <sec:authorize access="hasRole('PHARMA')">Pharmacy overview</sec:authorize>
+                <th:block sec:authorize="hasRole('ADMIN')">Clinic overview</th:block>
+                <th:block sec:authorize="hasRole('DOCTOR')">My Dashboard</th:block>
+                <th:block sec:authorize="hasRole('PATIENT')">My Dashboard</th:block>
+                <th:block sec:authorize="hasRole('ATTENDANT')">Front desk</th:block>
+                <th:block sec:authorize="hasRole('PHARMA')">Pharmacy overview</th:block>
             </h1>
             <div class="mp-page-subtitle">
                 <span th:text="${#temporals.format(#temporals.createNow(), 'EEEE, dd MMMM yyyy')}">Today</span>
             </div>
         </div>
         <div class="mp-page-actions">
-            <sec:authorize access="hasRole('ADMIN')">
+            <th:block sec:authorize="hasRole('ADMIN')">
                 <a th:href="@{/admin/users/list}" class="mp-btn mp-btn-secondary">
                     <i class="fas fa-users"></i> All users
                 </a>
                 <a th:href="@{/admin/users/create-doctor}" class="mp-btn mp-btn-primary">
                     <i class="fas fa-plus"></i> Add staff
                 </a>
-            </sec:authorize>
-            <sec:authorize access="hasRole('DOCTOR')">
+            </th:block>
+            <th:block sec:authorize="hasRole('DOCTOR')">
                 <a th:href="@{/doctor/appointments/today}" class="mp-btn mp-btn-primary">
                     <i class="fas fa-list-ol"></i> Today's queue
                 </a>
-            </sec:authorize>
-            <sec:authorize access="hasRole('ATTENDANT')">
+            </th:block>
+            <th:block sec:authorize="hasRole('ATTENDANT')">
                 <a th:href="@{/attendant/check-in}" class="mp-btn mp-btn-primary">
                     <i class="fas fa-user-check"></i> Check-in patient
                 </a>
-            </sec:authorize>
-            <sec:authorize access="hasRole('PATIENT')">
+            </th:block>
+            <th:block sec:authorize="hasRole('PATIENT')">
                 <a th:href="@{/patient/book-appointment}" class="mp-btn mp-btn-primary">
                     <i class="fas fa-calendar-plus"></i> Book appointment
                 </a>
-            </sec:authorize>
+            </th:block>
         </div>
     </div>
 
     <!-- KPI tiles (admin) -->
-    <sec:authorize access="hasRole('ADMIN')">
+    <th:block sec:authorize="hasRole('ADMIN')">
         <div class="kpi-grid">
             <div class="mp-stat">
                 <span style="position:absolute;top:0;left:0;bottom:0;width:3px;background:var(--status-waiting-bar);opacity:.85;border-radius:10px 0 0 10px;"></span>
@@ -116,7 +116,7 @@
                 <div style="font-size:11px;color:var(--text-muted);">Currently enabled</div>
             </div>
         </div>
-    </sec:authorize>
+    </th:block>
 
     <!-- Main 2-col grid -->
     <div class="dash-grid">
@@ -125,7 +125,7 @@
         <div style="display:flex;flex-direction:column;gap:20px;">
 
             <!-- Admin quick actions -->
-            <sec:authorize access="hasRole('ADMIN')">
+            <th:block sec:authorize="hasRole('ADMIN')">
                 <div class="mp-card">
                     <div class="mp-card-header">
                         <h3 class="mp-card-title"><i class="fas fa-bolt" style="margin-right:7px;color:var(--brand-primary);"></i>Quick actions</h3>
@@ -177,10 +177,10 @@
                         </div>
                     </div>
                 </div>
-            </sec:authorize>
+            </th:block>
 
             <!-- Doctor: link to today's queue -->
-            <sec:authorize access="hasRole('DOCTOR')">
+            <th:block sec:authorize="hasRole('DOCTOR')">
                 <div class="mp-card">
                     <div class="mp-card-header">
                         <h3 class="mp-card-title"><i class="fas fa-list-ol" style="margin-right:7px;color:var(--brand-primary);"></i>Today's queue</h3>
@@ -195,10 +195,10 @@
                         </a>
                     </div>
                 </div>
-            </sec:authorize>
+            </th:block>
 
             <!-- Patient: go to dashboard -->
-            <sec:authorize access="hasRole('PATIENT')">
+            <th:block sec:authorize="hasRole('PATIENT')">
                 <div class="mp-card">
                     <div class="mp-card-header">
                         <h3 class="mp-card-title">Your appointments</h3>
@@ -210,10 +210,10 @@
                         </a>
                     </div>
                 </div>
-            </sec:authorize>
+            </th:block>
 
             <!-- Attendant: check-in shortcut -->
-            <sec:authorize access="hasRole('ATTENDANT')">
+            <th:block sec:authorize="hasRole('ATTENDANT')">
                 <div class="mp-card">
                     <div class="mp-card-header">
                         <h3 class="mp-card-title">Patient check-in</h3>
@@ -225,10 +225,10 @@
                         </a>
                     </div>
                 </div>
-            </sec:authorize>
+            </th:block>
 
             <!-- Pharma: dispense queue -->
-            <sec:authorize access="hasRole('PHARMA')">
+            <th:block sec:authorize="hasRole('PHARMA')">
                 <div class="mp-card">
                     <div class="mp-card-header">
                         <h3 class="mp-card-title">Dispense queue</h3>
@@ -239,7 +239,7 @@
                         </a>
                     </div>
                 </div>
-            </sec:authorize>
+            </th:block>
 
         </div>
 
@@ -250,9 +250,9 @@
             <div class="mp-card">
                 <div class="mp-card-header">
                     <h3 class="mp-card-title"><i class="fas fa-clock" style="margin-right:7px;color:var(--text-muted);font-size:13px;"></i>Recent users</h3>
-                    <sec:authorize access="hasRole('ADMIN')">
+                    <th:block sec:authorize="hasRole('ADMIN')">
                         <a th:href="@{/admin/users/list}" class="mp-btn mp-btn-ghost mp-btn-sm">See all</a>
-                    </sec:authorize>
+                    </th:block>
                 </div>
 
                 <!-- list -->
@@ -279,13 +279,13 @@
                     <div style="font-size:13px;color:var(--text-muted);">No users yet</div>
                 </div>
 
-                <sec:authorize access="hasRole('ADMIN')">
+                <th:block sec:authorize="hasRole('ADMIN')">
                     <div style="padding:14px 20px;border-top:1px solid var(--border);text-align:center;">
                         <a th:href="@{/admin/users/list}" style="font-size:13px;color:var(--brand-primary);font-weight:600;">
                             View all users →
                         </a>
                     </div>
-                </sec:authorize>
+                </th:block>
             </div>
 
             <!-- WhatsApp callout -->

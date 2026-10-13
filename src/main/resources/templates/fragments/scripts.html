@@ -4,7 +4,7 @@
 
 <th:block th:fragment="scripts">
     <!-- jQuery (local, with CDN fallback) -->
-    <script th:src="@{/resources/lte3dot2/plugins/jquery/jquery.min.js}"></script>
+    <script th:src="@{/vendor/jquery/jquery.min.js}"></script>
     <script>
         if (typeof jQuery === 'undefined') {
             // CDN fallback
@@ -18,7 +18,6 @@
     </script>
 
     <!-- SweetAlert2 for beautiful alerts -->
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <!-- Common Scripts -->
     <script>
