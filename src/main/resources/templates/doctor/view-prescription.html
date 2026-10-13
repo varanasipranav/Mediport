@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/web/thymeleaf/layout"
+      layout:decorate="~{layout}">
+<head>
+    <title>Prescription</title>
+    <link rel="stylesheet" th:href="@{/css/rx.css}"/>
+</head>
+<body>
+<div layout:fragment="content">
+
+    <div class="mp-page-header">
+        <div>
+            <h1 class="mp-page-title">Prescription</h1>
+            <div class="mp-page-subtitle"><span class="font-mono" th:text="${rxNumber}">RX-2026-00001</span> &middot; issued <span th:text="${#temporals.format(prescription.createdAt, 'dd MMM yyyy, HH:mm')}"></span></div>
+        </div>
+    </div>
+
+    <div class="rx-actions">
+        <a th:href="@{/doctor/prescriptions/my-prescriptions}" class="mp-btn mp-btn-secondary"><i class="fas fa-arrow-left"></i> All prescriptions</a>
+        <span class="grow"></span>
+        <a th:if="${prescription.appointment != null}" th:href="@{/doctor/prescriptions/create/{id}(id=${prescription.appointment.id})}" class="mp-btn mp-btn-secondary"><i class="fas fa-pen"></i> Edit</a>
+        <a th:href="@{/prescriptions/{id}/pdf(id=${prescription.id})}" target="_blank" class="mp-btn mp-btn-secondary"><i class="fas fa-file-pdf"></i> Download PDF</a>
+        <button type="button" class="mp-btn mp-btn-primary" onclick="window.print()"><i class="fas fa-print"></i> Print</button>
+    </div>
+
+    <th:block th:replace="~{fragments/rx-document :: document}"></th:block>
+</div>
+</body>
+</html>

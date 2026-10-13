@@ -28,7 +28,14 @@ class PageSmokeTest {
     @Autowired
     private MockMvc mvc;
 
+    @Autowired
+    private com.appointment.webapp.repository.PrescriptionRepository prescriptionRepository;
+
+    @Autowired
+    private com.appointment.webapp.service.RxDocumentService rxDocumentService;
+
     @Test
+    @org.springframework.transaction.annotation.Transactional
     void everyPageRenders() throws Exception {
         Map<String, String[]> pagesByUser = new LinkedHashMap<>();
         pagesByUser.put("admin:ADMIN", new String[] {
@@ -45,6 +52,15 @@ class PageSmokeTest {
         pagesByUser.put("phr01:PHARMA", new String[] {
             "/dashboard/index", "/pharma/dashboard"});
 
+        // Prescription document pages, using whichever prescription exists in the dev database
+        var rx = prescriptionRepository.findAll().stream().findFirst().orElse(null);
+        if (rx != null) {
+            pagesByUser.put(rx.getDoctor().getUsername() + ":DOCTOR", new String[] {"/doctor/prescriptions/view/" + rx.getId()});
+            pagesByUser.put(rx.getPatient().getUsername() + ":PATIENT", new String[] {"/patient/prescriptions/view/" + rx.getId(), "/prescriptions/" + rx.getId() + "/pdf"});
+            pagesByUser.put("phr01:PHARMA", new String[] {"/dashboard/index", "/pharma/dashboard", "/pharma/prescriptions/view/" + rx.getId(), "/pharma/prescriptions/search?searchTerm=a"});
+            pagesByUser.put("anon:PUBLIC", new String[] {"/verify/rx/" + rx.getId() + "/" + rxDocumentService.sign(rx.getId()), "/verify/rx/" + rx.getId() + "/bad"});
+        }
+
         Path out = Path.of("target", "pages");
         Files.createDirectories(out);
         List<String> failures = new ArrayList<>();
@@ -53,10 +69,18 @@ class PageSmokeTest {
             String[] parts = entry.getKey().split(":");
             for (String url : entry.getValue()) {
                 try {
-                    MvcResult result = mvc.perform(get(url).with(user(parts[0]).roles(parts[1]))).andReturn();
+                    var req = get(url);
+                    if (!"PUBLIC".equals(parts[1])) req = req.with(user(parts[0]).roles(parts[1]));
+                    MvcResult result = mvc.perform(req).andReturn();
                     int status = result.getResponse().getStatus();
                     String body = result.getResponse().getContentAsString();
-                    Files.writeString(out.resolve(parts[1] + url.replace('/', '_') + ".html"), body);
+                    if (url.endsWith("/pdf")) {
+                        byte[] pdf = result.getResponse().getContentAsByteArray();
+                        Files.write(out.resolve("rx.pdf"), pdf);
+                        if (pdf.length < 1000 || pdf[0] != '%' || pdf[1] != 'P') failures.add(url + " did not return a PDF");
+                        continue;
+                    }
+                    Files.writeString(out.resolve(parts[1] + url.replaceAll("[/?=]", "_") + ".html"), body);
                     // 3xx = legitimate redirect (e.g. /dashboard/index -> role page)
                     if (status >= 400) {
                         failures.add(parts[1] + " " + url + " -> " + status);

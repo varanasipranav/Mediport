@@ -40,6 +40,9 @@ public class DoctorPrescriptionController {
     @Autowired
     private UserRepository userRepository;
 
+    @Autowired
+    private com.appointment.webapp.service.RxDocumentService rxDocumentService;
+
     /**
      * Show prescription form for an appointment
      */
@@ -121,7 +124,7 @@ public class DoctorPrescriptionController {
             throw new RuntimeException("Unauthorized access to prescription");
         }
 
-        model.addAttribute("prescription", prescription);
+        rxDocumentService.addDocumentModel(model, prescription);
 
         return "doctor/view-prescription";
     }

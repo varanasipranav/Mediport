@@ -4,420 +4,286 @@
     <meta charset="UTF-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <title>Mediport — Sign in</title>
-    <link rel="shortcut icon" type="image/svg" th:href="@{/images/hospital-icon.svg}"/>
+    <link rel="shortcut icon" type="image/svg+xml" th:href="@{/images/hospital-icon.svg}"/>
     <link rel="preconnect" href="https://fonts.googleapis.com"/>
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="crossorigin"/>
     <link rel="stylesheet" th:href="@{/vendor/fa/css/all.min.css}"/>
     <link rel="stylesheet" th:href="@{/css/mediport-tokens.css}"/>
-    <style>
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-        html, body {
-            height: 100%;
-            font-family: var(--font-body);
-            font-size: 14px;
-            background: #fff;
-        }
-        .login-shell {
-            display: flex;
-            height: 100vh;
-            overflow: hidden;
-        }
-        /* ── LEFT PANEL ── */
-        .login-left {
-            flex: 1 1 50%;
-            background: linear-gradient(165deg, #0F1B2D 0%, #14274A 55%, #0B4FB8 130%);
-            color: #fff;
-            padding: 48px 56px;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            position: relative;
-            overflow: hidden;
-        }
-        .login-left-mesh {
-            position: absolute;
-            inset: 0;
-            background-image:
-                radial-gradient(circle at 80% 10%, rgba(16,185,129,0.10) 0%, transparent 50%),
-                radial-gradient(circle at 10% 100%, rgba(11,79,184,0.22) 0%, transparent 55%);
-            pointer-events: none;
-        }
-        .login-brand {
-            position: relative;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-        .login-brand-mark {
-            width: 36px; height: 36px;
-            border-radius: 9px;
-            background: linear-gradient(135deg, var(--brand-primary) 0%, var(--brand-primary-600) 100%);
-            display: flex; align-items: center; justify-content: center;
-            flex-shrink: 0;
-        }
-        .login-brand-name {
-            font-family: var(--font-display);
-            font-size: 22px; font-weight: 800;
-            letter-spacing: -0.025em;
-        }
-        .login-hero { position: relative; }
-        .login-headline {
-            font-family: var(--font-display);
-            font-size: 44px; font-weight: 800;
-            letter-spacing: -0.03em;
-            line-height: 1.05;
-            max-width: 480px;
-        }
-        .login-tagline {
-            font-size: 16px;
-            color: rgba(255,255,255,0.72);
-            margin-top: 18px;
-            max-width: 460px;
-            line-height: 1.55;
-        }
-        .login-pills {
-            display: flex;
-            gap: 10px;
-            margin-top: 30px;
-            flex-wrap: wrap;
-        }
-        .login-pill {
-            display: inline-flex; align-items: center; gap: 7px;
-            padding: 6px 13px;
-            background: rgba(255,255,255,0.08);
-            border: 1px solid rgba(255,255,255,0.12);
-            border-radius: 999px;
-            font-size: 12px; font-weight: 600;
-            color: rgba(255,255,255,0.9);
-        }
-        .login-pill-dot {
-            color: var(--brand-accent);
-            font-size: 13px;
-        }
-        .login-footer {
-            position: relative;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            font-size: 11px;
-            color: rgba(255,255,255,0.4);
-        }
-        .login-footer-links { display: flex; gap: 18px; }
-
-        /* ── RIGHT PANEL ── */
-        .login-right {
-            flex: 1 1 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 48px;
-            background: #fff;
-        }
-        .login-form-wrap {
-            width: 100%;
-            max-width: 380px;
-        }
-        .login-eyebrow {
-            font-family: var(--font-display);
-            font-size: 11px; font-weight: 700;
-            color: var(--brand-primary);
-            letter-spacing: 0.12em;
-            text-transform: uppercase;
-            margin-bottom: 12px;
-        }
-        .login-title {
-            font-family: var(--font-display);
-            font-size: 28px; font-weight: 700;
-            color: var(--text-strong);
-            letter-spacing: -0.025em;
-            margin: 0;
-        }
-        .login-subtitle {
-            font-size: 14px;
-            color: var(--text-muted);
-            margin-top: 6px;
-        }
-        /* Role tabs */
-        .login-tabs {
-            margin-top: 28px;
-            display: flex;
-            background: var(--bg-muted);
-            padding: 4px;
-            border-radius: 10px;
-            gap: 2px;
-        }
-        .login-tab {
-            flex: 1;
-            padding: 8px 12px;
-            font-family: var(--font-body);
-            font-size: 13px; font-weight: 600;
-            border-radius: 7px;
-            border: none;
-            cursor: pointer;
-            transition: background 0.15s, color 0.15s;
-            color: var(--text-muted);
-            background: transparent;
-        }
-        .login-tab.active {
-            background: #fff;
-            color: var(--text-strong);
-            box-shadow: 0 1px 3px rgba(15,27,45,0.08);
-        }
-        /* Form fields */
-        .login-field { margin-top: 18px; }
-        .login-field-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: baseline;
-            margin-bottom: 6px;
-        }
-        .login-input {
-            width: 100%;
-            padding: 11px 14px;
-            border: 1px solid var(--border-strong);
-            border-radius: var(--r-sm);
-            font-family: var(--font-body);
-            font-size: 14px;
-            color: var(--text);
-            background: var(--bg-card);
-            transition: border 0.15s, box-shadow 0.15s;
-            outline: none;
-        }
-        .login-input:focus {
-            border-color: var(--brand-primary);
-            box-shadow: var(--shadow-focus);
-        }
-        .login-input::placeholder { color: var(--text-soft); }
-        .login-input-wrap { position: relative; }
-        .login-eye {
-            position: absolute;
-            right: 13px; top: 50%;
-            transform: translateY(-50%);
-            cursor: pointer;
-            color: var(--text-soft);
-            font-size: 14px;
-            transition: color 0.15s;
-        }
-        .login-eye:hover { color: var(--text-muted); }
-        /* Remember me */
-        .login-remember {
-            margin-top: 16px;
-            display: flex;
-            align-items: center;
-            gap: 9px;
-            font-size: 13px;
-            color: var(--text-muted);
-        }
-        .login-checkbox {
-            width: 16px; height: 16px;
-            border-radius: 4px;
-            border: 1.5px solid var(--border-strong);
-            cursor: pointer;
-            flex-shrink: 0;
-            accent-color: var(--brand-primary);
-        }
-        /* Sign-in button */
-        .login-btn {
-            margin-top: 24px;
-            width: 100%;
-            padding: 13px 22px;
-            background: var(--brand-primary);
-            color: #fff;
-            font-family: var(--font-body);
-            font-size: 14px; font-weight: 600;
-            border: none;
-            border-radius: var(--r-sm);
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            transition: background 0.15s;
-            letter-spacing: -0.005em;
-        }
-        .login-btn:hover { background: var(--brand-primary-600); }
-        .login-btn:disabled { opacity: 0.7; cursor: not-allowed; }
-        /* WhatsApp callout */
-        .login-wa-box {
-            margin-top: 24px;
-            padding: 14px 16px;
-            background: var(--wa-green-bg);
-            border-radius: 10px;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            border: 1px solid #C7EED9;
-        }
-        .login-wa-icon { color: var(--wa-green); font-size: 20px; flex-shrink: 0; }
-        .login-wa-text { flex: 1; font-size: 13px; color: var(--wa-text); }
-        .login-wa-text strong { display: block; font-weight: 700; }
-        /* Error / success */
-        .login-alert {
-            padding: 11px 14px;
-            border-radius: var(--r-sm);
-            font-size: 13px;
-            margin-bottom: 18px;
-            display: flex;
-            align-items: center;
-            gap: 9px;
-        }
-        .login-alert-danger  { background: var(--status-missed-bg);    color: var(--status-missed); }
-        .login-alert-success { background: var(--status-completed-bg); color: var(--status-completed); }
-        /* Responsive */
-        @media (max-width: 768px) {
-            .login-left { display: none; }
-            .login-right { padding: 32px 24px; }
-        }
-        /* Loading spinner on btn */
-        .login-btn.loading { pointer-events: none; }
-        .login-btn.loading::after {
-            content: '';
-            width: 15px; height: 15px;
-            border: 2px solid rgba(255,255,255,0.4);
-            border-top-color: #fff;
-            border-radius: 50%;
-            animation: spin 0.6s linear infinite;
-            margin-left: 4px;
-        }
-        @keyframes spin { to { transform: rotate(360deg); } }
-    </style>
+    <link rel="stylesheet" th:href="@{/css/login.css}"/>
 </head>
 <body>
 
-<div class="login-shell">
+<div class="lg-shell">
 
-    <!-- ── LEFT: brand panel ── -->
-    <div class="login-left">
-        <div class="login-left-mesh"></div>
+    <!-- ── LEFT: animated brand panel ── -->
+    <div class="lg-left" id="lgLeft">
+        <div class="lg-orb o1"></div>
+        <div class="lg-orb o2"></div>
+        <div class="lg-orb o3"></div>
+        <div class="lg-grid"></div>
 
-        <div class="login-brand">
-            <div class="login-brand-mark">
+        <div class="lg-brand">
+            <div class="lg-brand-mark">
                 <svg width="22" height="22" viewBox="0 0 20 20" fill="none">
                     <path d="M10 3v14M3 10h14" stroke="#fff" stroke-width="2.2" stroke-linecap="round"/>
                     <circle cx="10" cy="10" r="2.3" fill="#10B981"/>
                 </svg>
             </div>
-            <span class="login-brand-name">Mediport</span>
+            <span class="lg-brand-name">Mediport</span>
         </div>
 
-        <div class="login-hero">
-            <div class="login-headline">Care, simply<br/>organized.</div>
-            <div class="login-tagline">
-                Appointment scheduling, queues and prescriptions in one place — with
-                WhatsApp notifications your patients already trust.
+        <div class="lg-hero">
+            <div class="lg-headline">Care, simply<br/><span class="hl">organized.</span></div>
+
+            <div class="lg-rotator" id="lgRotator">
+                <p class="on">Appointment scheduling, live queues and prescriptions in one place.</p>
+                <p>Patients book, reschedule and get reminders on WhatsApp — no app to install.</p>
+                <p>Printable digital prescriptions with a PDF copy, ready in seconds.</p>
+                <p>Pharmacy stock and doctor schedules stay in sync automatically.</p>
             </div>
-            <div class="login-pills">
-                <span class="login-pill"><i class="fab fa-whatsapp login-pill-dot"></i> WhatsApp booking</span>
-                <span class="login-pill"><i class="fas fa-list-ol login-pill-dot"></i> Live queue</span>
-                <span class="login-pill"><i class="fas fa-file-prescription login-pill-dot"></i> Digital Rx</span>
+
+            <div class="lg-ecg" aria-hidden="true">
+                <svg viewBox="0 0 420 54" preserveAspectRatio="none">
+                    <path class="base" fill="none" stroke-width="2" d="M0 30 H70 L84 30 L92 8 L104 50 L114 20 L122 30 H190 L204 30 L212 8 L224 50 L234 20 L242 30 H310 L324 30 L332 8 L344 50 L354 20 L362 30 H420"/>
+                    <path class="live" d="M0 30 H70 L84 30 L92 8 L104 50 L114 20 L122 30 H190 L204 30 L212 8 L224 50 L234 20 L242 30 H310 L324 30 L332 8 L344 50 L354 20 L362 30 H420"/>
+                </svg>
+            </div>
+
+            <div class="lg-card" aria-hidden="true">
+                <div class="lg-card-head"><span>Today's queue</span><span class="lg-live">Live</span></div>
+                <div id="lgQueue">
+                    <div class="lg-row"><span class="lg-q">1</span><span class="lg-name">A. Reddy</span><span class="lg-time">09:00</span><span class="lg-tag done">Completed</span></div>
+                    <div class="lg-row"><span class="lg-q">2</span><span class="lg-name">S. Fatima</span><span class="lg-time">09:15</span><span class="lg-tag consult">In consultation</span></div>
+                    <div class="lg-row"><span class="lg-q">3</span><span class="lg-name">R. Kumar</span><span class="lg-time">09:30</span><span class="lg-tag waiting">Waiting</span></div>
+                    <div class="lg-row"><span class="lg-q">4</span><span class="lg-name">M. Joseph</span><span class="lg-time">09:45</span><span class="lg-tag waiting">Waiting</span></div>
+                </div>
+            </div>
+
+            <div class="lg-pills">
+                <span class="lg-pill"><i class="fab fa-whatsapp"></i> WhatsApp booking</span>
+                <span class="lg-pill"><i class="fas fa-list-ol"></i> Live queue</span>
+                <span class="lg-pill"><i class="fas fa-file-prescription"></i> Digital Rx</span>
+                <span class="lg-pill"><i class="fas fa-pills"></i> Pharmacy stock</span>
             </div>
         </div>
 
-        <div class="login-footer">
-            <span>© Mediport 2026 · v2.4</span>
-            <div class="login-footer-links">
-                <span>Privacy</span><span>Status</span><span>Help</span>
-            </div>
+        <div class="lg-foot">
+            <span>© Mediport 2026</span>
+            <div><span>Privacy</span><span>Terms</span><span>Help</span></div>
         </div>
     </div>
 
     <!-- ── RIGHT: form panel ── -->
-    <div class="login-right">
-        <div class="login-form-wrap">
+    <div class="lg-right">
+        <div class="lg-form-wrap">
 
-            <div class="login-eyebrow">Sign in</div>
-            <h1 class="login-title">Welcome back</h1>
-            <p class="login-subtitle">Continue to your Mediport dashboard.</p>
+            <div class="lg-eyebrow">Sign in</div>
+            <h1 class="lg-title">Welcome back</h1>
+            <p class="lg-sub" id="lgSub">Continue to your Mediport dashboard.</p>
 
-            <!-- Role tabs (visual only — single Spring Security form) -->
-            <div class="login-tabs">
-                <button type="button" class="login-tab active" onclick="setTab(this,'staff')">Staff</button>
-                <button type="button" class="login-tab" onclick="setTab(this,'doctor')">Doctor</button>
-                <button type="button" class="login-tab" onclick="setTab(this,'patient')">Patient</button>
+            <div class="lg-tabs" id="lgTabs" role="tablist">
+                <div class="lg-indicator" id="lgIndicator"></div>
+                <button type="button" class="lg-tab active" data-role="staff"><i class="fas fa-user-tie"></i> Staff</button>
+                <button type="button" class="lg-tab" data-role="doctor"><i class="fas fa-user-md"></i> Doctor</button>
+                <button type="button" class="lg-tab" data-role="patient"><i class="fas fa-user"></i> Patient</button>
             </div>
 
-            <!-- Error / logout messages -->
-            <div th:if="${param.error}" class="login-alert login-alert-danger" style="margin-top:20px;">
-                <i class="fas fa-exclamation-circle"></i>
-                Invalid username or password. Please try again.
-            </div>
-            <div th:if="${param.logout}" class="login-alert login-alert-success" style="margin-top:20px;">
-                <i class="fas fa-check-circle"></i>
-                You have been signed out successfully.
+            <div>
+                <div th:if="${param.error}" class="lg-alert err">
+                    <i class="fas fa-exclamation-circle" style="margin-top:2px;"></i>
+                    <span>Invalid username or password. Please try again.</span>
+                </div>
+                <div th:if="${param.logout}" class="lg-alert ok">
+                    <i class="fas fa-check-circle" style="margin-top:2px;"></i>
+                    <span>You have been signed out successfully.</span>
+                </div>
+                <div th:if="${param.message != null and param.error == null and param.logout == null}" class="lg-alert err">
+                    <i class="fas fa-info-circle" style="margin-top:2px;"></i>
+                    <span th:text="${param.message[0]}">Session expired. Please sign in again.</span>
+                </div>
             </div>
 
-            <form name="loginForm" th:action="@{/login}" method="POST" id="loginForm" onsubmit="return handleSubmit(this);">
+            <form name="loginForm" th:action="@{/login}" method="POST" id="loginForm" novalidate="novalidate">
                 <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
 
-                <div class="login-field">
-                    <label class="mp-label" for="username">Email or username</label>
-                    <input class="login-input" type="text" id="username" name="username"
-                           placeholder="your.name@mediport.io" autocomplete="username" required/>
-                </div>
-
-                <div class="login-field">
-                    <div class="login-field-row">
-                        <label class="mp-label" for="password" style="margin:0;">Password</label>
-                        <a href="#" style="font-size:12px;color:var(--brand-primary);font-weight:600;">Forgot?</a>
-                    </div>
-                    <div class="login-input-wrap">
-                        <input class="login-input" type="password" id="password" name="password"
-                               placeholder="••••••••" autocomplete="current-password" required/>
-                        <i class="fas fa-eye login-eye" id="pwToggle" onclick="togglePw()"></i>
+                <div class="lg-field">
+                    <label class="lg-label" for="username" id="lgUserLabel">Email or username</label>
+                    <div class="lg-input-wrap">
+                        <i class="fas fa-user lead"></i>
+                        <input class="lg-input" type="text" id="username" name="username"
+                               placeholder="your.name@mediport.io" autocomplete="username" autofocus="autofocus" required="required"/>
                     </div>
                 </div>
 
-                <label class="login-remember">
-                    <input class="login-checkbox" type="checkbox" name="remember-me" id="rememberMe"/>
+                <div class="lg-field">
+                    <div class="lg-row-between">
+                        <label class="lg-label" for="password" style="margin:0;">Password</label>
+                        <a href="#" class="lg-link" id="lgForgot">Forgot?</a>
+                    </div>
+                    <div class="lg-input-wrap">
+                        <i class="fas fa-lock lead"></i>
+                        <input class="lg-input" type="password" id="password" name="password"
+                               placeholder="Enter your password" autocomplete="current-password" required="required" style="padding-right:46px;"/>
+                        <button type="button" class="lg-eye" id="pwToggle" aria-label="Show password"><i class="fas fa-eye"></i></button>
+                    </div>
+                    <div class="lg-caps" id="lgCaps"><i class="fas fa-arrow-up"></i> Caps Lock is on</div>
+                </div>
+
+                <label class="lg-remember">
+                    <input type="checkbox" name="remember-me" id="rememberMe"/>
                     Keep me signed in for 7 days
                 </label>
 
-                <button type="submit" class="login-btn" id="loginBtn">
-                    Sign in &nbsp;<i class="fas fa-chevron-right" style="font-size:12px;"></i>
+                <button type="submit" class="lg-btn" id="loginBtn">
+                    <span class="spin"></span>
+                    <span id="lgBtnText">Sign in</span>
+                    <i class="fas fa-arrow-right"></i>
                 </button>
             </form>
 
-            <!-- WhatsApp callout -->
-            <div class="login-wa-box">
-                <i class="fab fa-whatsapp login-wa-icon"></i>
-                <div class="login-wa-text">
-                    <strong>Patients book via WhatsApp</strong>
-                    <span>Send "Hi" to <strong>+91 80 4000 1234</strong></span>
+            <div class="lg-wa">
+                <i class="fab fa-whatsapp"></i>
+                <div>
+                    <strong>Patients can book on WhatsApp</strong><br/>
+                    Just send "Hi" to the clinic's WhatsApp number.
                 </div>
             </div>
 
+            <div class="lg-secure"><i class="fas fa-shield-alt"></i> Secure, encrypted sign-in</div>
         </div>
     </div>
 </div>
 
 <script>
-    function setTab(el, role) {
-        document.querySelectorAll('.login-tab').forEach(t => t.classList.remove('active'));
-        el.classList.add('active');
-    }
+(function () {
+    var $ = function (id) { return document.getElementById(id); };
+    var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-    function togglePw() {
-        var inp = document.getElementById('password');
-        var ico = document.getElementById('pwToggle');
-        if (inp.type === 'password') {
-            inp.type = 'text';
-            ico.classList.replace('fa-eye','fa-eye-slash');
-        } else {
-            inp.type = 'password';
-            ico.classList.replace('fa-eye-slash','fa-eye');
+    /* ---- role tabs: sliding indicator + placeholder/label changes ---- */
+    var roles = {
+        staff:   { label: 'Email or username',          ph: 'your.name@mediport.io', sub: 'Front desk, pharmacy and admin sign in here.', icon: 'fa-user-tie' },
+        doctor:  { label: 'Doctor ID or email',         ph: 'e.g. DOC12',            sub: 'See your queue, schedule and prescriptions.',  icon: 'fa-user-md' },
+        patient: { label: 'Username or phone number',   ph: 'e.g. 9876543210',       sub: 'View appointments and prescriptions.',         icon: 'fa-user' }
+    };
+    var tabs = document.querySelectorAll('.lg-tab');
+    function selectTab(idx) {
+        tabs.forEach(function (t, i) { t.classList.toggle('active', i === idx); });
+        $('lgIndicator').style.transform = 'translateX(' + (idx * 100) + '%)';
+        var r = roles[tabs[idx].getAttribute('data-role')];
+        $('lgUserLabel').textContent = r.label;
+        $('username').placeholder = r.ph;
+        $('lgSub').textContent = r.sub;
+        document.querySelector('.lg-input-wrap > i.lead').className = 'fas ' + r.icon + ' lead';
+        try { localStorage.setItem('mp.loginRole', idx); } catch (e) {}
+    }
+    tabs.forEach(function (t, i) { t.addEventListener('click', function () { selectTab(i); $('username').focus(); }); });
+    var saved = 0; try { saved = parseInt(localStorage.getItem('mp.loginRole') || '0', 10) || 0; } catch (e) {}
+    selectTab(Math.min(Math.max(saved, 0), 2));
+
+    /* ---- show / hide password ---- */
+    $('pwToggle').addEventListener('click', function () {
+        var inp = $('password'), ico = this.querySelector('i');
+        var show = inp.type === 'password';
+        inp.type = show ? 'text' : 'password';
+        ico.className = show ? 'fas fa-eye-slash' : 'fas fa-eye';
+        this.setAttribute('aria-label', show ? 'Hide password' : 'Show password');
+        inp.focus();
+    });
+
+    /* ---- caps lock hint ---- */
+    function caps(e) { if (e.getModifierState) { $('lgCaps').classList.toggle('show', e.getModifierState('CapsLock')); } }
+    $('password').addEventListener('keyup', caps);
+    $('password').addEventListener('keydown', caps);
+    $('password').addEventListener('blur', function () { $('lgCaps').classList.remove('show'); });
+
+    /* ---- forgot password ---- */
+    $('lgForgot').addEventListener('click', function (e) {
+        e.preventDefault();
+        alert('Please contact your clinic administrator to reset your password.');
+    });
+
+    /* ---- submit with loading state ---- */
+    $('loginForm').addEventListener('submit', function (e) {
+        var u = $('username').value.trim(), p = $('password').value;
+        if (!u || !p) {
+            e.preventDefault();
+            var box = document.querySelector('.lg-form-wrap');
+            [$('username'), $('password')].forEach(function (el) {
+                if (!el.value.trim()) { el.style.borderColor = 'var(--status-missed-bar)'; el.animate([{transform:'translateX(0)'},{transform:'translateX(-6px)'},{transform:'translateX(6px)'},{transform:'translateX(0)'}], {duration: 280}); }
+            });
+            (u ? $('password') : $('username')).focus();
+            return;
         }
+        $('loginBtn').classList.add('loading');
+        $('lgBtnText').textContent = 'Signing in…';
+    });
+    ['username', 'password'].forEach(function (id) {
+        $(id).addEventListener('input', function () { this.style.borderColor = ''; });
+    });
+
+    if (reduce) return;
+
+    /* ---- rotating tagline ---- */
+    var lines = document.querySelectorAll('#lgRotator p'), li = 0;
+    setInterval(function () {
+        lines[li].classList.remove('on');
+        li = (li + 1) % lines.length;
+        lines[li].classList.add('on');
+    }, 3800);
+
+    /* ---- rising particles ---- */
+    var left = $('lgLeft');
+    for (var i = 0; i < 16; i++) {
+        var s = document.createElement('span');
+        s.className = 'lg-particle';
+        s.style.left = Math.round(Math.random() * 100) + '%';
+        var size = 3 + Math.random() * 5;
+        s.style.width = s.style.height = size + 'px';
+        s.style.animationDuration = (9 + Math.random() * 12) + 's';
+        s.style.animationDelay = (-Math.random() * 18) + 's';
+        left.appendChild(s);
     }
 
-    function handleSubmit(form) {
-        var u = document.getElementById('username').value.trim();
-        var p = document.getElementById('password').value.trim();
-        if (!u || !p) { return false; }
-        var btn = document.getElementById('loginBtn');
-        btn.classList.add('loading');
-        btn.querySelector('i').style.display = 'none';
-        btn.childNodes[0].textContent = 'Signing in…';
-        return true;
+    /* ---- mouse parallax on the orbs ---- */
+    var orbs = left.querySelectorAll('.lg-orb');
+    left.addEventListener('mousemove', function (e) {
+        var r = left.getBoundingClientRect();
+        var x = (e.clientX - r.left) / r.width - 0.5, y = (e.clientY - r.top) / r.height - 0.5;
+        orbs.forEach(function (o, i) {
+            var k = (i + 1) * 14;
+            o.style.translate = (x * k) + 'px ' + (y * k) + 'px';
+        });
+    });
+
+    /* ---- the demo queue advances like a real one ---- */
+    var names = ['A. Reddy', 'S. Fatima', 'R. Kumar', 'M. Joseph', 'P. Sharma', 'L. Thomas', 'N. Iyer', 'D. Khan'];
+    var times = ['09:00', '09:15', '09:30', '09:45', '10:00', '10:15', '10:30', '10:45'];
+    var qEl = $('lgQueue'), nextNo = 5;
+    function advance() {
+        var rows = qEl.querySelectorAll('.lg-row');
+        // first -> gone, second -> completed, third -> consult, add a new waiting row at the end
+        rows[0].style.opacity = '0'; rows[0].style.transform = 'translateY(-10px)';
+        setTimeout(function () {
+            qEl.removeChild(rows[0]);
+            var cur = qEl.querySelectorAll('.lg-row');
+            setTag(cur[0], 'done', 'Completed');
+            setTag(cur[1], 'consult', 'In consultation');
+            var row = document.createElement('div');
+            row.className = 'lg-row';
+            row.style.opacity = '0';
+            var idx = (nextNo - 1) % names.length;
+            row.innerHTML = '<span class="lg-q">' + nextNo + '</span><span class="lg-name">' + names[idx] +
+                '</span><span class="lg-time">' + times[idx] + '</span><span class="lg-tag waiting">Waiting</span>';
+            qEl.appendChild(row);
+            requestAnimationFrame(function () { row.style.opacity = '1'; });
+            nextNo++;
+        }, 450);
     }
+    function setTag(row, cls, text) {
+        var t = row.querySelector('.lg-tag'); t.className = 'lg-tag ' + cls; t.textContent = text;
+    }
+    setInterval(advance, 4200);
+})();
 </script>
 </body>
 </html>

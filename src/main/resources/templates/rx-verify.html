@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Verify prescription — Mediport</title>
+    <link rel="shortcut icon" type="image/svg+xml" th:href="@{/images/hospital-icon.svg}"/>
+    <link rel="stylesheet" th:href="@{/vendor/fa/css/all.min.css}"/>
+    <link rel="stylesheet" th:href="@{/css/mediport-tokens.css}"/>
+    <style>
+        body { min-height:100vh; display:flex; align-items:center; justify-content:center; padding:24px; background:linear-gradient(160deg,#0F1B2D,#12306B); }
+        .vcard { background:#fff; border-radius:16px; padding:36px 32px; width:100%; max-width:420px; text-align:center; box-shadow:0 24px 60px rgba(0,0,0,.35); }
+        .vicon { width:68px; height:68px; border-radius:50%; display:inline-flex; align-items:center; justify-content:center; font-size:30px; margin-bottom:14px; }
+        .vicon.ok { background:var(--status-completed-bg); color:var(--status-completed); }
+        .vicon.bad { background:var(--status-missed-bg); color:var(--status-missed); }
+        .vrow { display:flex; justify-content:space-between; padding:10px 0; border-bottom:1px solid var(--border); font-size:14px; }
+        .vrow:last-child { border:0; }
+        .vrow span:first-child { color:var(--text-muted); }
+        .vrow span:last-child { font-weight:700; }
+    </style>
+</head>
+<body>
+<div class="vcard">
+    <div th:if="${valid}">
+        <div class="vicon ok"><i class="fas fa-check"></i></div>
+        <h2 style="margin:0 0 4px;font-size:22px;">Genuine prescription</h2>
+        <p style="color:var(--text-muted);margin:0 0 20px;" th:text="'Issued by ' + ${clinic.name}">Issued by Clinic</p>
+        <div style="text-align:left;">
+            <div class="vrow"><span>Prescription no.</span><span class="font-mono" th:text="${rxNumber}">RX</span></div>
+            <div class="vrow"><span>Doctor</span><span th:text="${doctorName}">Dr.</span></div>
+            <div class="vrow"><span>Patient</span><span th:text="${patientName}">A***</span></div>
+            <div class="vrow"><span>Issued on</span><span th:text="${#temporals.format(issuedOn, 'dd MMM yyyy')}">date</span></div>
+        </div>
+    </div>
+    <div th:unless="${valid}">
+        <div class="vicon bad"><i class="fas fa-times"></i></div>
+        <h2 style="margin:0 0 4px;font-size:22px;">Could not verify</h2>
+        <p style="color:var(--text-muted);margin:0;">This code is invalid or has been altered. Do not dispense — please contact the clinic.</p>
+    </div>
+</div>
+</body>
+</html>

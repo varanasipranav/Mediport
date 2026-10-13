@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/web/thymeleaf/layout"
+      layout:decorate="~{layout}">
+<head>
+    <title>My Prescriptions</title>
+</head>
+<body>
+<div layout:fragment="content">
+
+    <div class="mp-page-header">
+        <div>
+            <h1 class="mp-page-title">My Prescriptions</h1>
+            <div class="mp-page-subtitle">Everything you have prescribed, newest first.</div>
+        </div>
+        <div class="mp-page-actions">
+            <div style="position:relative;">
+                <i class="fas fa-search" style="position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--text-soft);font-size:13px;"></i>
+                <input type="text" id="rxSearch" class="mp-input" placeholder="Search by name, diagnosis or Rx no." style="padding-left:34px;width:300px;"/>
+            </div>
+        </div>
+    </div>
+
+    <div class="mp-stats-grid" style="grid-template-columns:repeat(3,1fr);">
+        <div class="mp-stat">
+            <div class="mp-stat-label"><i class="fas fa-file-prescription"></i> Total prescriptions</div>
+            <div class="mp-stat-value" th:text="${totalCount}">0</div>
+        </div>
+        <div class="mp-stat">
+            <div class="mp-stat-label"><i class="fas fa-calendar-check"></i> With follow-up</div>
+            <div class="mp-stat-value" th:text="${#lists.size(prescriptions.?[nextVisitDate != null])}">0</div>
+        </div>
+        <div class="mp-stat">
+            <div class="mp-stat-label"><i class="fas fa-flask"></i> With lab tests</div>
+            <div class="mp-stat-value" th:text="${#lists.size(prescriptions.?[tests != null and tests != ''])}">0</div>
+        </div>
+    </div>
+
+    <div style="padding:0 32px 32px;">
+        <div class="mp-card">
+            <div class="mp-card-header">
+                <h3 class="mp-card-title">All prescriptions</h3>
+                <span class="mp-helper" style="margin:0;" id="rxCount"></span>
+            </div>
+
+            <div th:if="${#lists.isEmpty(prescriptions)}" style="padding:56px 24px;text-align:center;color:var(--text-muted);">
+                <div style="width:56px;height:56px;border-radius:14px;background:var(--bg-muted);display:inline-flex;align-items:center;justify-content:center;font-size:22px;margin-bottom:12px;"><i class="fas fa-file-prescription"></i></div>
+                <div style="font-weight:700;color:var(--text-strong);font-size:16px;">No prescriptions yet</div>
+                <div style="margin-top:4px;">Prescriptions you write from the queue will appear here.</div>
+            </div>
+
+            <div th:unless="${#lists.isEmpty(prescriptions)}" id="rxList">
+                <a th:each="p : ${prescriptions}" th:href="@{/doctor/prescriptions/view/{id}(id=${p.id})}"
+                   class="rx-row"
+                   th:attr="data-search=${#strings.toLowerCase((p.patient.firstName + ' ' + p.patient.lastName) + ' ' + (p.observations != null ? p.observations : '') + ' RX-' + p.id)}">
+                    <div class="mp-avatar" th:text="${#strings.substring(p.patient.firstName,0,1) + #strings.substring(p.patient.lastName,0,1)}">AB</div>
+                    <div class="rx-row-main">
+                        <div class="rx-row-title" th:text="${p.patient.firstName + ' ' + p.patient.lastName}">Name</div>
+                        <div class="rx-row-sub" th:text="${p.observations != null ? #strings.abbreviate(p.observations, 90) : 'No diagnosis recorded'}">Diagnosis</div>
+                    </div>
+                    <div class="rx-row-meta font-mono" th:text="${'RX-' + #temporals.format(p.createdAt,'yyyy') + '-' + #numbers.formatInteger(p.id,5)}">RX-2026-00001</div>
+                    <div class="rx-row-meta" th:text="${#temporals.format(p.createdAt, 'dd MMM yyyy')}">01 Jan 2026</div>
+                    <div class="rx-row-pills">
+                        <span class="mp-pill mp-pill-consult" th:if="${p.tests != null and p.tests != ''}">Tests</span>
+                        <span class="mp-pill mp-pill-completed" th:if="${p.nextVisitDate != null}">Follow-up <span th:text="${#temporals.format(p.nextVisitDate,'dd MMM')}"></span></span>
+                    </div>
+                    <i class="fas fa-chevron-right" style="color:var(--text-soft);font-size:12px;"></i>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        .rx-row { display:grid; grid-template-columns:44px 1fr 150px 110px 220px 16px; align-items:center; gap:14px; padding:14px 24px; border-bottom:1px solid var(--border); color:inherit; transition:background .12s; }
+        .rx-row:last-child { border-bottom:0; }
+        .rx-row:hover { background:var(--bg-subtle); text-decoration:none; color:inherit; }
+        .rx-row-title { font-weight:700; color:var(--text-strong); }
+        .rx-row-sub { font-size:12.5px; color:var(--text-muted); margin-top:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+        .rx-row-meta { font-size:12.5px; color:var(--text-muted); }
+        .rx-row-pills { display:flex; gap:6px; flex-wrap:wrap; }
+        @media (max-width: 900px) { .rx-row { grid-template-columns:44px 1fr 16px; } .rx-row-meta, .rx-row-pills { display:none; } }
+    </style>
+</div>
+
+<th:block layout:fragment="scriptContent">
+<script>
+(function () {
+    var input = document.getElementById('rxSearch');
+    var rows = document.querySelectorAll('#rxList .rx-row');
+    var count = document.getElementById('rxCount');
+    function apply() {
+        var q = (input.value || '').toLowerCase().trim(), shown = 0;
+        rows.forEach(function (r) {
+            var ok = !q || (r.getAttribute('data-search') || '').indexOf(q) !== -1;
+            r.style.display = ok ? '' : 'none';
+            if (ok) shown++;
+        });
+        if (count) count.textContent = rows.length ? shown + ' of ' + rows.length : '';
+    }
+    if (input) input.addEventListener('input', apply);
+    apply();
+})();
+</script>
+</th:block>
+</body>
+</html>

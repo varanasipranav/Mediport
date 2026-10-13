@@ -25,6 +25,10 @@ import java.util.List;
 @PreAuthorize("hasRole('PHARMA')")
 public class PharmaController {
 
+    @Autowired
+    private com.appointment.webapp.service.RxDocumentService rxDocumentService;
+
+
     private static final Logger logger = LoggerFactory.getLogger(PharmaController.class);
 
     @Autowired
@@ -58,7 +62,7 @@ public class PharmaController {
     public String viewPrescription(@PathVariable Long prescriptionId, Model model) {
         Prescription prescription = prescriptionService.getPrescriptionById(prescriptionId);
 
-        model.addAttribute("prescription", prescription);
+        rxDocumentService.addDocumentModel(model, prescription);
 
         return "pharma/view-prescription";
     }
@@ -97,7 +101,8 @@ public class PharmaController {
         model.addAttribute("prescriptions", prescriptions);
         model.addAttribute("searchTerm", searchTerm);
         model.addAttribute("totalCount", prescriptions.size());
+        model.addAttribute("today", LocalDate.now());
 
-        return "pharma/search-results";
+        return "pharma/dashboard";
     }
 }

@@ -1,0 +1,113 @@
+/* ============================================================
+   Mediport — printable prescription (A4)
+   ============================================================ */
+.rx-stage {
+  padding: 0 32px 40px;
+  display: flex;
+  justify-content: center;
+}
+
+.rx-sheet {
+  width: 794px;              /* A4 @ 96dpi */
+  max-width: 100%;
+  min-height: 1000px;
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  box-shadow: var(--shadow-pop);
+  padding: 44px 48px 36px;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  color: var(--text-strong);
+  font-family: var(--font-body);
+}
+
+/* thin brand bar on top */
+.rx-sheet::before {
+  content: '';
+  position: absolute; left: 0; right: 0; top: 0; height: 6px;
+  background: linear-gradient(90deg, var(--brand-primary), var(--brand-accent));
+  border-radius: 6px 6px 0 0;
+}
+
+/* faint watermark cross */
+.rx-sheet::after {
+  content: '';
+  position: absolute; left: 50%; top: 52%;
+  width: 360px; height: 360px; transform: translate(-50%, -50%);
+  opacity: .035; pointer-events: none;
+  background:
+    linear-gradient(var(--brand-primary), var(--brand-primary)) center / 22% 100% no-repeat,
+    linear-gradient(var(--brand-primary), var(--brand-primary)) center / 100% 22% no-repeat;
+}
+
+.rx-head { display: flex; justify-content: space-between; gap: 24px; padding-bottom: 14px; border-bottom: 2px solid var(--brand-primary); }
+.rx-clinic { display: flex; gap: 14px; align-items: center; }
+.rx-mark { width: 46px; height: 46px; border-radius: 12px; background: var(--brand-primary); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.rx-clinic-name { font-family: var(--font-display); font-size: 22px; font-weight: 800; letter-spacing: -0.02em; color: var(--brand-primary); line-height: 1.1; }
+.rx-clinic-sub { font-size: 11.5px; color: var(--text-muted); margin-top: 3px; line-height: 1.5; }
+.rx-doctor { text-align: right; }
+.rx-doctor-name { font-family: var(--font-display); font-size: 16px; font-weight: 700; }
+.rx-doctor-sub { font-size: 11.5px; color: var(--text-muted); margin-top: 2px; line-height: 1.5; }
+
+.rx-patient {
+  display: grid; grid-template-columns: 2.2fr 1.1fr 1.4fr 1.3fr; gap: 1px;
+  background: var(--border); border: 1px solid var(--border); border-radius: 8px; overflow: hidden;
+  margin-top: 16px;
+}
+.rx-patient > div { background: var(--bg-subtle); padding: 9px 12px; }
+.rx-label { font-size: 9.5px; font-weight: 700; letter-spacing: .09em; text-transform: uppercase; color: var(--text-soft); }
+.rx-value { font-size: 13.5px; font-weight: 700; margin-top: 2px; }
+.rx-no { font-family: var(--font-mono); font-size: 11px; color: var(--text-muted); margin: 8px 2px 0; display: flex; justify-content: space-between; }
+
+.rx-section { margin-top: 18px; }
+.rx-section h4 { font-family: var(--font-body) !important; font-size: 10px !important; letter-spacing: .1em; text-transform: uppercase; color: var(--brand-primary) !important; font-weight: 800 !important; margin: 0 0 5px !important; }
+.rx-section p { margin: 0; font-size: 13.5px; line-height: 1.6; white-space: pre-line; }
+
+.rx-symbol { font-family: 'Times New Roman', Georgia, serif; font-size: 40px; font-style: italic; font-weight: 700; color: var(--brand-primary); line-height: 1; margin: 20px 0 6px; }
+
+.rx-meds { width: 100%; border-collapse: collapse; }
+.rx-meds th { background: var(--brand-primary-50); color: var(--brand-primary); font-size: 9.5px; letter-spacing: .09em; text-transform: uppercase; font-weight: 800; text-align: left; padding: 8px 10px; }
+.rx-meds td { padding: 10px; border-bottom: 1px solid var(--border); font-size: 13.5px; vertical-align: top; }
+.rx-meds td.no { width: 32px; color: var(--text-soft); font-family: var(--font-mono); font-size: 12px; }
+.rx-meds td.name { font-weight: 700; }
+.rx-meds td.dur { white-space: nowrap; font-weight: 600; }
+
+.rx-next { margin-top: 16px; display: inline-flex; align-items: center; gap: 8px; padding: 7px 12px; border-radius: 8px; background: var(--brand-accent-50); color: #065F46; font-weight: 700; font-size: 13px; }
+
+.rx-spacer { flex: 1; min-height: 40px; }
+.rx-foot { display: flex; justify-content: space-between; align-items: flex-end; gap: 20px; margin-top: 30px; }
+.rx-qr { display: flex; gap: 10px; align-items: center; }
+.rx-qr img { width: 82px; height: 82px; border: 1px solid var(--border); border-radius: 6px; padding: 3px; }
+.rx-qr span { font-size: 10.5px; color: var(--text-muted); max-width: 120px; line-height: 1.4; }
+.rx-sign { text-align: center; min-width: 210px; }
+.rx-sign .line { border-top: 1px solid var(--text-strong); margin-bottom: 5px; }
+.rx-sign .who { font-weight: 700; font-size: 13px; }
+.rx-sign .cap { font-size: 11px; color: var(--text-muted); }
+.rx-disclaimer { text-align: center; font-size: 10.5px; color: var(--text-soft); font-style: italic; margin-top: 18px; padding-top: 10px; border-top: 1px dashed var(--border-strong); }
+
+/* action bar above the sheet */
+.rx-actions { padding: 0 32px 18px; display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+.rx-actions .grow { flex: 1; }
+
+/* ---------------- print: only the sheet ---------------- */
+@page { size: A4; margin: 0; }
+@media print {
+  html, body { background: #fff !important; }
+  .main-sidebar, .main-header, .main-footer, .rx-actions, .mp-page-header, .no-print,
+  .content-header { display: none !important; }
+  .content-wrapper { margin: 0 !important; padding: 0 !important; min-height: 0 !important; background: #fff !important; }
+  .rx-stage { padding: 0 !important; }
+  .rx-sheet { box-shadow: none !important; border: 0 !important; border-radius: 0 !important; width: 210mm; min-height: 297mm; padding: 14mm 14mm 10mm; }
+  .rx-sheet::before { border-radius: 0; }
+  .rx-sheet, .rx-sheet * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .rx-meds tr { page-break-inside: avoid; }
+}
+@media (max-width: 860px) {
+  .rx-stage, .rx-actions { padding-left: 12px; padding-right: 12px; }
+  .rx-sheet { padding: 28px 20px; }
+  .rx-head { flex-direction: column; }
+  .rx-doctor { text-align: left; }
+  .rx-patient { grid-template-columns: 1fr 1fr; }
+}

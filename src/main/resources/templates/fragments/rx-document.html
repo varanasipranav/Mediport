@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<!--
+  Printable A4 prescription. Expects model attributes:
+  prescription, medicineLines, rxNumber, rxQr, clinic
+-->
+<div th:fragment="document" class="rx-stage">
+    <div class="rx-sheet">
+
+        <!-- Letterhead -->
+        <div class="rx-head">
+            <div class="rx-clinic">
+                <div class="rx-mark">
+                    <svg width="26" height="26" viewBox="0 0 20 20" fill="none">
+                        <path d="M10 3v14M3 10h14" stroke="#fff" stroke-width="2.2" stroke-linecap="round"/>
+                        <circle cx="10" cy="10" r="2.3" fill="#10B981"/>
+                    </svg>
+                </div>
+                <div>
+                    <div class="rx-clinic-name" th:text="${clinic.name}">Mediport Clinic</div>
+                    <div class="rx-clinic-sub">
+                        <span th:if="${!#strings.isEmpty(clinic.tagline)}" th:text="${clinic.tagline}">Tagline</span>
+                        <span th:if="${!#strings.isEmpty(clinic.address)}"><br/><span th:text="${clinic.address}"></span></span>
+                        <span th:if="${!#strings.isEmpty(clinic.phone) or !#strings.isEmpty(clinic.email)}">
+                            <br/>
+                            <span th:if="${!#strings.isEmpty(clinic.phone)}"><i class="fas fa-phone-alt"></i> <span th:text="${clinic.phone}"></span></span>
+                            <span th:if="${!#strings.isEmpty(clinic.email)}">&nbsp; <i class="fas fa-envelope"></i> <span th:text="${clinic.email}"></span></span>
+                        </span>
+                    </div>
+                </div>
+            </div>
+            <div class="rx-doctor">
+                <div class="rx-doctor-name">Dr. <span th:text="${prescription.doctor.firstName + ' ' + prescription.doctor.lastName}">Doctor Name</span></div>
+                <div class="rx-doctor-sub">
+                    <span th:if="${prescription.doctor.specialization != null}" th:text="${prescription.doctor.specialization}">Specialization</span>
+                    <span th:if="${prescription.doctor.department != null and !#strings.isEmpty(prescription.doctor.department)}">
+                        <span th:if="${prescription.doctor.specialization != null}"> · </span><span th:text="${prescription.doctor.department}"></span>
+                    </span>
+                    <span th:if="${!#strings.isEmpty(prescription.doctor.licenseNumber)}"><br/>Reg. No: <strong th:text="${prescription.doctor.licenseNumber}"></strong></span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Patient strip -->
+        <div class="rx-patient">
+            <div>
+                <div class="rx-label">Patient</div>
+                <div class="rx-value" th:text="${prescription.patient.firstName + ' ' + prescription.patient.lastName}">Patient Name</div>
+            </div>
+            <div>
+                <div class="rx-label">Age / Sex</div>
+                <div class="rx-value">
+                    <span th:text="${prescription.patient.age != null ? prescription.patient.age + ' yrs' : '—'}">—</span><span th:if="${!#strings.isEmpty(prescription.patient.gender)}"> / <span th:text="${prescription.patient.gender}"></span></span>
+                </div>
+            </div>
+            <div>
+                <div class="rx-label">Patient ID</div>
+                <div class="rx-value" style="font-family:var(--font-mono);" th:text="${prescription.patient.patientId != null ? prescription.patient.patientId : '—'}">—</div>
+            </div>
+            <div>
+                <div class="rx-label">Date</div>
+                <div class="rx-value" th:text="${#temporals.format(prescription.createdAt, 'dd MMM yyyy')}">01 Jan 2026</div>
+            </div>
+        </div>
+        <div class="rx-no"><span th:text="${rxNumber}">RX-2026-00001</span><span th:if="${prescription.appointment != null}">Appointment #<span th:text="${prescription.appointment.id}"></span></span></div>
+
+        <!-- Diagnosis -->
+        <div class="rx-section" th:if="${!#strings.isEmpty(prescription.observations)}">
+            <h4>Diagnosis / Observations</h4>
+            <p th:text="${prescription.observations}"></p>
+        </div>
+
+        <!-- Medicines -->
+        <div class="rx-symbol">Rx</div>
+        <table class="rx-meds">
+            <thead>
+                <tr><th>#</th><th>Medicine</th><th>Dose &amp; instructions</th><th>Duration</th></tr>
+            </thead>
+            <tbody>
+                <tr th:each="m : ${medicineLines}">
+                    <td class="no" th:text="${m.no}">1</td>
+                    <td class="name" th:text="${m.name}">Paracetamol 500mg</td>
+                    <td th:text="${m.instructions}">1 tab twice daily</td>
+                    <td class="dur" th:text="${m.duration}">3 days</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <div class="rx-section" th:if="${!#strings.isEmpty(prescription.tests)}">
+            <h4>Tests advised</h4>
+            <p th:text="${prescription.tests}"></p>
+        </div>
+
+        <div class="rx-section" th:if="${!#strings.isEmpty(prescription.additionalNotes)}">
+            <h4>Advice / Notes</h4>
+            <p th:text="${prescription.additionalNotes}"></p>
+        </div>
+
+        <div class="rx-next" th:if="${prescription.nextVisitDate != null}">
+            <i class="fas fa-calendar-check"></i> Next visit: <span th:text="${#temporals.format(prescription.nextVisitDate, 'dd MMM yyyy')}"></span>
+        </div>
+
+        <div class="rx-spacer"></div>
+
+        <!-- Signature + verification -->
+        <div class="rx-foot">
+            <div class="rx-qr">
+                <img th:src="${rxQr}" alt="Verification QR"/>
+                <span>Scan to verify this prescription is genuine.</span>
+            </div>
+            <div class="rx-sign">
+                <div style="height:46px;"></div>
+                <div class="line"></div>
+                <div class="who">Dr. <span th:text="${prescription.doctor.firstName + ' ' + prescription.doctor.lastName}"></span></div>
+                <div class="cap">Signature &amp; seal</div>
+            </div>
+        </div>
+        <div class="rx-disclaimer">
+            Computer-generated prescription. Take medicines only as directed by your doctor.
+        </div>
+    </div>
+</div>
+
+</body>
+</html>

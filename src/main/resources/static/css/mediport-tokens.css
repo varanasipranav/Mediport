@@ -732,3 +732,35 @@ a:hover { color: var(--brand-primary-600); text-decoration: none; }
   color: var(--text-muted);
   margin-top: 4px;
 }
+
+/* ============================================================
+   SHELL FIXES — header offset, collapsible sidebar, footer
+   ============================================================ */
+.main-header {
+  margin-left: 0 !important;
+  left: var(--sidebar-w) !important;
+  width: calc(100% - var(--sidebar-w)) !important;
+  transition: left .25s ease, width .25s ease;
+}
+.main-sidebar { transition: margin-left .25s ease; }
+.content-wrapper, .main-footer { transition: margin-left .25s ease; }
+
+.mp-footer-inner { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.mp-footer-brand { color: var(--text-soft); }
+.mp-footer-brand i { color: var(--brand-primary); margin-right: 4px; }
+
+/* desktop: collapsed */
+body.sidebar-collapse .main-sidebar { margin-left: calc(-1 * var(--sidebar-w)) !important; }
+body.sidebar-collapse .main-header { left: 0 !important; width: 100% !important; }
+body.sidebar-collapse .content-wrapper,
+body.sidebar-collapse .main-footer { margin-left: 0 !important; }
+
+/* tablet / phone: sidebar is an overlay drawer */
+@media (max-width: 991.98px) {
+  .main-sidebar { margin-left: calc(-1 * var(--sidebar-w)) !important; z-index: 1040; }
+  .main-header { left: 0 !important; width: 100% !important; padding: 0 14px !important; }
+  .content-wrapper, .main-footer { margin-left: 0 !important; }
+  body.sidebar-open .main-sidebar { margin-left: 0 !important; box-shadow: 0 0 0 100vmax rgba(15,27,45,.45); }
+  body.sidebar-collapse .main-sidebar { margin-left: calc(-1 * var(--sidebar-w)) !important; }
+  .mp-page-header, .mp-stats-grid { padding-left: 16px !important; padding-right: 16px !important; }
+}

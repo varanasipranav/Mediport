@@ -11,8 +11,19 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 @ControllerAdvice
 public class GlobalModelAttributes {
 
+    private final ClinicProperties clinic;
+
+    public GlobalModelAttributes(ClinicProperties clinic) {
+        this.clinic = clinic;
+    }
+
     @ModelAttribute("currentUri")
     public String currentUri(HttpServletRequest request) {
         return request.getRequestURI();
+    }
+
+    @ModelAttribute("clinic")
+    public ClinicProperties clinic() {
+        return clinic;
     }
 }
