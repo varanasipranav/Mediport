@@ -38,7 +38,9 @@ public class DataLoader implements CommandLineRunner {
     @Transactional
     public void run(String... args) throws Exception {
         // Check if data already exists
-        if (roleRepository.count() > 0) {
+        // Roles are created earlier by DataInitializer, so "roles exist" says nothing about whether this is a
+        // fresh install. Only skip when users already exist; otherwise the first admin account must be created.
+        if (userRepository.count() > 0) {
             System.out.println("Data already loaded. Skipping initialization.");
             return;
         }

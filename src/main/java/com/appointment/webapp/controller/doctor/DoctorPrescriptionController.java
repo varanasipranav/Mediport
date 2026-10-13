@@ -57,7 +57,7 @@ public class DoctorPrescriptionController {
 
         // Verify this is the doctor's appointment
         if (!appointment.getDoctor().getId().equals(doctor.getId())) {
-            throw new RuntimeException("Unauthorized access to appointment");
+            throw new org.springframework.security.access.AccessDeniedException("Unauthorized access to appointment");
         }
 
         // Check if prescription already exists
@@ -83,6 +83,10 @@ public class DoctorPrescriptionController {
                                   @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate nextVisitDate,
                                   Authentication authentication,
                                   RedirectAttributes redirectAttributes) {
+        var appointmentToCheck = appointmentService.getAppointmentById(appointmentId);
+        if (!appointmentToCheck.getDoctor().getUsername().equals(authentication.getName())) {
+            throw new org.springframework.security.access.AccessDeniedException("Unauthorized access to appointment");
+        }
         try {
             if (prescriptionId != null) {
                 // Update existing prescription
@@ -121,7 +125,7 @@ public class DoctorPrescriptionController {
 
         // Verify this is the doctor's prescription
         if (!prescription.getDoctor().getId().equals(doctor.getId())) {
-            throw new RuntimeException("Unauthorized access to prescription");
+            throw new org.springframework.security.access.AccessDeniedException("Unauthorized access to prescription");
         }
 
         rxDocumentService.addDocumentModel(model, prescription);

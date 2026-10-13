@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Something went wrong — Mediport</title>
+    <link rel="shortcut icon" type="image/svg+xml" th:href="@{/images/hospital-icon.svg}"/>
+    <link rel="stylesheet" th:href="@{/vendor/fa/css/all.min.css}"/>
+    <link rel="stylesheet" th:href="@{/css/mediport-tokens.css}"/>
+    <style>
+        body { min-height:100vh; display:flex; align-items:center; justify-content:center; padding:24px; background:linear-gradient(160deg,#0F1B2D,#12306B); }
+        .ecard { background:#fff; border-radius:16px; padding:40px 36px; width:100%; max-width:460px; text-align:center; box-shadow:0 24px 60px rgba(0,0,0,.35); }
+        .ecode { font-family:var(--font-display); font-size:64px; font-weight:800; letter-spacing:-0.04em; color:var(--brand-primary); line-height:1; }
+        .eicon { width:56px; height:56px; border-radius:14px; background:var(--brand-primary-50); color:var(--brand-primary); display:inline-flex; align-items:center; justify-content:center; font-size:22px; margin-bottom:16px; }
+    </style>
+</head>
+<body>
+<div class="ecard">
+    <div class="eicon"><i class="fas" th:classappend="${status == 403} ? 'fa-lock' : (${status == 404} ? 'fa-search' : 'fa-exclamation-triangle')"></i></div>
+    <div class="ecode" th:text="${status}">500</div>
+    <h2 style="margin:10px 0 6px;font-size:21px;"
+        th:text="${status == 403} ? 'You don''t have access to this' : (${status == 404} ? 'We couldn''t find that page' : 'Something went wrong on our side')">Something went wrong</h2>
+    <p style="color:var(--text-muted);margin:0 0 24px;"
+       th:text="${status == 403} ? 'Your account isn''t allowed to open this page. If you think it should be, ask your administrator.' : (${status == 404} ? 'The page may have moved, or the link may be incorrect.' : 'Please try again. If it keeps happening, tell your administrator.')">Message</p>
+    <a th:href="@{/dashboard}" class="mp-btn mp-btn-primary mp-btn-lg"><i class="fas fa-home"></i> Back to dashboard</a>
+</div>
+</body>
+</html>

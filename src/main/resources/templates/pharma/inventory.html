@@ -136,7 +136,7 @@
                 <table class="inv-table">
                     <thead><tr><th>When</th><th>Type</th><th>Medicine</th><th style="text-align:right;">Qty</th><th>Note</th><th>By</th></tr></thead>
                     <tbody>
-                        <tr th:each="m : ${movements}" th:if="${movementStat.index < 15}">
+                        <tr th:each="m : ${movements}" th:if="${mStat.index < 15}">
                             <td class="inv-muted" th:text="${#temporals.format(m.createdAt,'dd MMM, HH:mm')}">date</td>
                             <td>
                                 <span class="mp-pill mp-pill-completed" th:if="${m.movementType.name() == 'RECEIVE'}">Received</span>

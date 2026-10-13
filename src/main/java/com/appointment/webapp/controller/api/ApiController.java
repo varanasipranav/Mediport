@@ -20,6 +20,7 @@ import org.slf4j.LoggerFactory;
  */
 @RestController
 @RequestMapping("/api")
+@org.springframework.security.access.prepost.PreAuthorize("hasAnyRole('ATTENDANT','ADMIN')")
 public class ApiController {
 
     private static final Logger logger = LoggerFactory.getLogger(ApiController.class);

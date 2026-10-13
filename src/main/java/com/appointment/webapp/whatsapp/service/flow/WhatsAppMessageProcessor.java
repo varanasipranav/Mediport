@@ -44,6 +44,9 @@ public class WhatsAppMessageProcessor {
     @Autowired
     private com.appointment.webapp.whatsapp.service.appointment.QueueStatusService queueStatusService;
 
+    @Autowired
+    private com.appointment.webapp.config.ClinicProperties clinic;
+
     /**
      * Main entry point - process incoming message
      */
@@ -68,6 +71,20 @@ public class WhatsAppMessageProcessor {
 
             // Route to appropriate handler based on state
             logger.info("📍 Step 2: Routing to handler for state: {}", conversation.getCurrentState());
+
+            if (isMenuChoice(conversation, message)) {
+                logger.info("Menu option chosen mid-flow - handling it as a main-menu choice");
+                conversationService.updateState(conversation, ConversationState.MAIN_MENU);
+                handleMainMenu(conversation, message);
+                return;
+            }
+
+            if (isRestartCommand(conversation, message)) {
+                logger.info("Restart command received - back to main menu");
+                conversationService.updateState(conversation, ConversationState.MAIN_MENU);
+                sendMainMenu(conversation);
+                return;
+            }
 
             switch (conversation.getCurrentState()) {
                 case INITIAL -> {
@@ -155,6 +172,35 @@ public class WhatsAppMessageProcessor {
         }
     }
 
+    private static final java.util.Set<String> MENU_IDS = java.util.Set.of(
+        "book_appointment", "queue_status", "view_appointments", "reschedule", "cancel_appointment");
+
+    /** The patient tapped an item from the main-menu list while in the middle of another flow. */
+    private boolean isMenuChoice(WhatsAppConversation conversation, ParsedMessage message) {
+        ConversationState state = conversation.getCurrentState();
+        if (state == ConversationState.INITIAL || state == ConversationState.MAIN_MENU) {
+            return false;
+        }
+        return message.getListId() != null && MENU_IDS.contains(message.getListId());
+    }
+
+    private static final java.util.Set<String> RESTART_WORDS = java.util.Set.of(
+        "hi", "hii", "hiii", "hello", "hey", "hlo", "menu", "main menu", "home", "start", "restart", "start over", "namaste");
+
+    /** "hi" / "menu" return to the main menu from any step, except while the patient is typing registration details. */
+    private boolean isRestartCommand(WhatsAppConversation conversation, ParsedMessage message) {
+        ConversationState state = conversation.getCurrentState();
+        if (state == ConversationState.INITIAL || state == ConversationState.MAIN_MENU
+            || state == ConversationState.COLLECTING_PATIENT_NAME || state == ConversationState.COLLECTING_PATIENT_GENDER
+            || state == ConversationState.COLLECTING_PATIENT_DOB) {
+            return false;
+        }
+        if (message.getMessageType() != ParsedMessage.MessageType.TEXT || message.getTextContent() == null) {
+            return false;
+        }
+        return RESTART_WORDS.contains(message.getTextContent().trim().toLowerCase());
+    }
+
     /**
      * Handle INITIAL state - first message from user
      */
@@ -176,7 +222,7 @@ public class WhatsAppMessageProcessor {
                 "❌ Cancel appointments\n" +
                 "🔄 Reschedule appointments\n\n" +
                 "Let's get started!",
-                "City Hospital", // TODO: Get from config
+                clinic.getName(),
                 conversation.getSenderName()
             );
 
@@ -243,8 +289,10 @@ public class WhatsAppMessageProcessor {
                 showAppointmentsToReschedule(conversation);
             }
             default -> {
-                messageSender.sendTextMessage(conversation.getWhatsappPhone(),
-                    "Sorry, I didn't understand that. Please select an option:");
+                if (!RESTART_WORDS.contains(choice.toLowerCase())) {
+                    messageSender.sendTextMessage(conversation.getWhatsappPhone(),
+                        "Sorry, I didn't understand that. Please choose an option from the menu:");
+                }
                 sendMainMenu(conversation);
             }
         }
@@ -1162,7 +1210,7 @@ public class WhatsAppMessageProcessor {
             }
             final java.time.LocalDate skipDate = excludeDate;
 
-            var days = appointmentService.getBookableDays(doctor, rescheduling ? null : conversation.getUser()).stream()
+            var days = appointmentService.getBookableDays(doctor, conversation.getUser()).stream()
                 .filter(d -> !d.date().equals(skipDate))
                 .limit(10)
                 .toList();

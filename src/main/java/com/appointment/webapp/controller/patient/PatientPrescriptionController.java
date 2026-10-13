@@ -65,7 +65,7 @@ public class PatientPrescriptionController {
 
         // Verify this is the patient's prescription
         if (!prescription.getPatient().getId().equals(patient.getId())) {
-            throw new RuntimeException("Unauthorized access to prescription");
+            throw new org.springframework.security.access.AccessDeniedException("Unauthorized access to prescription");
         }
 
         rxDocumentService.addDocumentModel(model, prescription);

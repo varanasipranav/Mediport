@@ -382,6 +382,10 @@ public class AppointmentService {
         Appointment appointment = appointmentRepository.findById(appointmentId)
             .orElseThrow(() -> new RuntimeException("Appointment not found"));
 
+        if (appointment.getStatus() != AppointmentStatus.WAITING && appointment.getStatus() != AppointmentStatus.DELAYED) {
+            throw new BookingException("Only appointments that are still waiting can be cancelled");
+        }
+
         appointment.setStatus(AppointmentStatus.CANCELLED);
         appointment.setUpdatedBy(updatedBy);
         appointmentRepository.save(appointment);

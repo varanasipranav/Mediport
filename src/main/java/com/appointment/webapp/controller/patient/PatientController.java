@@ -139,8 +139,14 @@ public class PatientController {
                                    Authentication authentication,
                                    RedirectAttributes redirectAttributes) {
         try {
+            Appointment owned = appointmentService.getAppointmentById(id);
+            if (!owned.getPatient().getUsername().equals(authentication.getName())) {
+                throw new org.springframework.security.access.AccessDeniedException("Not your appointment");
+            }
             appointmentService.cancelAppointment(id, authentication.getName());
             redirectAttributes.addFlashAttribute("success", "Appointment cancelled successfully");
+        } catch (org.springframework.security.access.AccessDeniedException e) {
+            throw e;
         } catch (Exception e) {
             logger.error("Error cancelling appointment", e);
             redirectAttributes.addFlashAttribute("error", "Error: " + e.getMessage());

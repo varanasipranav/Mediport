@@ -33,6 +33,14 @@ public class DoctorAppointmentController {
     @Autowired
     private UserRepository userRepository;
 
+    /** A doctor may only act on appointments in their own queue. */
+    private void assertOwnAppointment(Long appointmentId, Authentication authentication) {
+        var appointment = appointmentService.getAppointmentById(appointmentId);
+        if (!appointment.getDoctor().getUsername().equals(authentication.getName())) {
+            throw new org.springframework.security.access.AccessDeniedException("Not your appointment");
+        }
+    }
+
     /**
      * Show today's appointments (the queue)
      */
@@ -93,6 +101,7 @@ public class DoctorAppointmentController {
     public String startConsultation(@PathVariable Long id,
                                    Authentication authentication,
                                    RedirectAttributes redirectAttributes) {
+        assertOwnAppointment(id, authentication);
         try {
             appointmentService.startConsultation(id, authentication.getName());
             redirectAttributes.addFlashAttribute("success", "Consultation started");
@@ -112,6 +121,7 @@ public class DoctorAppointmentController {
     public String completeConsultation(@PathVariable Long id,
                                       Authentication authentication,
                                       RedirectAttributes redirectAttributes) {
+        assertOwnAppointment(id, authentication);
         try {
             appointmentService.completeConsultation(id, authentication.getName());
             redirectAttributes.addFlashAttribute("success", "Consultation completed");
@@ -132,6 +142,7 @@ public class DoctorAppointmentController {
                           @RequestParam String notes,
                           Authentication authentication,
                           RedirectAttributes redirectAttributes) {
+        assertOwnAppointment(id, authentication);
         try {
             appointmentService.addNotes(id, notes, authentication.getName());
             redirectAttributes.addFlashAttribute("success", "Notes added successfully");
