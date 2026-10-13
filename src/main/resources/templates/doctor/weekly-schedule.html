@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/web/thymeleaf/layout"
+      layout:decorate="~{layout}">
+<head>
+    <title>Weekly Schedule</title>
+    <style>
+        /* Summary strip */
+        .ws-summary {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+        .ws-summary-tile {
+            padding: 16px 18px;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--r-md);
+        }
+        .ws-summary-val { font-family: var(--font-display); font-size: 22px; font-weight: 800; color: var(--text-strong); }
+        .ws-summary-lbl { font-size: 11px; color: var(--text-muted); font-weight: 600; margin-top: 2px; }
+
+        /* Day cards grid */
+        .ws-days { display: grid; grid-template-columns: repeat(7, 1fr); gap: 12px; }
+        @media (max-width: 1100px) { .ws-days { grid-template-columns: repeat(4, 1fr); } }
+        @media (max-width: 700px) { .ws-days { grid-template-columns: repeat(2, 1fr); } }
+
+        .ws-day {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--r-md);
+            overflow: hidden;
+            transition: box-shadow 0.15s;
+        }
+        .ws-day:hover { box-shadow: var(--shadow-sm); }
+        .ws-day.active { border-color: var(--brand-accent); }
+        .ws-day.inactive { opacity: 0.65; }
+
+        .ws-day-hdr {
+            padding: 10px 12px;
+            border-bottom: 1px solid var(--border);
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .ws-day-name { font-family: var(--font-display); font-size: 13px; font-weight: 700; color: var(--text-strong); }
+        .ws-weekend-chip {
+            font-size: 10px; font-weight: 600;
+            padding: 2px 6px; border-radius: 999px;
+            background: #FEF3C7; color: #92400E;
+        }
+        .ws-active-dot {
+            width: 8px; height: 8px; border-radius: 50%;
+            background: var(--brand-accent);
+        }
+        .ws-inactive-dot {
+            width: 8px; height: 8px; border-radius: 50%;
+            background: var(--border-strong);
+        }
+
+        .ws-day-body { padding: 12px; }
+        .ws-time { font-size: 13px; font-weight: 600; color: var(--text-strong); margin-bottom: 6px; }
+        .ws-meta { font-size: 11px; color: var(--text-muted); line-height: 1.6; }
+        .ws-day-off { text-align: center; padding: 16px 0; font-size: 12px; color: var(--text-soft); }
+
+        .ws-day-actions {
+            padding: 8px 12px;
+            border-top: 1px solid var(--border);
+            display: flex; gap: 6px;
+        }
+
+        /* Setup card */
+        .ws-setup {
+            max-width: 640px;
+        }
+    </style>
+</head>
+<body>
+<div layout:fragment="content">
+
+    <!-- Page header -->
+    <div class="mp-page-header">
+        <div>
+            <h1 class="mp-page-title">Weekly Schedule</h1>
+            <p class="mp-page-subtitle">Define your default working hours for each day of the week</p>
+        </div>
+        <div style="display:flex;gap:10px;">
+            <a th:href="@{/doctor/schedule}" class="mp-btn mp-btn-secondary">
+                <i class="fas fa-calendar-day"></i> Daily schedules
+            </a>
+            <div th:if="${hasTemplates}" style="display:flex;gap:8px;">
+                <button type="button" class="mp-btn mp-btn-primary"
+                        data-toggle="modal" data-target="#generateModal">
+                    <i class="fas fa-sync"></i> Generate schedules
+                </button>
+                <button type="button" class="mp-btn mp-btn-secondary"
+                        data-toggle="modal" data-target="#resetModal">
+                    <i class="fas fa-redo"></i> Reset
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div style="padding: 0 32px 32px;">
+
+    <!-- Alerts -->
+    <div th:if="${success}" class="mp-alert mp-alert-success" style="margin-bottom:16px;">
+        <i class="fas fa-check-circle"></i> <span th:text="${success}"></span>
+    </div>
+    <div th:if="${error}" class="mp-alert mp-alert-danger" style="margin-bottom:16px;">
+        <i class="fas fa-exclamation-circle"></i> <span th:text="${error}"></span>
+    </div>
+
+    <!-- ── SETUP CARD (no templates yet) ── -->
+    <div th:unless="${hasTemplates}" class="mp-card ws-setup" style="padding:28px 32px;">
+        <div style="font-size:14px;font-weight:700;color:var(--text-strong);margin-bottom:4px;">Set up your weekly schedule</div>
+        <p style="font-size:13px;color:var(--text-muted);margin-bottom:20px;">
+            Define your default working hours. Mon–Fri will be set active; Sat–Sun will be days off (you can change any day later).
+        </p>
+        <form th:action="@{/doctor/weekly-schedule/initialize}" method="post">
+            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+            <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:14px;">
+                <div>
+                    <label class="mp-label">Default shift</label>
+                    <select name="defaultShift" class="mp-input">
+                        <option value="MORNING">Morning (9 AM – 1 PM)</option>
+                        <option value="EVENING">Evening (2 PM – 6 PM)</option>
+                        <option value="FULL_DAY">Full day (9 AM – 6 PM)</option>
+                        <option value="CUSTOM">Custom hours</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="mp-label">Morning start</label>
+                    <input type="time" name="morningStart" class="mp-input" value="09:00"/>
+                </div>
+                <div>
+                    <label class="mp-label">Morning end</label>
+                    <input type="time" name="morningEnd" class="mp-input" value="13:00"/>
+                </div>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:20px;">
+                <div>
+                    <label class="mp-label">Evening start</label>
+                    <input type="time" name="eveningStart" class="mp-input" value="14:00"/>
+                </div>
+                <div>
+                    <label class="mp-label">Evening end</label>
+                    <input type="time" name="eveningEnd" class="mp-input" value="18:00"/>
+                </div>
+                <div>
+                    <label class="mp-label">Slot duration</label>
+                    <select name="slotDuration" class="mp-input">
+                        <option value="10">10 minutes</option>
+                        <option value="15" selected>15 minutes</option>
+                        <option value="20">20 minutes</option>
+                        <option value="30">30 minutes</option>
+                    </select>
+                </div>
+            </div>
+            <button type="submit" class="mp-btn mp-btn-primary">
+                <i class="fas fa-check"></i> Initialise weekly schedule
+            </button>
+        </form>
+    </div>
+
+    <!-- ── SUMMARY STRIP ── -->
+    <div th:if="${hasTemplates}" class="ws-summary">
+        <div class="ws-summary-tile">
+            <div class="ws-summary-val" th:text="${doctor.firstName + ' ' + doctor.lastName}">Doctor</div>
+            <div class="ws-summary-lbl">Doctor</div>
+        </div>
+        <div class="ws-summary-tile">
+            <div class="ws-summary-val" th:text="${doctor.specialization ?: 'General Medicine'}">—</div>
+            <div class="ws-summary-lbl">Specialization</div>
+        </div>
+        <div class="ws-summary-tile">
+            <div class="ws-summary-val" th:text="${summary.activeDays} + ' / 7'">0 / 7</div>
+            <div class="ws-summary-lbl">Active days</div>
+        </div>
+        <div class="ws-summary-tile">
+            <div style="display:inline-flex;align-items:center;gap:6px;">
+                <div class="ws-active-dot"></div>
+                <span class="ws-summary-val" style="font-size:13px;">Template active</span>
+            </div>
+            <div class="ws-summary-lbl" style="margin-top:4px;">Status</div>
+        </div>
+    </div>
+
+    <!-- ── DAY CARDS ── -->
+    <div th:if="${hasTemplates}" class="ws-days">
+        <div th:each="template : ${templates}"
+             class="ws-day"
+             th:classappend="${template.isActive ? 'active' : 'inactive'}">
+
+            <!-- Header -->
+            <div class="ws-day-hdr">
+                <span class="ws-day-name" th:text="${template.dayName}">Mon</span>
+                <div style="display:flex;align-items:center;gap:6px;">
+                    <span th:if="${template.weekend}" class="ws-weekend-chip">Weekend</span>
+                    <div th:if="${template.isActive}" class="ws-active-dot"></div>
+                    <div th:unless="${template.isActive}" class="ws-inactive-dot"></div>
+                </div>
+            </div>
+
+            <!-- Body -->
+            <div class="ws-day-body">
+                <div th:if="${template.isActive}">
+                    <div class="ws-time">
+                        <i class="fas fa-clock" style="font-size:11px;color:var(--brand-primary);margin-right:4px;"></i>
+                        <span th:text="${template.timeRange}">09:00 – 13:00</span>
+                    </div>
+                    <div class="ws-meta">
+                        Shift: <strong th:text="${template.shiftType?.displayName ?: 'Custom'}">—</strong><br/>
+                        Slot: <strong th:text="${template.slotDurationMinutes} + ' min'">15 min</strong><br/>
+                        Max slots: <strong th:text="${template.maxPatients ?: template.calculateTotalSlots()}">—</strong>
+                    </div>
+                </div>
+                <div th:unless="${template.isActive}" class="ws-day-off">
+                    <i class="fas fa-moon" style="display:block;margin-bottom:4px;font-size:16px;"></i>
+                    Day off
+                </div>
+            </div>
+
+            <!-- Actions -->
+            <div class="ws-day-actions">
+                <button type="button" class="mp-btn mp-btn-secondary"
+                        style="flex:1;font-size:11px;padding:6px 8px;justify-content:center;"
+                        data-toggle="modal"
+                        th:attr="data-target='#editModal' + ${template.dayOfWeek}">
+                    <i class="fas fa-pencil-alt"></i> Edit
+                </button>
+                <form th:action="@{/doctor/weekly-schedule/toggle-day/{day}(day=${template.dayName})}"
+                      method="post" style="flex:1;">
+                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                    <button type="submit"
+                            class="mp-btn"
+                            style="width:100%;font-size:11px;padding:6px 8px;justify-content:center;"
+                            th:classappend="${template.isActive ? 'mp-btn-danger-soft' : 'mp-btn-accent-soft'}">
+                        <i th:class="${template.isActive ? 'fas fa-times' : 'fas fa-check'}"></i>
+                        <span th:text="${template.isActive ? 'Off' : 'On'}">Toggle</span>
+                    </button>
+                </form>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- ── EDIT MODALS (one per day) ── -->
+    <div th:if="${hasTemplates}">
+        <div th:each="template : ${templates}"
+             class="modal fade"
+             th:id="'editModal' + ${template.dayOfWeek}">
+            <div class="modal-dialog">
+                <div class="modal-content" style="border-radius:var(--r-lg);border:1px solid var(--border);">
+                    <div class="modal-header" style="border-bottom:1px solid var(--border);padding:16px 20px;">
+                        <h5 class="modal-title" style="font-family:var(--font-display);font-weight:700;font-size:15px;">
+                            Edit <span th:text="${template.dayName}"></span>
+                        </h5>
+                        <button type="button" class="close" data-dismiss="modal" style="font-size:20px;">&times;</button>
+                    </div>
+                    <form th:action="@{/doctor/weekly-schedule/update-day}" method="post">
+                        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                        <div class="modal-body" style="padding:20px;">
+                            <input type="hidden" name="dayOfWeek" th:value="${template.dayName}"/>
+
+                            <div style="margin-bottom:14px;">
+                                <label class="mp-label">Status</label>
+                                <select name="isActive" class="mp-input">
+                                    <option value="true" th:selected="${template.isActive}">Active (working day)</option>
+                                    <option value="false" th:selected="${!template.isActive}">Inactive (day off)</option>
+                                </select>
+                            </div>
+
+                            <div style="margin-bottom:14px;">
+                                <label class="mp-label">Shift type</label>
+                                <select name="shiftType" class="mp-input">
+                                    <option th:each="shift : ${shiftTypes}"
+                                            th:value="${shift}"
+                                            th:text="${shift.displayName}"
+                                            th:selected="${shift == template.shiftType}"></option>
+                                </select>
+                            </div>
+
+                            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px;">
+                                <div>
+                                    <label class="mp-label">Start time</label>
+                                    <input type="time" name="startTime" class="mp-input"
+                                           th:value="${template.startTime}" required/>
+                                </div>
+                                <div>
+                                    <label class="mp-label">End time</label>
+                                    <input type="time" name="endTime" class="mp-input"
+                                           th:value="${template.endTime}" required/>
+                                </div>
+                            </div>
+
+                            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+                                <div>
+                                    <label class="mp-label">Slot duration (min)</label>
+                                    <select name="slotDuration" class="mp-input">
+                                        <option value="10" th:selected="${template.slotDurationMinutes == 10}">10 min</option>
+                                        <option value="15" th:selected="${template.slotDurationMinutes == 15}">15 min</option>
+                                        <option value="20" th:selected="${template.slotDurationMinutes == 20}">20 min</option>
+                                        <option value="30" th:selected="${template.slotDurationMinutes == 30}">30 min</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="mp-label">Max patients</label>
+                                    <input type="number" name="maxPatients" class="mp-input"
+                                           th:value="${template.maxPatients}" placeholder="Auto"/>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="modal-footer" style="border-top:1px solid var(--border);padding:14px 20px;display:flex;gap:8px;justify-content:flex-end;">
+                            <button type="button" class="mp-btn mp-btn-secondary" data-dismiss="modal">Cancel</button>
+                            <button type="submit" class="mp-btn mp-btn-primary">
+                                <i class="fas fa-save"></i> Save changes
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Generate Daily Schedules Modal -->
+    <div class="modal fade" id="generateModal">
+        <div class="modal-dialog">
+            <div class="modal-content" style="border-radius:var(--r-lg);border:1px solid var(--border);">
+                <div class="modal-header" style="border-bottom:1px solid var(--border);padding:16px 20px;background:var(--status-completed-bg);">
+                    <h5 class="modal-title" style="font-family:var(--font-display);font-weight:700;font-size:15px;color:var(--status-completed);">
+                        <i class="fas fa-sync" style="margin-right:8px;"></i>Generate Daily Schedules
+                    </h5>
+                    <button type="button" class="close" data-dismiss="modal" style="font-size:20px;">&times;</button>
+                </div>
+                <form th:action="@{/doctor/weekly-schedule/generate-schedules}" method="post">
+                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                    <div class="modal-body" style="padding:20px;">
+                        <p style="font-size:13px;color:var(--text-muted);margin-bottom:16px;">
+                            This will create daily schedules based on your weekly template. Existing schedules will not be overwritten.
+                        </p>
+                        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+                            <div>
+                                <label class="mp-label">Start date</label>
+                                <input type="date" name="startDate" class="mp-input"
+                                       th:value="${#temporals.format(#temporals.createToday(), 'yyyy-MM-dd')}" required/>
+                            </div>
+                            <div>
+                                <label class="mp-label">End date</label>
+                                <input type="date" name="endDate" class="mp-input"
+                                       th:value="${#temporals.format(#temporals.createToday().plusDays(30), 'yyyy-MM-dd')}" required/>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer" style="border-top:1px solid var(--border);padding:14px 20px;display:flex;gap:8px;justify-content:flex-end;">
+                        <button type="button" class="mp-btn mp-btn-secondary" data-dismiss="modal">Cancel</button>
+                        <button type="submit" class="mp-btn mp-btn-accent">
+                            <i class="fas fa-sync"></i> Generate
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Reset Templates Modal -->
+    <div class="modal fade" id="resetModal">
+        <div class="modal-dialog">
+            <div class="modal-content" style="border-radius:var(--r-lg);border:1px solid var(--border);">
+                <div class="modal-header" style="border-bottom:1px solid var(--border);padding:16px 20px;background:var(--status-waiting-bg);">
+                    <h5 class="modal-title" style="font-family:var(--font-display);font-weight:700;font-size:15px;color:var(--status-waiting);">
+                        <i class="fas fa-exclamation-triangle" style="margin-right:8px;"></i>Reset Weekly Templates
+                    </h5>
+                    <button type="button" class="close" data-dismiss="modal" style="font-size:20px;">&times;</button>
+                </div>
+                <form th:action="@{/doctor/weekly-schedule/reset}" method="post">
+                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                    <div class="modal-body" style="padding:20px;">
+                        <p style="font-size:13px;color:var(--text-strong);font-weight:600;margin-bottom:8px;">
+                            This will delete all weekly schedule templates.
+                        </p>
+                        <p style="font-size:13px;color:var(--status-missed);">This action cannot be undone.</p>
+                        <p style="font-size:13px;color:var(--text-muted);">Existing daily schedules will not be affected.</p>
+                    </div>
+                    <div class="modal-footer" style="border-top:1px solid var(--border);padding:14px 20px;display:flex;gap:8px;justify-content:flex-end;">
+                        <button type="button" class="mp-btn mp-btn-secondary" data-dismiss="modal">Cancel</button>
+                        <button type="submit" class="mp-btn mp-btn-secondary"
+                                style="border-color:var(--status-missed);color:var(--status-missed);">
+                            <i class="fas fa-redo"></i> Yes, reset
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+</div>
+</div>
+</body>
+</html>

@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Logged Out | HealthCare+</title>
+    <link rel="stylesheet" th:href="@{/css/main.css}"/>
+    <style>
+        body { font-family: 'Inter', 'Segoe UI', system-ui, sans-serif; background: linear-gradient(135deg,#f5f7fa 0%,#e8edf2 100%); height:100vh; display:flex; align-items:center; justify-content:center; }
+        .logout-card { background:white; padding:3rem; border-radius:20px; box-shadow:0 20px 60px rgba(0,0,0,0.08); text-align:center; max-width:500px; width:90%; }
+        .logout-icon { width:80px; height:80px; background:linear-gradient(135deg,#10B981 0%,#059669 100%); border-radius:50%; display:flex; align-items:center; justify-content:center; margin:0 auto 1.5rem; }
+        .logout-icon i { font-size:2.5rem; color:white; }
+        h2 { color:var(--text-primary); font-weight:700; margin-bottom:1rem; }
+        p { color:var(--text-secondary); margin-bottom:1rem; }
+        .countdown { font-size:36px; font-weight:700; color:var(--accent); margin-top:6px; }
+        .btn-login { background:linear-gradient(135deg,#4A5568 0%,#2D3748 100%); color:white; border:none; padding:0.875rem 2rem; border-radius:10px; font-weight:600; text-decoration:none; display:inline-block; transition:all 0.3s ease; }
+        .btn-login:hover { transform:translateY(-2px); box-shadow:0 6px 20px rgba(74,85,104,0.4); }
+    </style>
+</head>
+<body>
+    <div class="logout-card">
+        <div class="logout-icon">
+            <i class="fas fa-check"></i>
+        </div>
+        <h2 th:text="${param.logSucc != null} ? 'Successfully Logged Out' : 'You are signed out'">Successfully Logged Out</h2>
+        <p th:text="${param.logSucc != null} ? 'You have been securely logged out of the system.' : 'You have been signed out.'">You have been securely logged out of the system.</p>
+        <div>
+            Redirecting to login in <span class="countdown" id="count">5</span> seconds...
+        </div>
+        <div style="margin-top:18px;">
+            <a th:href="@{/login}" class="btn-login"><i class="fas fa-sign-in-alt"></i> Go to Login Now</a>
+        </div>
+    </div>
+
+    <script>
+        (function(){
+            var seconds = 5;
+            var el = document.getElementById('count');
+            var iv = setInterval(function(){
+                seconds--; el.textContent = seconds;
+                if(seconds<=0){ clearInterval(iv); window.location.href = '/login'; }
+            },1000);
+        })();
+    </script>
+</body>
+</html>

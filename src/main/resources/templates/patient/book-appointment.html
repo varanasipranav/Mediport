@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/web/thymeleaf/layout"
+      xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity6"
+      layout:decorate="~{layout}">
+<head>
+    <title>Book Appointment - Patient</title>
+    <style>
+        .appointment-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 2rem;
+            border-radius: 12px;
+            margin-bottom: 2rem;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+            color: white;
+        }
+
+        .appointment-header h1 {
+            font-size: 2rem;
+            font-weight: 700;
+            margin: 0;
+        }
+
+        .booking-card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+            overflow: hidden;
+            margin-bottom: 2rem;
+        }
+
+        .booking-card .card-header {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            padding: 1.5rem;
+            border: none;
+        }
+
+        .booking-card .card-title {
+            color: #2d3748;
+            font-weight: 700;
+            margin: 0;
+        }
+
+        .form-control, .form-select {
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 0.75rem 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .form-control:focus, .form-select:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 0.2rem rgba(102,126,234,0.25);
+        }
+
+        .form-label {
+            font-weight: 600;
+            color: #2d3748;
+            margin-bottom: 0.5rem;
+        }
+
+        .info-box {
+            background: linear-gradient(135deg, #e0f2fe 0%, #bfdbfe 100%);
+            padding: 1.5rem;
+            border-radius: 8px;
+            border-left: 4px solid #3b82f6;
+        }
+
+        .info-box h5 {
+            color: #1e40af;
+            font-weight: 700;
+            margin-bottom: 1rem;
+        }
+
+        .info-box ul {
+            margin-bottom: 0;
+            color: #1e3a8a;
+        }
+
+        .doctor-card {
+            background: white;
+            border-radius: 8px;
+            padding: 1.5rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+            transition: all 0.3s ease;
+            border: 2px solid #e2e8f0;
+        }
+
+        .doctor-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 6px 16px rgba(0,0,0,0.1);
+            border-color: #667eea;
+        }
+
+        .doctor-card h5 {
+            color: #2d3748;
+            font-weight: 700;
+            margin-bottom: 1rem;
+        }
+
+        .doctor-card .card-text {
+            color: #4a5568;
+        }
+
+        .btn-confirm {
+            background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
+            color: white;
+            padding: 0.75rem 2rem;
+            border-radius: 8px;
+            font-weight: 600;
+            border: none;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+        }
+
+        .btn-confirm:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+            background: linear-gradient(135deg, #38a169 0%, #2f855a 100%);
+        }
+
+        .btn-cancel {
+            background: #e2e8f0;
+            color: #2d3748;
+            padding: 0.75rem 2rem;
+            border-radius: 8px;
+            font-weight: 600;
+            border: none;
+            transition: all 0.3s ease;
+        }
+
+        .btn-cancel:hover {
+            background: #cbd5e0;
+            transform: translateY(-2px);
+        }
+    </style>
+</head>
+<body>
+<div layout:fragment="content">
+    <div class="container-fluid">
+
+        <!-- Header -->
+        <div class="appointment-header">
+            <h1><i class="fas fa-calendar-plus me-2"></i>Book Appointment</h1>
+            <p class="mb-0 mt-2 opacity-90">Schedule your appointment with our specialized doctors</p>
+        </div>
+
+        <!-- Book Appointment Form -->
+        <div class="booking-card card">
+            <div class="card-header">
+                <h3 class="card-title"><i class="fas fa-user-md me-2"></i>Select Doctor and Date</h3>
+            </div>
+            <form th:action="@{/patient/book-appointment}" method="post" id="bookingForm">
+                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group mb-4">
+                                <label class="form-label">
+                                    <i class="fas fa-user-md me-1 text-primary"></i>
+                                    Select Doctor <span class="text-danger">*</span>
+                                </label>
+                                <select name="doctorId" class="form-select" required id="doctorSelect">
+                                    <option value="">-- Choose a Doctor --</option>
+                                    <option th:each="doctor : ${doctors}"
+                                            th:value="${doctor.id}"
+                                            th:text="${doctor.firstName} + ' ' + ${doctor.lastName} + ' - ' + ${doctor.specialization}">
+                                    </option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group mb-4">
+                                <label class="form-label">
+                                    <i class="fas fa-calendar-alt me-1 text-success"></i>
+                                    Appointment Date <span class="text-danger">*</span>
+                                </label>
+                                <input type="date" name="appointmentDate" class="form-control"
+                                       th:value="${today}" th:min="${today}" required id="dateSelect"/>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="info-box">
+                        <h5><i class="fas fa-info-circle me-2"></i>How It Works</h5>
+                        <ul>
+                            <li>Select your preferred doctor and date</li>
+                            <li>Your queue number and appointment time will be assigned automatically</li>
+                            <li>You can check your queue position on your dashboard</li>
+                            <li>Please arrive 10 minutes before your scheduled time</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="card-footer" style="background: white; border-top: 2px solid #e2e8f0;">
+                    <button type="submit" class="btn-confirm">
+                        <i class="fas fa-check me-2"></i>Confirm Booking
+                    </button>
+                    <a th:href="@{/patient/dashboard}" class="btn-cancel ms-2">
+                        <i class="fas fa-times me-2"></i>Cancel
+                    </a>
+                </div>
+            </form>
+        </div>
+
+        <!-- Available Doctors Info -->
+        <div class="card booking-card">
+            <div class="card-header">
+                <h3 class="card-title"><i class="fas fa-users-medical me-2"></i>Available Doctors</h3>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-4 mb-3" th:each="doctor : ${doctors}">
+                        <div class="doctor-card">
+                            <h5><i class="fas fa-user-md me-2 text-primary"></i><span th:text="'Dr. ' + ${doctor.firstName} + ' ' + ${doctor.lastName}"></span></h5>
+                            <p class="card-text mb-2">
+                                <i class="fas fa-stethoscope me-2 text-success"></i>
+                                <strong>Specialization:</strong> <span th:text="${doctor.specialization}"></span>
+                            </p>
+                            <p class="card-text mb-2">
+                                <i class="fas fa-hospital me-2 text-info"></i>
+                                <strong>Department:</strong> <span th:text="${doctor.department}"></span>
+                            </p>
+                            <p class="card-text mb-0">
+                                <i class="fas fa-id-badge me-2 text-warning"></i>
+                                <strong>Employee ID:</strong> <span th:text="${doctor.employeeId}"></span>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<div layout:fragment="scriptContent">
+    <script>
+        // Show success/error messages with SweetAlert2
+        const successMessage = /*[[${success}]]*/ null;
+        const errorMessage = /*[[${error}]]*/ null;
+
+        if (successMessage) {
+            Swal.fire({
+                icon: 'success',
+                title: 'Appointment Booked!',
+                text: successMessage,
+                confirmButtonColor: '#48bb78',
+                timer: 4000,
+                timerProgressBar: true
+            });
+        }
+
+        if (errorMessage) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Booking Failed',
+                text: errorMessage,
+                confirmButtonColor: '#dc3545'
+            });
+        }
+
+        // Form validation
+        document.getElementById('bookingForm').addEventListener('submit', function(e) {
+            const doctor = document.getElementById('doctorSelect').value;
+            const date = document.getElementById('dateSelect').value;
+
+            if (!doctor || !date) {
+                e.preventDefault();
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Missing Information',
+                    text: 'Please select both a doctor and appointment date.',
+                    confirmButtonColor: '#f59e0b'
+                });
+                return false;
+            }
+        });
+    </script>
+</div>
+</body>
+</html>

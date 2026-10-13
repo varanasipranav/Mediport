@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout}">
+<head>
+    <title>Create Doctor</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+    <style>
+    /* Inlined admin-users styles (copied from admin-users.css) */
+    :root{ --primary-dark: #2D3748; --primary: #4A5568; --accent: #3B82F6; --accent-light: #60A5FA; --success: #10B981; --warning: #F59E0B; --danger: #EF4444; --light-bg: #F7FAFC; --border: #E2E8F0; --text-primary: #1A202C; --text-secondary: #718096; --muted: rgba(26,32,44,0.65); }
+    .content-wrapper .container-fluid { padding-left: 28px; padding-right: 28px; }
+    h1, h2, h3, h4, h5 { color: var(--text-primary); font-family: 'Segoe UI', system-ui, -apple-system, 'Inter', sans-serif; }
+    .breadcrumb { background: transparent !important; padding: 0 !important; margin: 0 !important; }
+    .breadcrumb .breadcrumb-item a { color: var(--accent) !important; text-decoration: none !important; }
+    .breadcrumb .breadcrumb-item.active { color: var(--muted) !important; }
+    .card { border-radius: 6px; border: 1px solid var(--border); box-shadow: 0 6px 18px rgba(17,24,39,0.04); background: #ffffff; }
+    .card-header { background: transparent; border-bottom: none; padding: 16px 20px; font-weight: 700; color: var(--text-primary); }
+    .card-body { padding: 18px 20px; }
+    .stat-box { border-radius: 6px; padding: 18px; color: #fff; }
+    .stat-box .value { font-size: 28px; font-weight: 700; }
+    .stat-box .label { font-size: 14px; opacity: 0.95; }
+    .btn { border-radius: 6px; padding: 10px 20px; font-weight: 600; font-size: 14px; min-width: 120px; }
+    .btn-primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+    .btn-primary:hover { background: var(--accent-light); border-color: var(--accent-light); }
+    .btn-success { background: var(--success); border-color: var(--success); color: #fff; }
+    .btn-warning { background: var(--warning); border-color: var(--warning); color: #212529; }
+    .btn-info { background: var(--accent-light); border-color: var(--accent-light); color: #fff; }
+    .btn-secondary { background: #f1f1f1; border-color: #e9ecef; color: var(--text-primary); }
+    .btn-outline-primary { color: var(--accent); border: 1px solid var(--accent); background: transparent; }
+    .btn-outline-primary:hover { background: rgba(59,130,246,0.06); }
+    .btn-outline-warning { color: var(--warning); border: 1px solid var(--warning); }
+    .btn-outline-danger { color: var(--danger); border: 1px solid var(--danger); }
+    .role-admin { background: var(--accent); color: #fff; }
+    .role-doctor { background: #10B981; color: #fff; }
+    .role-patient { background: #0EA5A4; color: #fff; }
+    .role-attendant { background: var(--warning); color: #fff; }
+    .role-pharma { background: #6B7280; color: #fff; }
+    .table { border-collapse: separate; border-spacing: 0; }
+    .table thead th { background: transparent; border-bottom: 2px solid var(--border); color: var(--text-primary); font-weight: 700; padding: 12px 16px; }
+    .table tbody td { padding: 12px 16px; vertical-align: middle; }
+    .table-hover tbody tr:hover { background: rgba(59,130,246,0.03); }
+    .table-responsive { overflow: auto; }
+    .input-group { display: flex; align-items: center; }
+    .input-group .input-group-text { background: transparent; border: 1px solid var(--border); border-right: none; padding: 8px 10px; color: var(--muted); }
+    .input-group .form-control { border: 1px solid var(--border); border-left: none; padding: 8px 10px; border-radius: 6px; }
+    .alert { border-radius: 6px; }
+    .alert .fas { margin-right: 8px; }
+    .form-control, .form-select { padding: 10px 12px; }
+    .mb-0 { margin-bottom: 0 !important; }
+    .mb-1 { margin-bottom: .25rem !important; }
+    .mb-2 { margin-bottom: .5rem !important; }
+    @media (max-width: 991px) { .content-wrapper .container-fluid { padding-left: 12px; padding-right: 12px; } .card-header { padding: 12px; } }
+    .btn-group .btn { padding: 6px 8px; font-size: 13px; }
+    .d-flex.justify-content-between.align-items-center.mb-3 { gap: 16px; }
+    .icon-wrapper i { vertical-align: middle; }
+    .container-fluid .card { background: #fff; }
+    </style>
+</head>
+<body>
+
+<!-- Content Header -->
+<div layout:fragment="header">
+    <div class="container-fluid">
+        <h1 style="font-size: 1.75rem; font-weight: 700; color: var(--text-primary); margin-bottom: 0.5rem;"
+            th:text="${isEdit != null && isEdit} ? 'Edit Doctor' : 'Create Doctor'">Create Doctor</h1>
+        <ol class="breadcrumb" style="background: transparent; padding: 0; margin: 0; font-size: 0.875rem;">
+            <li class="breadcrumb-item"><a th:href="@{/dashboard}" style="color: var(--primary-color); text-decoration: none;">Home</a></li>
+            <li class="breadcrumb-item"><a th:href="@{/admin/users/list}" style="color: var(--primary-color); text-decoration: none;">Users</a></li>
+            <li class="breadcrumb-item active" th:text="${isEdit != null && isEdit} ? 'Edit Doctor' : 'Create Doctor'">Create Doctor</li>
+        </ol>
+    </div>
+</div>
+
+<!-- Main Content -->
+<div layout:fragment="content">
+    <div class="container-fluid">
+
+        <!-- Error Messages -->
+        <div th:if="${error}" class="alert alert-danger alert-dismissible fade show">
+            <i class="fas fa-exclamation-circle"></i> <span th:text="${error}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+
+        <div class="row">
+            <div class="col-lg-8 offset-lg-2">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0"><i class="fas fa-user-md"></i> Doctor Information</h5>
+                    </div>
+                    <div class="card-body">
+                        <form th:action="${isEdit != null && isEdit} ? @{/admin/users/update/{id}(id=${user.id})} : @{/admin/users/create-doctor}"
+                              method="post" th:object="${user}" onsubmit="return validateForm()">
+                            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+
+                            <!-- Login Credentials Section -->
+                            <div class="mb-4">
+                                <h6 class="border-bottom pb-2"><i class="fas fa-key"></i> Login Credentials</h6>
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label for="username" class="form-label">Username <span class="text-danger">*</span></label>
+                                        <input type="text" class="form-control" id="username" th:field="*{username}"
+                                               th:readonly="${isEdit != null && isEdit}" required>
+                                        <small class="text-muted" th:if="${isEdit != null && isEdit}">Username cannot be changed</small>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label for="password" class="form-label">
+                                            Password
+                                            <span class="text-danger" th:if="${isEdit == null || !isEdit}">*</span>
+                                            <span class="text-muted" th:if="${isEdit != null && isEdit}">(leave blank to keep current)</span>
+                                        </label>
+    `                                        <!-- Password field: bind to user.password when creating, use newPassword param when editing -->
+                                        <div th:if="${isEdit != null && isEdit}">
+                                            <input type="password" class="form-control" id="password" name="newPassword" minlength="6">
+                                        </div>
+                                        <div th:if="${isEdit == null || !isEdit}">
+                                            <input type="password" class="form-control" id="password" th:field="*{password}" required minlength="6">
+                                        </div>
+                                        <small class="text-muted">Minimum 6 characters</small>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Personal Information -->
+                            <div class="mb-4">
+                                <h6 class="border-bottom pb-2"><i class="fas fa-user"></i> Personal Information</h6>
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label for="firstName" class="form-label">First Name <span class="text-danger">*</span></label>
+                                        <input type="text" class="form-control" id="firstName" th:field="*{firstName}" required>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label for="lastName" class="form-label">Last Name <span class="text-danger">*</span></label>
+                                        <input type="text" class="form-control" id="lastName" th:field="*{lastName}" required>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label for="phoneNumber" class="form-label">Phone Number <span class="text-danger">*</span></label>
+                                        <input type="tel" class="form-control" id="phoneNumber" th:field="*{phoneNumber}" required>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label for="email" class="form-label">Email</label>
+                                        <input type="email" class="form-control" id="email" th:field="*{email}">
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label for="gender" class="form-label">Gender</label>
+                                        <select class="form-select" id="gender" th:field="*{gender}">
+                                            <option value="">Select Gender</option>
+                                            <option value="Male">Male</option>
+                                            <option value="Female">Female</option>
+                                            <option value="Other">Other</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label for="dateOfBirth" class="form-label">Date of Birth</label>
+                                        <input type="date" class="form-control" id="dateOfBirth" th:field="*{dateOfBirth}">
+                                    </div>
+                                    <div class="col-12 mb-3">
+                                        <label for="address" class="form-label">Address</label>
+                                        <textarea class="form-control" id="address" th:field="*{address}" rows="2"></textarea>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Professional Information -->
+                            <div class="mb-4">
+                                <h6 class="border-bottom pb-2"><i class="fas fa-briefcase"></i> Professional Information</h6>
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label for="specialization" class="form-label">Specialization <span class="text-danger">*</span></label>
+                                        <select class="form-select" id="specialization" th:field="*{specialization}" required>
+                                            <option value="">Select Specialization</option>
+                                            <option value="Cardiology">Cardiology</option>
+                                            <option value="Neurology">Neurology</option>
+                                            <option value="Pediatrics">Pediatrics</option>
+                                            <option value="Orthopedics">Orthopedics</option>
+                                            <option value="Dermatology">Dermatology</option>
+                                            <option value="Ophthalmology">Ophthalmology</option>
+                                            <option value="General Medicine">General Medicine</option>
+                                            <option value="Surgery">Surgery</option>
+                                            <option value="Gynecology">Gynecology</option>
+                                            <option value="Psychiatry">Psychiatry</option>
+                                            <option value="Radiology">Radiology</option>
+                                            <option value="Anesthesiology">Anesthesiology</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label for="licenseNumber" class="form-label">License Number <span class="text-danger">*</span></label>
+                                        <input type="text" class="form-control" id="licenseNumber" th:field="*{licenseNumber}" required>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label for="department" class="form-label">Department</label>
+                                        <input type="text" class="form-control" id="department" th:field="*{department}">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Buttons -->
+                            <div class="d-flex justify-content-between mt-3">
+                                <a th:href="@{/admin/users/list}" class="btn btn-secondary btn-lg">
+                                    <i class="fas fa-arrow-left me-2"></i> Cancel
+                                </a>
+                                <button type="submit" class="btn btn-success btn-lg">
+                                    <i th:class="${isEdit != null && isEdit} ? 'fas fa-save me-2' : 'fas fa-plus me-2'"></i>
+                                    <span th:text="${isEdit != null && isEdit} ? 'Update Doctor' : 'Create Doctor'">Create Doctor</span>
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<!-- Custom Scripts -->
+<div layout:fragment="scriptContent">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script th:inline="javascript">
+        /*<![CDATA[*/
+        const successMsg = /*[[${success}]]*/ null;
+        const errorMsg = /*[[${error}]]*/ null;
+        if (successMsg) {
+            Swal.fire({icon: 'success', title: 'Success', text: successMsg, timer: 2500}).then(()=>{ window.location.href='/admin/users/list'; });
+        }
+        if (errorMsg) {
+            Swal.fire({icon: 'error', title: 'Error', text: errorMsg});
+        }
+
+        function validateForm() {
+            const username = document.getElementById('username').value.trim();
+            // Determine password value from either newPassword (edit) or bound password (create)
+            const isEdit = /*[[${isEdit}]]*/ false;
+            let password = '';
+            if (isEdit) {
+                const el = document.querySelector('input[name="newPassword"]');
+                password = el ? el.value : '';
+            } else {
+                const el = document.getElementById('password');
+                password = el ? el.value : '';
+            }
+            const firstName = document.getElementById('firstName').value.trim();
+            const lastName = document.getElementById('lastName').value.trim();
+            const phoneNumber = document.getElementById('phoneNumber').value.trim();
+            const specialization = document.getElementById('specialization').value;
+            const licenseNumber = document.getElementById('licenseNumber').value.trim();
+
+            if (!username || !firstName || !lastName || !phoneNumber || !specialization || !licenseNumber) {
+                Swal.fire({icon: 'warning', title: 'Missing Fields', text: 'Please fill all required fields marked with *'});
+                return false;
+            }
+
+            if (!isEdit && !password) {
+                Swal.fire({icon: 'warning', title: 'Password required', text: 'Password is required for new users'});
+                return false;
+            }
+
+            if (password && password.length < 6) {
+                Swal.fire({icon: 'warning', title: 'Weak password', text: 'Password must be at least 6 characters long'});
+                return false;
+            }
+
+            return true;
+        }
+
+        // Removed AJAX fetch submit: allow native form submit to preserve session/CSRF
+        /* No additional JS needed here - form has onsubmit="return validateForm()" */
+        /*]]>*/
+    </script>
+</div>
+
+</body>
+</html>

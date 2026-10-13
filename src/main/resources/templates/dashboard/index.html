@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/web/thymeleaf/layout"
+      xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity6"
+      layout:decorate="~{layout}">
+<head>
+    <title>Dashboard</title>
+    <style>
+        .kpi-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:16px; padding:0 32px 24px; }
+        @media(max-width:1100px){ .kpi-grid{ grid-template-columns:repeat(2,1fr); } }
+        @media(max-width:600px) { .kpi-grid{ grid-template-columns:1fr; } }
+        .dash-grid { display:grid; grid-template-columns:2fr 1fr; gap:24px; padding:0 32px 24px; }
+        @media(max-width:960px){ .dash-grid{ grid-template-columns:1fr; } }
+        .action-tile {
+            display:flex; flex-direction:column; align-items:flex-start; gap:10px;
+            padding:16px; border-radius:var(--r-md); background:var(--bg-subtle);
+            border:1px solid var(--border); text-decoration:none;
+            transition:border-color 0.15s, background 0.15s;
+        }
+        .action-tile:hover { border-color:var(--brand-primary-100); background:var(--brand-primary-50); }
+        .action-tile-icon {
+            width:36px; height:36px; border-radius:8px;
+            background:var(--brand-primary-50); color:var(--brand-primary);
+            display:inline-flex; align-items:center; justify-content:center; font-size:15px;
+        }
+        .action-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; }
+        .user-row {
+            display:flex; align-items:center; gap:13px;
+            padding:13px 20px; border-bottom:1px solid var(--border);
+        }
+        .user-row:last-child { border-bottom:none; }
+        .role-chip {
+            padding:3px 9px; border-radius:var(--r-pill);
+            font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:0.05em;
+        }
+        .role-chip.ROLE_ADMIN     { background:#DBEAFE; color:#1E40AF; }
+        .role-chip.ROLE_DOCTOR    { background:var(--status-completed-bg); color:var(--status-completed); }
+        .role-chip.ROLE_PATIENT   { background:var(--brand-primary-50); color:var(--brand-primary); }
+        .role-chip.ROLE_ATTENDANT { background:var(--status-waiting-bg); color:var(--status-waiting); }
+        .role-chip.ROLE_PHARMA    { background:var(--bg-muted); color:var(--text-muted); }
+        /* Bar chart */
+        .bar-chart { display:grid; grid-template-columns:repeat(7,1fr); gap:8px; align-items:flex-end; height:140px; }
+        .bar-group { display:flex; align-items:flex-end; gap:3px; height:100%; }
+        .bar { flex:1; border-radius:3px 3px 0 0; min-height:2px; }
+    </style>
+</head>
+<body>
+<div layout:fragment="content">
+
+    <!-- Page Header -->
+    <div class="mp-page-header">
+        <div>
+            <h1 class="mp-page-title">
+                <sec:authorize access="hasRole('ADMIN')">Clinic overview</sec:authorize>
+                <sec:authorize access="hasRole('DOCTOR')">My Dashboard</sec:authorize>
+                <sec:authorize access="hasRole('PATIENT')">My Dashboard</sec:authorize>
+                <sec:authorize access="hasRole('ATTENDANT')">Front desk</sec:authorize>
+                <sec:authorize access="hasRole('PHARMA')">Pharmacy overview</sec:authorize>
+            </h1>
+            <div class="mp-page-subtitle">
+                <span th:text="${#temporals.format(#temporals.createNow(), 'EEEE, dd MMMM yyyy')}">Today</span>
+            </div>
+        </div>
+        <div class="mp-page-actions">
+            <sec:authorize access="hasRole('ADMIN')">
+                <a th:href="@{/admin/users/list}" class="mp-btn mp-btn-secondary">
+                    <i class="fas fa-users"></i> All users
+                </a>
+                <a th:href="@{/admin/users/create-doctor}" class="mp-btn mp-btn-primary">
+                    <i class="fas fa-plus"></i> Add staff
+                </a>
+            </sec:authorize>
+            <sec:authorize access="hasRole('DOCTOR')">
+                <a th:href="@{/doctor/appointments/today}" class="mp-btn mp-btn-primary">
+                    <i class="fas fa-list-ol"></i> Today's queue
+                </a>
+            </sec:authorize>
+            <sec:authorize access="hasRole('ATTENDANT')">
+                <a th:href="@{/attendant/check-in}" class="mp-btn mp-btn-primary">
+                    <i class="fas fa-user-check"></i> Check-in patient
+                </a>
+            </sec:authorize>
+            <sec:authorize access="hasRole('PATIENT')">
+                <a th:href="@{/patient/book-appointment}" class="mp-btn mp-btn-primary">
+                    <i class="fas fa-calendar-plus"></i> Book appointment
+                </a>
+            </sec:authorize>
+        </div>
+    </div>
+
+    <!-- KPI tiles (admin) -->
+    <sec:authorize access="hasRole('ADMIN')">
+        <div class="kpi-grid">
+            <div class="mp-stat">
+                <span style="position:absolute;top:0;left:0;bottom:0;width:3px;background:var(--status-waiting-bar);opacity:.85;border-radius:10px 0 0 10px;"></span>
+                <div class="mp-stat-label"><i class="fas fa-users"></i> Total users</div>
+                <div class="mp-stat-value" th:text="${totalUsers ?: 0}">0</div>
+                <a th:href="@{/admin/users/list}" style="font-size:12px;color:var(--brand-primary);font-weight:600;">View all →</a>
+            </div>
+            <div class="mp-stat">
+                <span style="position:absolute;top:0;left:0;bottom:0;width:3px;background:var(--brand-primary);opacity:.85;border-radius:10px 0 0 10px;"></span>
+                <div class="mp-stat-label"><i class="fas fa-user-md"></i> Doctors</div>
+                <div class="mp-stat-value" th:text="${totalDoctors ?: 0}">0</div>
+                <a th:href="@{/admin/users/create-doctor}" style="font-size:12px;color:var(--brand-primary);font-weight:600;">Add doctor →</a>
+            </div>
+            <div class="mp-stat">
+                <span style="position:absolute;top:0;left:0;bottom:0;width:3px;background:var(--status-consult-bar);opacity:.85;border-radius:10px 0 0 10px;"></span>
+                <div class="mp-stat-label"><i class="fas fa-user-injured"></i> Patients</div>
+                <div class="mp-stat-value" th:text="${totalPatients ?: 0}">0</div>
+                <a th:href="@{/admin/users/create-patient}" style="font-size:12px;color:var(--brand-primary);font-weight:600;">Add patient →</a>
+            </div>
+            <div class="mp-stat">
+                <span style="position:absolute;top:0;left:0;bottom:0;width:3px;background:var(--status-completed-bar);opacity:.85;border-radius:10px 0 0 10px;"></span>
+                <div class="mp-stat-label"><i class="fas fa-user-check"></i> Active users</div>
+                <div class="mp-stat-value" th:text="${activeUsers ?: 0}">0</div>
+                <div style="font-size:11px;color:var(--text-muted);">Currently enabled</div>
+            </div>
+        </div>
+    </sec:authorize>
+
+    <!-- Main 2-col grid -->
+    <div class="dash-grid">
+
+        <!-- Left: quick actions (admin) + activity / upcoming -->
+        <div style="display:flex;flex-direction:column;gap:20px;">
+
+            <!-- Admin quick actions -->
+            <sec:authorize access="hasRole('ADMIN')">
+                <div class="mp-card">
+                    <div class="mp-card-header">
+                        <h3 class="mp-card-title"><i class="fas fa-bolt" style="margin-right:7px;color:var(--brand-primary);"></i>Quick actions</h3>
+                    </div>
+                    <div class="mp-card-body">
+                        <div class="action-grid">
+                            <a th:href="@{/admin/users/create-doctor}" class="action-tile">
+                                <div class="action-tile-icon"><i class="fas fa-user-md"></i></div>
+                                <div>
+                                    <div style="font-size:13px;font-weight:700;color:var(--text-strong);">Add Doctor</div>
+                                    <div style="font-size:11px;color:var(--text-muted);">New doctor account</div>
+                                </div>
+                            </a>
+                            <a th:href="@{/admin/users/create-patient}" class="action-tile">
+                                <div class="action-tile-icon" style="background:var(--status-consult-bg);color:var(--status-consult);"><i class="fas fa-user-injured"></i></div>
+                                <div>
+                                    <div style="font-size:13px;font-weight:700;color:var(--text-strong);">Add Patient</div>
+                                    <div style="font-size:11px;color:var(--text-muted);">Register new patient</div>
+                                </div>
+                            </a>
+                            <a th:href="@{/admin/users/create-attendant}" class="action-tile">
+                                <div class="action-tile-icon" style="background:var(--status-waiting-bg);color:var(--status-waiting);"><i class="fas fa-user-tie"></i></div>
+                                <div>
+                                    <div style="font-size:13px;font-weight:700;color:var(--text-strong);">Add Attendant</div>
+                                    <div style="font-size:11px;color:var(--text-muted);">Front desk staff</div>
+                                </div>
+                            </a>
+                            <a th:href="@{/admin/users/create-pharma}" class="action-tile">
+                                <div class="action-tile-icon" style="background:var(--status-completed-bg);color:var(--status-completed);"><i class="fas fa-pills"></i></div>
+                                <div>
+                                    <div style="font-size:13px;font-weight:700;color:var(--text-strong);">Add Pharmacy</div>
+                                    <div style="font-size:11px;color:var(--text-muted);">Pharmacy staff</div>
+                                </div>
+                            </a>
+                            <a th:href="@{/admin/users/list}" class="action-tile">
+                                <div class="action-tile-icon" style="background:var(--bg-muted);color:var(--text-muted);"><i class="fas fa-users-cog"></i></div>
+                                <div>
+                                    <div style="font-size:13px;font-weight:700;color:var(--text-strong);">Manage Users</div>
+                                    <div style="font-size:11px;color:var(--text-muted);">View all accounts</div>
+                                </div>
+                            </a>
+                            <a href="#" class="action-tile">
+                                <div class="action-tile-icon" style="background:var(--wa-green-bg);color:var(--wa-green);"><i class="fab fa-whatsapp"></i></div>
+                                <div>
+                                    <div style="font-size:13px;font-weight:700;color:var(--text-strong);">WhatsApp Log</div>
+                                    <div style="font-size:11px;color:var(--text-muted);">Conversation feed</div>
+                                </div>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </sec:authorize>
+
+            <!-- Doctor: link to today's queue -->
+            <sec:authorize access="hasRole('DOCTOR')">
+                <div class="mp-card">
+                    <div class="mp-card-header">
+                        <h3 class="mp-card-title"><i class="fas fa-list-ol" style="margin-right:7px;color:var(--brand-primary);"></i>Today's queue</h3>
+                        <a th:href="@{/doctor/appointments/today}" class="mp-btn mp-btn-primary mp-btn-sm">View queue</a>
+                    </div>
+                    <div class="mp-card-body" style="text-align:center;padding:32px 24px;">
+                        <i class="fas fa-stethoscope" style="font-size:36px;color:var(--brand-primary-100);margin-bottom:14px;display:block;"></i>
+                        <div style="font-family:var(--font-display);font-size:15px;font-weight:700;color:var(--text-strong);margin-bottom:6px;">Jump into today's appointments</div>
+                        <div style="font-size:13px;color:var(--text-muted);margin-bottom:20px;">See your patient queue, start consultations and write prescriptions.</div>
+                        <a th:href="@{/doctor/appointments/today}" class="mp-btn mp-btn-primary">
+                            <i class="fas fa-play"></i> Open queue
+                        </a>
+                    </div>
+                </div>
+            </sec:authorize>
+
+            <!-- Patient: go to dashboard -->
+            <sec:authorize access="hasRole('PATIENT')">
+                <div class="mp-card">
+                    <div class="mp-card-header">
+                        <h3 class="mp-card-title">Your appointments</h3>
+                        <a th:href="@{/patient/book-appointment}" class="mp-btn mp-btn-primary mp-btn-sm"><i class="fas fa-plus"></i> Book new</a>
+                    </div>
+                    <div class="mp-card-body" style="text-align:center;padding:32px 24px;">
+                        <a th:href="@{/patient/dashboard}" class="mp-btn mp-btn-primary">
+                            <i class="fas fa-tachometer-alt"></i> Go to my dashboard
+                        </a>
+                    </div>
+                </div>
+            </sec:authorize>
+
+            <!-- Attendant: check-in shortcut -->
+            <sec:authorize access="hasRole('ATTENDANT')">
+                <div class="mp-card">
+                    <div class="mp-card-header">
+                        <h3 class="mp-card-title">Patient check-in</h3>
+                        <a th:href="@{/attendant/queue}" class="mp-btn mp-btn-secondary mp-btn-sm">Live queue</a>
+                    </div>
+                    <div class="mp-card-body" style="text-align:center;padding:32px 24px;">
+                        <a th:href="@{/attendant/check-in}" class="mp-btn mp-btn-primary mp-btn-lg">
+                            <i class="fas fa-user-check"></i> Check in a patient
+                        </a>
+                    </div>
+                </div>
+            </sec:authorize>
+
+            <!-- Pharma: dispense queue -->
+            <sec:authorize access="hasRole('PHARMA')">
+                <div class="mp-card">
+                    <div class="mp-card-header">
+                        <h3 class="mp-card-title">Dispense queue</h3>
+                    </div>
+                    <div class="mp-card-body" style="text-align:center;padding:32px 24px;">
+                        <a th:href="@{/pharma/dashboard}" class="mp-btn mp-btn-primary mp-btn-lg">
+                            <i class="fas fa-capsules"></i> Open dispense queue
+                        </a>
+                    </div>
+                </div>
+            </sec:authorize>
+
+        </div>
+
+        <!-- Right: recent users (admin) or side info -->
+        <div style="display:flex;flex-direction:column;gap:16px;">
+
+            <!-- Recent users -->
+            <div class="mp-card">
+                <div class="mp-card-header">
+                    <h3 class="mp-card-title"><i class="fas fa-clock" style="margin-right:7px;color:var(--text-muted);font-size:13px;"></i>Recent users</h3>
+                    <sec:authorize access="hasRole('ADMIN')">
+                        <a th:href="@{/admin/users/list}" class="mp-btn mp-btn-ghost mp-btn-sm">See all</a>
+                    </sec:authorize>
+                </div>
+
+                <!-- list -->
+                <div th:if="${recentUsers != null and !#lists.isEmpty(recentUsers)}">
+                    <div class="user-row" th:each="user : ${recentUsers}">
+                        <div class="mp-avatar"
+                             th:text="${user.firstName != null ? user.firstName.substring(0,1).toUpperCase() : 'U'}">U</div>
+                        <div style="flex:1;min-width:0;">
+                            <div style="font-size:13px;font-weight:600;color:var(--text-strong);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;"
+                                 th:text="${user.firstName + ' ' + user.lastName}">Name</div>
+                            <div style="font-size:11px;color:var(--text-muted);" th:text="${user.username}">username</div>
+                        </div>
+                        <span th:each="role : ${user.roles}"
+                              class="role-chip"
+                              th:classappend="${role.name}"
+                              th:text="${role.name.replace('ROLE_','')}">ROLE</span>
+                    </div>
+                </div>
+
+                <!-- empty state -->
+                <div th:if="${recentUsers == null or #lists.isEmpty(recentUsers)}"
+                     style="padding:32px 20px;text-align:center;">
+                    <i class="fas fa-user-friends" style="font-size:32px;color:var(--border-strong);margin-bottom:12px;display:block;"></i>
+                    <div style="font-size:13px;color:var(--text-muted);">No users yet</div>
+                </div>
+
+                <sec:authorize access="hasRole('ADMIN')">
+                    <div style="padding:14px 20px;border-top:1px solid var(--border);text-align:center;">
+                        <a th:href="@{/admin/users/list}" style="font-size:13px;color:var(--brand-primary);font-weight:600;">
+                            View all users →
+                        </a>
+                    </div>
+                </sec:authorize>
+            </div>
+
+            <!-- WhatsApp callout -->
+            <div class="mp-card" style="padding:18px;background:var(--wa-green-bg);border-color:#C7EED9;">
+                <div style="display:flex;align-items:flex-start;gap:10px;">
+                    <i class="fab fa-whatsapp" style="font-size:20px;color:var(--wa-green);flex-shrink:0;margin-top:2px;"></i>
+                    <div>
+                        <div style="font-family:var(--font-display);font-size:13px;font-weight:700;color:var(--wa-text);">WhatsApp bookings active</div>
+                        <div style="font-size:12px;color:var(--wa-text);opacity:.85;margin-top:4px;line-height:1.5;">
+                            Patients can book appointments by sending "Hi" to your WhatsApp number.
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+</div>
+</body>
+</html>

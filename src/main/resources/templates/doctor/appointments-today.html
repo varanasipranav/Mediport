@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/web/thymeleaf/layout"
+      layout:decorate="~{layout}">
+<head>
+    <title>Today's Queue</title>
+    <style>
+        .queue-row {
+            display: grid;
+            grid-template-columns: 56px 52px 1fr 1.1fr 180px 210px;
+            align-items: center;
+            gap: 14px;
+            padding: 16px 24px;
+            border-bottom: 1px solid var(--border);
+            position: relative;
+            transition: background 0.1s;
+        }
+        .queue-row:last-child { border-bottom: none; }
+        .queue-row.status-IN_CONSULTATION { background: var(--brand-primary-50); }
+        .queue-row.status-IN_CONSULTATION::before {
+            content: '';
+            position: absolute; left: 0; top: 8px; bottom: 8px;
+            width: 3px; background: var(--brand-primary);
+            border-radius: 0 3px 3px 0;
+        }
+        .queue-row.status-COMPLETED { opacity: 0.6; }
+        .queue-num {
+            width: 44px; height: 44px; border-radius: 10px;
+            background: var(--bg-muted); color: var(--text-strong);
+            display: inline-flex; align-items: center; justify-content: center;
+            font-family: var(--font-display); font-weight: 800; font-size: 17px;
+        }
+        .queue-num.active { background: var(--brand-primary); color: #fff; }
+        .queue-actions { display: flex; gap: 6px; justify-content: flex-end; flex-wrap: wrap; }
+        .filter-tab {
+            padding: 5px 12px; border-radius: 6px; font-size: 12px; font-weight: 600;
+            border: none; cursor: pointer; display: inline-flex; align-items: center; gap: 5px;
+            background: transparent; color: var(--text-muted); transition: background 0.15s;
+        }
+        .filter-tab.active { background: var(--bg-muted); color: var(--text-strong); }
+        .filter-count {
+            font-size: 10px; font-weight: 700; padding: 0 5px; border-radius: 999px; min-width: 17px; text-align: center;
+        }
+        .filter-tab.active .filter-count { background: var(--brand-primary); color: #fff; }
+        .filter-tab:not(.active) .filter-count { background: var(--bg-muted); color: var(--text-muted); }
+        @media (max-width: 1100px) {
+            .queue-row { grid-template-columns: 44px 40px 1fr 160px 180px; }
+            .queue-note-col { display: none; }
+        }
+        @media (max-width: 800px) {
+            .queue-row { grid-template-columns: 40px 1fr auto; }
+            .queue-avatar-col, .queue-note-col, .queue-time-col { display: none; }
+        }
+    </style>
+</head>
+<body>
+<div layout:fragment="content">
+
+    <!-- Page Header -->
+    <div class="mp-page-header">
+        <div>
+            <h1 class="mp-page-title">Today's Queue</h1>
+            <div class="mp-page-subtitle">
+                <i class="far fa-calendar-alt" style="margin-right:5px;"></i>
+                <span th:text="${#temporals.format(today, 'EEEE, dd MMMM yyyy')}">Today</span>
+            </div>
+        </div>
+        <div class="mp-page-actions">
+            <button class="mp-btn mp-btn-secondary mp-btn-sm" onclick="location.reload()">
+                <i class="fas fa-sync-alt"></i> Auto-refresh · 30s
+            </button>
+            <a th:href="@{/doctor/weekly-schedule}" class="mp-btn mp-btn-secondary">
+                <i class="fas fa-calendar-week"></i> View week
+            </a>
+            <a th:href="@{/attendant/check-in}" class="mp-btn mp-btn-primary">
+                <i class="fas fa-plus"></i> Add walk-in
+            </a>
+        </div>
+    </div>
+
+    <!-- Alert messages -->
+    <div style="padding: 0 32px;" th:if="${success}">
+        <div class="alert alert-success alert-dismissible" style="margin-bottom:16px;">
+            <button type="button" class="close" data-dismiss="alert">&times;</button>
+            <i class="fas fa-check-circle" style="margin-right:6px;"></i>
+            <span th:text="${success}"></span>
+        </div>
+    </div>
+    <div style="padding: 0 32px;" th:if="${error}">
+        <div class="alert alert-danger alert-dismissible" style="margin-bottom:16px;">
+            <button type="button" class="close" data-dismiss="alert">&times;</button>
+            <i class="fas fa-exclamation-circle" style="margin-right:6px;"></i>
+            <span th:text="${error}"></span>
+        </div>
+    </div>
+
+    <!-- Stat tiles -->
+    <div class="mp-stats-grid">
+        <!-- Total -->
+        <div class="mp-stat">
+            <span style="position:absolute;top:0;left:0;bottom:0;width:3px;background:var(--brand-primary);opacity:0.8;border-radius:10px 0 0 10px;"></span>
+            <div class="mp-stat-label"><i class="fas fa-users"></i> Total today</div>
+            <div class="mp-stat-value" th:text="${totalPatients ?: 0}">0</div>
+        </div>
+        <!-- Waiting -->
+        <div class="mp-stat">
+            <span style="position:absolute;top:0;left:0;bottom:0;width:3px;background:var(--status-waiting-bar);opacity:0.85;border-radius:10px 0 0 10px;"></span>
+            <div class="mp-stat-label"><i class="fas fa-clock"></i> Waiting</div>
+            <div class="mp-stat-value" th:text="${waitingCount ?: 0}">0</div>
+            <div style="font-size:11px;color:var(--text-muted);">In queue</div>
+        </div>
+        <!-- In Consultation -->
+        <div class="mp-stat">
+            <span style="position:absolute;top:0;left:0;bottom:0;width:3px;background:var(--status-consult-bar);opacity:0.85;border-radius:10px 0 0 10px;"></span>
+            <div class="mp-stat-label"><i class="fas fa-stethoscope"></i> In consultation</div>
+            <div class="mp-stat-value" th:text="${inConsultationCount ?: 0}">0</div>
+        </div>
+        <!-- Completed -->
+        <div class="mp-stat">
+            <span style="position:absolute;top:0;left:0;bottom:0;width:3px;background:var(--status-completed-bar);opacity:0.85;border-radius:10px 0 0 10px;"></span>
+            <div class="mp-stat-label"><i class="fas fa-check-circle"></i> Completed</div>
+            <div class="mp-stat-value" th:text="${completedCount ?: 0}">0</div>
+            <span class="mp-stat-delta up"><i class="fas fa-arrow-up" style="font-size:9px;"></i> On time</span>
+        </div>
+    </div>
+
+    <!-- Queue card -->
+    <div style="padding: 0 32px 40px;">
+        <div class="mp-card">
+            <div class="mp-card-header">
+                <div style="display:flex;align-items:center;gap:12px;">
+                    <h3 class="mp-card-title">Patient Queue</h3>
+                    <span style="font-size:12px;color:var(--text-muted);">Auto-updates as patients check in</span>
+                </div>
+                <div style="display:flex;gap:4px;flex-wrap:wrap;">
+                    <button class="filter-tab active">All <span class="filter-count" th:text="${totalPatients ?: 0}">0</span></button>
+                    <button class="filter-tab">Waiting <span class="filter-count" th:text="${waitingCount ?: 0}">0</span></button>
+                    <button class="filter-tab">Done <span class="filter-count" th:text="${completedCount ?: 0}">0</span></button>
+                </div>
+            </div>
+
+            <!-- Empty state -->
+            <div th:if="${appointments == null or appointments.empty}"
+                 style="padding:48px 24px;text-align:center;">
+                <i class="fas fa-calendar-times" style="font-size:40px;color:var(--border-strong);margin-bottom:16px;display:block;"></i>
+                <div style="font-family:var(--font-display);font-size:16px;font-weight:700;color:var(--text-strong);margin-bottom:6px;">No appointments today</div>
+                <div style="font-size:13px;color:var(--text-muted);margin-bottom:20px;">Set your schedule to start receiving patients.</div>
+                <a th:href="@{/doctor/weekly-schedule}" class="mp-btn mp-btn-primary">
+                    <i class="fas fa-calendar-week"></i> Set weekly schedule
+                </a>
+            </div>
+
+            <!-- Queue rows -->
+            <div th:each="appointment : ${appointments}"
+                 class="queue-row"
+                 th:classappend="'status-' + ${appointment.status.name()}">
+
+                <!-- Queue number -->
+                <div class="queue-num"
+                     th:classappend="${appointment.status.name() == 'IN_CONSULTATION'} ? ' active' : ''"
+                     th:text="'#' + ${appointment.queueNumber}">1</div>
+
+                <!-- Avatar -->
+                <div class="mp-avatar lg queue-avatar-col"
+                     th:text="${appointment.patientFullName != null and appointment.patientFullName.length() > 0 ?
+                               (appointment.patientFullName.split(' ').length > 1 ?
+                                appointment.patientFullName.split(' ')[0].substring(0,1) + appointment.patientFullName.split(' ')[1].substring(0,1) :
+                                appointment.patientFullName.substring(0,2).toUpperCase()) : '??'}">P</div>
+
+                <!-- Patient info -->
+                <div style="min-width:0;">
+                    <div style="display:flex;align-items:center;gap:8px;">
+                        <span style="font-family:var(--font-display);font-size:14px;font-weight:700;color:var(--text-strong);"
+                              th:text="${appointment.patientFullName}">Patient Name</span>
+                    </div>
+                    <div style="font-size:12px;color:var(--text-muted);margin-top:2px;display:flex;align-items:center;gap:8px;">
+                        <span style="font-family:var(--font-mono);" th:if="${appointment.patient.patientId != null}"
+                              th:text="'#' + ${appointment.patient.patientId}">ID</span>
+                        <span th:if="${appointment.patient.patientId != null}">·</span>
+                        <span><i class="fas fa-phone" style="font-size:10px;margin-right:3px;"></i>
+                            <span th:text="${appointment.patient.phoneNumber}">Phone</span></span>
+                    </div>
+                </div>
+
+                <!-- Notes -->
+                <div class="queue-note-col" style="font-size:12px;color:var(--text-muted);min-width:0;line-height:1.4;padding-right:8px;">
+                    <span th:if="${appointment.notes}" th:text="${appointment.notes}"></span>
+                    <span th:unless="${appointment.notes}" style="color:var(--text-soft);font-style:italic;">No notes</span>
+                </div>
+
+                <!-- Time + status -->
+                <div class="queue-time-col">
+                    <div style="font-family:var(--font-mono);font-size:13px;font-weight:600;color:var(--text-strong);"
+                         th:text="${#temporals.format(appointment.scheduledTime, 'HH:mm')}">09:00</div>
+                    <div th:if="${appointment.actualStartTime != null}"
+                         style="font-family:var(--font-mono);font-size:11px;color:var(--text-soft);">
+                        → <span th:text="${#temporals.format(appointment.actualStartTime, 'HH:mm')}">09:05</span>
+                    </div>
+                    <div style="margin-top:6px;">
+                        <span th:switch="${appointment.status.name()}">
+                            <span th:case="'WAITING'"         class="mp-pill mp-pill-waiting">Waiting</span>
+                            <span th:case="'IN_CONSULTATION'" class="mp-pill mp-pill-consult">In Consultation</span>
+                            <span th:case="'COMPLETED'"       class="mp-pill mp-pill-completed">Completed</span>
+                            <span th:case="'NOT_ATTENDED'"    class="mp-pill mp-pill-missed">Not Attended</span>
+                            <span th:case="'DELAYED'"         class="mp-pill mp-pill-delayed">Delayed</span>
+                            <span th:case="'CANCELLED'"       class="mp-pill mp-pill-missed">Cancelled</span>
+                            <span th:case="*"                 class="mp-pill mp-pill-waiting" th:text="${appointment.status.displayName}">Status</span>
+                        </span>
+                    </div>
+                </div>
+
+                <!-- Actions -->
+                <div class="queue-actions">
+                    <!-- Start consultation (WAITING / DELAYED) -->
+                    <form th:if="${appointment.status.name() == 'WAITING' or appointment.status.name() == 'DELAYED'}"
+                          th:action="@{/doctor/appointments/{id}/start(id=${appointment.id})}"
+                          method="post" style="display:inline;" onsubmit="return confirmStart(event, this);">
+                        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                        <button type="submit" class="mp-btn mp-btn-primary mp-btn-sm">
+                            <i class="fas fa-play"></i> Start
+                        </button>
+                    </form>
+
+                    <!-- Write Rx (IN_CONSULTATION) -->
+                    <a th:if="${appointment.status.name() == 'IN_CONSULTATION'}"
+                       th:href="@{/doctor/prescriptions/create/{id}(id=${appointment.id})}"
+                       class="mp-btn mp-btn-secondary mp-btn-sm">
+                        <i class="fas fa-file-prescription"></i> Write Rx
+                    </a>
+
+                    <!-- Complete (IN_CONSULTATION) -->
+                    <form th:if="${appointment.status.name() == 'IN_CONSULTATION'}"
+                          th:action="@{/doctor/appointments/{id}/complete(id=${appointment.id})}"
+                          method="post" style="display:inline;" onsubmit="return confirmComplete(event, this);">
+                        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                        <button type="submit" class="mp-btn mp-btn-success mp-btn-sm">
+                            <i class="fas fa-check"></i> Complete
+                        </button>
+                    </form>
+
+                    <!-- View Rx (COMPLETED) -->
+                    <a th:if="${appointment.status.name() == 'COMPLETED'}"
+                       th:href="@{/doctor/prescriptions/create/{id}(id=${appointment.id})}"
+                       class="mp-btn mp-btn-ghost mp-btn-sm">
+                        <i class="fas fa-file-prescription"></i> View Rx
+                    </a>
+
+                    <!-- Notes button (always) -->
+                    <button type="button" class="mp-btn mp-btn-ghost mp-btn-sm"
+                            data-toggle="modal"
+                            th:data-target="'#notesModal' + ${appointment.id}"
+                            title="Add/edit notes"
+                            style="padding:6px 8px;">
+                        <i class="fas fa-sticky-note"></i>
+                    </button>
+                </div>
+
+                <!-- Notes Modal -->
+                <div class="modal fade" th:id="'notesModal' + ${appointment.id}">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h4 class="modal-title">
+                                    <i class="fas fa-sticky-note" style="margin-right:8px;color:var(--brand-primary);"></i>
+                                    Notes — <span th:text="${appointment.patientFullName}"></span>
+                                </h4>
+                                <button type="button" class="close" data-dismiss="modal">&times;</button>
+                            </div>
+                            <form th:action="@{/doctor/appointments/{id}/notes(id=${appointment.id})}" method="post">
+                                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                                <div class="modal-body">
+                                    <label class="mp-label">Clinical notes</label>
+                                    <textarea name="notes" class="mp-textarea" rows="5"
+                                              placeholder="Enter visit notes, symptoms, observations…"
+                                              th:text="${appointment.notes}"></textarea>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="mp-btn mp-btn-secondary" data-dismiss="modal">Cancel</button>
+                                    <button type="submit" class="mp-btn mp-btn-primary">Save notes</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+            </div><!-- /appointments loop -->
+
+        </div><!-- /mp-card -->
+    </div>
+
+</div>
+
+<div layout:fragment="scriptContent">
+<script>
+    const successMessage = /*[[${success}]]*/ null;
+    const errorMessage   = /*[[${error}]]*/ null;
+
+    if (successMessage) {
+        Swal.fire({ icon:'success', title:'Done!', text:successMessage,
+            confirmButtonColor:'#0B4FB8', timer:3000, timerProgressBar:true });
+    }
+    if (errorMessage) {
+        Swal.fire({ icon:'error', title:'Error', text:errorMessage, confirmButtonColor:'#0B4FB8' });
+    }
+
+    function confirmStart(e, form) {
+        e.preventDefault();
+        Swal.fire({
+            title:'Start consultation?', text:"This will mark the patient as 'In Consultation'.",
+            icon:'question', showCancelButton:true,
+            confirmButtonColor:'#0B4FB8', cancelButtonColor:'#5B6B85',
+            confirmButtonText:'<i class="fas fa-play"></i> Start now',
+            cancelButtonText:'Cancel'
+        }).then(r => { if (r.isConfirmed) form.submit(); });
+        return false;
+    }
+
+    function confirmComplete(e, form) {
+        e.preventDefault();
+        Swal.fire({
+            title:'Complete consultation?', text:"Make sure you've written the prescription if needed.",
+            icon:'question', showCancelButton:true,
+            confirmButtonColor:'#10B981', cancelButtonColor:'#5B6B85',
+            confirmButtonText:'<i class="fas fa-check"></i> Complete',
+            cancelButtonText:'Cancel'
+        }).then(r => { if (r.isConfirmed) form.submit(); });
+        return false;
+    }
+
+    // Auto-refresh every 30 seconds
+    setTimeout(function() { location.reload(); }, 30000);
+</script>
+</div>
+</body>
+</html>

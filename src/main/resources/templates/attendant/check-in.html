@@ -1,0 +1,638 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/web/thymeleaf/layout"
+      layout:decorate="~{layout}">
+<head>
+    <title>Patient Check-in</title>
+    <style>
+        .ci-grid { display: grid; grid-template-columns: 1fr 320px; gap: 24px; align-items: start; }
+        @media (max-width: 1024px) { .ci-grid { grid-template-columns: 1fr; } }
+
+        /* Step card */
+        .ci-step { margin-bottom: 16px; }
+        .ci-step-header {
+            display: flex; align-items: center; gap: 12px;
+            padding: 14px 18px;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--r-md);
+            cursor: default;
+        }
+        .ci-step-header.active { border-color: var(--brand-primary); background: var(--brand-primary-50); }
+        .ci-step-circle {
+            width: 28px; height: 28px; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-family: var(--font-display); font-size: 12px; font-weight: 700;
+            background: var(--bg-muted); color: var(--text-muted);
+            flex-shrink: 0;
+        }
+        .ci-step-header.active .ci-step-circle { background: var(--brand-primary); color: #fff; }
+        .ci-step-header.done .ci-step-circle { background: var(--brand-accent); color: #fff; }
+        .ci-step-label { font-size: 13px; font-weight: 600; color: var(--text-muted); }
+        .ci-step-header.active .ci-step-label { color: var(--brand-primary); }
+        .ci-step-header.done .ci-step-label { color: var(--brand-accent); }
+        .ci-step-body {
+            padding: 20px 18px;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-top: none;
+            border-radius: 0 0 var(--r-md) var(--r-md);
+        }
+
+        /* Found patient card */
+        .ci-patient-found {
+            padding: 16px;
+            background: var(--status-completed-bg);
+            border: 1px solid #A7F3D0;
+            border-left: 4px solid var(--brand-accent);
+            border-radius: var(--r-sm);
+        }
+        .ci-patient-found-title { font-size: 13px; font-weight: 700; color: var(--brand-accent); margin-bottom: 10px; }
+        .ci-info-row { display: flex; gap: 24px; flex-wrap: wrap; }
+        .ci-info-item { font-size: 13px; color: var(--text-muted); }
+        .ci-info-item strong { color: var(--text-strong); display: block; font-size: 12px; font-weight: 600; margin-bottom: 2px; }
+
+        /* New patient form card */
+        .ci-new-patient {
+            padding: 16px;
+            background: #FFFBEB;
+            border: 1px solid #FDE68A;
+            border-left: 4px solid #F59E0B;
+            border-radius: var(--r-sm);
+            margin-bottom: 16px;
+        }
+        .ci-new-patient-title { font-size: 13px; font-weight: 700; color: #92400E; margin-bottom: 10px; }
+
+        /* Multiple patients */
+        .ci-multi-card {
+            padding: 12px 14px;
+            border: 1px solid var(--border);
+            border-radius: var(--r-sm);
+            cursor: pointer;
+            transition: border-color 0.15s, background 0.15s;
+            margin-bottom: 8px;
+        }
+        .ci-multi-card:hover { border-color: var(--brand-primary); background: var(--brand-primary-50); }
+
+        /* Snapshot sidebar */
+        .ci-sidebar-stat {
+            display: flex; align-items: center; gap: 14px;
+            padding: 14px 16px;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--r-sm);
+            margin-bottom: 10px;
+        }
+        .ci-sidebar-stat-icon {
+            width: 38px; height: 38px; border-radius: 10px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 16px; flex-shrink: 0;
+        }
+        .ci-sidebar-stat-val { font-family: var(--font-display); font-size: 22px; font-weight: 800; color: var(--text-strong); line-height: 1; }
+        .ci-sidebar-stat-lbl { font-size: 11px; color: var(--text-muted); font-weight: 600; margin-top: 2px; }
+
+        /* Recent check-ins */
+        .ci-recent-row {
+            display: flex; align-items: center; gap: 10px;
+            padding: 10px 0;
+            border-bottom: 1px solid var(--border);
+        }
+        .ci-recent-row:last-child { border-bottom: none; }
+        .ci-recent-name { font-size: 13px; font-weight: 600; color: var(--text-strong); }
+        .ci-recent-meta { font-size: 11px; color: var(--text-muted); margin-top: 1px; }
+
+        .mp-form-grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+        .mp-form-grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+        @media (max-width: 768px) {
+            .mp-form-grid-3 { grid-template-columns: 1fr; }
+            .mp-form-grid-2 { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+<div layout:fragment="content">
+
+    <!-- Page header -->
+    <div class="mp-page-header">
+        <div>
+            <h1 class="mp-page-title">Patient Check-in</h1>
+            <p class="mp-page-subtitle">Search existing patient or register new — then book appointment</p>
+        </div>
+        <div style="display:flex;gap:10px;">
+            <a th:href="@{/attendant/queue}" class="mp-btn mp-btn-secondary">
+                <i class="fas fa-list-ol"></i> Live Queue
+            </a>
+        </div>
+    </div>
+
+    <div style="padding: 0 32px 32px;">
+    <div class="ci-grid">
+
+        <!-- ── LEFT: step cards ── -->
+        <div>
+
+            <!-- Step 1: Phone lookup -->
+            <div class="ci-step">
+                <div class="ci-step-header active" id="step1Header">
+                    <div class="ci-step-circle" id="step1Circle">1</div>
+                    <div>
+                        <div class="ci-step-label">Find Patient</div>
+                    </div>
+                </div>
+                <div class="ci-step-body">
+                    <label class="mp-label">Phone number <span style="color:var(--status-missed)">*</span></label>
+                    <div style="display:flex;gap:0;">
+                        <input type="tel" id="phoneNumber" class="mp-input"
+                               style="border-radius:var(--r-sm) 0 0 var(--r-sm);border-right:none;"
+                               placeholder="10-digit mobile number"
+                               pattern="[0-9]{10}" maxlength="10" required/>
+                        <button type="button" class="mp-btn mp-btn-primary"
+                                style="border-radius:0 var(--r-sm) var(--r-sm) 0;flex-shrink:0;"
+                                onclick="searchPatient()">
+                            <i class="fas fa-search"></i> Search
+                        </button>
+                    </div>
+                    <p style="font-size:11px;color:var(--text-muted);margin-top:6px;">Enter phone to check if patient is already registered</p>
+                </div>
+            </div>
+
+            <!-- Step 2: Patient result (hidden by default) -->
+            <div class="ci-step" id="step2Wrap" style="display:none;">
+                <div class="ci-step-header active" id="step2Header">
+                    <div class="ci-step-circle" style="background:var(--brand-primary);color:#fff;">2</div>
+                    <div class="ci-step-label" style="color:var(--brand-primary);">Patient Details</div>
+                </div>
+                <div class="ci-step-body">
+
+                    <!-- Existing patient found -->
+                    <div id="patientDetails" style="display:none;">
+                        <div class="ci-patient-found">
+                            <div class="ci-patient-found-title">
+                                <i class="fas fa-check-circle" style="margin-right:6px;"></i>Patient found
+                            </div>
+                            <div class="ci-info-row">
+                                <div class="ci-info-item"><strong>Name</strong><span id="patientName"></span></div>
+                                <div class="ci-info-item"><strong>Patient ID</strong><span id="patientIdDisplay"></span></div>
+                                <div class="ci-info-item"><strong>Gender</strong><span id="patientGender"></span></div>
+                                <div class="ci-info-item"><strong>DOB</strong><span id="patientDOB"></span></div>
+                                <div class="ci-info-item"><strong>Phone</strong><span id="patientPhone"></span></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Multiple patients -->
+                    <div id="multiplePatientsSection" style="display:none;">
+                        <div class="mp-alert mp-alert-warning" style="margin-bottom:14px;">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            Multiple accounts found with this number — select the correct patient.
+                        </div>
+                        <div id="patientsList"></div>
+                    </div>
+
+                    <!-- New patient registration form -->
+                    <div id="newPatientForm" style="display:none;">
+                        <div class="ci-new-patient">
+                            <div class="ci-new-patient-title">
+                                <i class="fas fa-user-plus" style="margin-right:6px;"></i>New patient — register below
+                            </div>
+                        </div>
+                        <div class="mp-form-grid-3" style="margin-bottom:12px;">
+                            <div>
+                                <label class="mp-label">First name <span style="color:var(--status-missed)">*</span></label>
+                                <input type="text" id="firstName" class="mp-input" required/>
+                            </div>
+                            <div>
+                                <label class="mp-label">Last name <span style="color:var(--status-missed)">*</span></label>
+                                <input type="text" id="lastName" class="mp-input" required/>
+                            </div>
+                            <div>
+                                <label class="mp-label">Gender <span style="color:var(--status-missed)">*</span></label>
+                                <select id="gender" class="mp-input" required>
+                                    <option value="">Select</option>
+                                    <option value="Male">Male</option>
+                                    <option value="Female">Female</option>
+                                    <option value="Other">Other</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="mp-form-grid-3">
+                            <div>
+                                <label class="mp-label">Date of birth <span style="color:var(--status-missed)">*</span></label>
+                                <input type="date" id="dateOfBirth" class="mp-input" required/>
+                            </div>
+                            <div>
+                                <label class="mp-label">Email</label>
+                                <input type="email" id="email" class="mp-input" placeholder="Optional"/>
+                            </div>
+                            <div>
+                                <label class="mp-label">Address</label>
+                                <input type="text" id="address" class="mp-input" placeholder="Optional"/>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- Step 3: Appointment details (hidden by default) -->
+            <div class="ci-step" id="step3Wrap" style="display:none;">
+                <div class="ci-step-header active" id="step3Header">
+                    <div class="ci-step-circle" style="background:var(--brand-primary);color:#fff;">3</div>
+                    <div class="ci-step-label" style="color:var(--brand-primary);">Book Appointment</div>
+                </div>
+                <div id="appointmentSection" class="ci-step-body">
+                    <div class="mp-form-grid-2" style="margin-bottom:14px;">
+                        <div>
+                            <label class="mp-label">Doctor <span style="color:var(--status-missed)">*</span></label>
+                            <select id="doctorId" class="mp-input" required>
+                                <option value="">— Select doctor —</option>
+                                <option th:each="doctor : ${doctors}"
+                                        th:value="${doctor.id}"
+                                        th:text="${doctor.firstName} + ' ' + ${doctor.lastName} + ' · ' + ${doctor.specialization}">
+                                </option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="mp-label">Date <span style="color:var(--status-missed)">*</span></label>
+                            <input type="date" id="appointmentDate" class="mp-input"
+                                   th:value="${today}" required/>
+                        </div>
+                    </div>
+
+                    <div class="mp-alert mp-alert-info" style="margin-bottom:18px;">
+                        <i class="fas fa-info-circle"></i>
+                        Queue number and scheduled time are assigned automatically.
+                    </div>
+
+                    <div style="display:flex;gap:10px;">
+                        <button type="button" class="mp-btn mp-btn-primary" onclick="bookAppointment()">
+                            <i class="fas fa-calendar-check"></i> Confirm Booking
+                        </button>
+                        <button type="button" class="mp-btn mp-btn-secondary" onclick="resetForm()">
+                            <i class="fas fa-undo"></i> Reset
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- ── RIGHT: sidebar snapshot ── -->
+        <div>
+
+            <!-- Today's snapshot -->
+            <div class="mp-card" style="margin-bottom:16px;padding:18px 20px;">
+                <div style="font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:14px;">Today's Snapshot</div>
+                <div class="ci-sidebar-stat">
+                    <div class="ci-sidebar-stat-icon" style="background:var(--status-waiting-bg);color:var(--status-waiting-bar);">
+                        <i class="fas fa-users"></i>
+                    </div>
+                    <div>
+                        <div class="ci-sidebar-stat-val" th:text="${todayTotal ?: 0}">0</div>
+                        <div class="ci-sidebar-stat-lbl">Total booked</div>
+                    </div>
+                </div>
+                <div class="ci-sidebar-stat">
+                    <div class="ci-sidebar-stat-icon" style="background:var(--status-in-bg);color:var(--status-in-bar);">
+                        <i class="fas fa-hourglass-half"></i>
+                    </div>
+                    <div>
+                        <div class="ci-sidebar-stat-val" th:text="${todayWaiting ?: 0}">0</div>
+                        <div class="ci-sidebar-stat-lbl">Waiting</div>
+                    </div>
+                </div>
+                <div class="ci-sidebar-stat">
+                    <div class="ci-sidebar-stat-icon" style="background:var(--status-completed-bg);color:var(--status-completed-bar);">
+                        <i class="fas fa-check-circle"></i>
+                    </div>
+                    <div>
+                        <div class="ci-sidebar-stat-val" th:text="${todayCompleted ?: 0}">0</div>
+                        <div class="ci-sidebar-stat-lbl">Completed</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent check-ins -->
+            <div class="mp-card" style="margin-bottom:16px;padding:18px 20px;">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+                    <span style="font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.08em;">Recent Check-ins</span>
+                    <a th:href="@{/attendant/queue}" style="font-size:11px;color:var(--brand-primary);font-weight:600;">View all</a>
+                </div>
+                <div th:if="${recentCheckIns != null and !recentCheckIns.empty}">
+                    <div th:each="apt : ${recentCheckIns}" class="ci-recent-row">
+                        <div th:with="initials=${apt.patientFullName != null ? apt.patientFullName.substring(0,1) : '?'}"
+                             class="mp-avatar mp-avatar-sm"
+                             th:text="${initials}">?</div>
+                        <div style="min-width:0;flex:1;">
+                            <div class="ci-recent-name" th:text="${apt.patientFullName}">Patient</div>
+                            <div class="ci-recent-meta">
+                                Queue <strong th:text="'#' + ${apt.queueNumber}"></strong>
+                                &nbsp;·&nbsp;
+                                <span th:text="${#temporals.format(apt.scheduledTime, 'HH:mm')}"></span>
+                            </div>
+                        </div>
+                        <span class="mp-pill mp-pill-waiting" th:if="${apt.status.name() == 'WAITING'}">Waiting</span>
+                        <span class="mp-pill mp-pill-in" th:if="${apt.status.name() == 'IN_CONSULTATION'}">In consult</span>
+                        <span class="mp-pill mp-pill-done" th:if="${apt.status.name() == 'COMPLETED'}">Done</span>
+                    </div>
+                </div>
+                <div th:if="${recentCheckIns == null or recentCheckIns.empty}"
+                     style="font-size:13px;color:var(--text-muted);text-align:center;padding:18px 0;">
+                    No check-ins yet today
+                </div>
+            </div>
+
+            <!-- WhatsApp summary -->
+            <div class="mp-card" style="background:var(--wa-green-bg);border-color:#C7EED9;padding:18px 20px;">
+                <div style="display:flex;align-items:flex-start;gap:12px;">
+                    <i class="fab fa-whatsapp" style="font-size:22px;color:var(--wa-green);flex-shrink:0;margin-top:2px;"></i>
+                    <div>
+                        <div style="font-size:13px;font-weight:700;color:var(--wa-text);margin-bottom:4px;">WhatsApp Booking</div>
+                        <div style="font-size:12px;color:var(--wa-text);opacity:0.8;line-height:1.5;">
+                            Patients can book by sending <strong>"Hi"</strong> to
+                            <strong>+91 80 4000 1234</strong>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+</div>
+</div>
+
+<th:block layout:fragment="scriptContent">
+<script th:inline="javascript">
+    let currentPatientId = null;
+    const csrfToken = /*[[${_csrf.token}]]*/ '';
+    const csrfHeader = /*[[${_csrf.headerName}]]*/ '';
+
+    window.searchPatient = function() {
+        var phone = document.getElementById('phoneNumber').value.trim();
+
+        if (!phone || phone.length !== 10) {
+            showMessage('Please enter a valid 10-digit phone number', 'warning');
+            return;
+        }
+
+        var headers = {};
+        headers[csrfHeader] = csrfToken;
+
+        fetch('/api/patients/search-by-phone?phone=' + phone, {
+            headers: headers
+        })
+        .then(function(response) { return response.json(); })
+        .then(function(data) {
+            if (data.found) {
+                if (data.multiple) {
+                    showMultiplePatients(data.patients);
+                } else {
+                    showExistingPatient(data.patient);
+                }
+            } else {
+                showNewPatientForm();
+            }
+        })
+        .catch(function(error) {
+            console.error('Error:', error);
+            showMessage('Error searching patient. Please try again.', 'danger');
+        });
+    };
+
+    function showMultiplePatients(patients) {
+        currentPatientId = null;
+
+        document.getElementById('step2Wrap').style.display = 'block';
+        document.getElementById('patientDetails').style.display = 'none';
+        document.getElementById('newPatientForm').style.display = 'none';
+        document.getElementById('multiplePatientsSection').style.display = 'block';
+        document.getElementById('step3Wrap').style.display = 'none';
+
+        var patientsList = document.getElementById('patientsList');
+        patientsList.innerHTML = '';
+
+        patients.forEach(function(patient) {
+            var patientIdVal = patient.patientId || 'N/A';
+            var genderVal = patient.gender || 'N/A';
+            var dobVal = patient.dateOfBirth || 'N/A';
+
+            var card = document.createElement('div');
+            card.className = 'ci-multi-card';
+
+            var title = document.createElement('div');
+            title.style.cssText = 'font-size:13px;font-weight:600;color:var(--text-strong);margin-bottom:6px;';
+            title.textContent = (patient.firstName || '') + ' ' + (patient.lastName || '');
+
+            var meta = document.createElement('div');
+            meta.style.cssText = 'font-size:12px;color:var(--text-muted);display:flex;gap:16px;flex-wrap:wrap;margin-bottom:10px;';
+            meta.innerHTML = '<span>ID: ' + patientIdVal + '</span><span>Gender: ' + genderVal + '</span><span>DOB: ' + dobVal + '</span>';
+
+            var selectBtn = document.createElement('button');
+            selectBtn.className = 'mp-btn mp-btn-primary';
+            selectBtn.style.cssText = 'font-size:12px;padding:6px 12px;';
+            selectBtn.type = 'button';
+            selectBtn.textContent = 'Select this patient';
+            selectBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                window.selectPatient(patient.id, patient.firstName, patient.lastName, patient.patientId || 'N/A', patient.gender || 'N/A', patient.dateOfBirth || 'N/A', patient.phoneNumber || '');
+            });
+
+            card.appendChild(title);
+            card.appendChild(meta);
+            card.appendChild(selectBtn);
+            patientsList.appendChild(card);
+        });
+
+        showMessage(patients.length + ' patients found with this phone number. Please select one.', 'info');
+    }
+
+    function escapeQuotes(str) {
+        if (!str) return '';
+        return String(str).replace(/'/g, "\\'");
+    }
+
+    window.selectPatient = function(id, firstName, lastName, patientId, gender, dob, phone) {
+        var patient = {
+            id: id,
+            firstName: firstName,
+            lastName: lastName,
+            patientId: patientId,
+            gender: gender,
+            dateOfBirth: dob,
+            phoneNumber: phone
+        };
+
+        document.getElementById('multiplePatientsSection').style.display = 'none';
+        showExistingPatient(patient);
+    };
+
+    function showExistingPatient(patient) {
+        currentPatientId = patient.id;
+
+        document.getElementById('patientName').textContent = patient.firstName + ' ' + patient.lastName;
+        document.getElementById('patientIdDisplay').textContent = patient.patientId || 'N/A';
+        document.getElementById('patientGender').textContent = patient.gender || 'N/A';
+        document.getElementById('patientDOB').textContent = patient.dateOfBirth || 'N/A';
+        document.getElementById('patientPhone').textContent = patient.phoneNumber;
+
+        document.getElementById('step2Wrap').style.display = 'block';
+        document.getElementById('patientDetails').style.display = 'block';
+        document.getElementById('newPatientForm').style.display = 'none';
+        document.getElementById('step3Wrap').style.display = 'block';
+
+        showMessage('Patient found! You can now book an appointment.', 'success');
+    }
+
+    function showNewPatientForm() {
+        currentPatientId = null;
+
+        document.getElementById('step2Wrap').style.display = 'block';
+        document.getElementById('patientDetails').style.display = 'none';
+        document.getElementById('newPatientForm').style.display = 'block';
+        document.getElementById('step3Wrap').style.display = 'block';
+
+        showMessage('Patient not found. Please fill in the details to register.', 'info');
+    }
+
+    window.bookAppointment = function() {
+        var doctorId = document.getElementById('doctorId').value;
+        var appointmentDate = document.getElementById('appointmentDate').value;
+
+        if (!doctorId || !appointmentDate) {
+            showMessage('Please select doctor and appointment date', 'warning');
+            return;
+        }
+
+        var requestData = {
+            doctorId: doctorId,
+            appointmentDate: appointmentDate
+        };
+
+        if (!currentPatientId) {
+            var firstName = document.getElementById('firstName').value.trim();
+            var lastName = document.getElementById('lastName').value.trim();
+            var gender = document.getElementById('gender').value;
+            var dateOfBirth = document.getElementById('dateOfBirth').value;
+            var phoneNumber = document.getElementById('phoneNumber').value.trim();
+            var email = document.getElementById('email').value.trim();
+            var address = document.getElementById('address').value.trim();
+
+            if (!firstName || !lastName || !gender || !dateOfBirth) {
+                showMessage('Please fill all required patient fields', 'warning');
+                return;
+            }
+
+            requestData.newPatient = {
+                firstName: firstName,
+                lastName: lastName,
+                phoneNumber: phoneNumber,
+                gender: gender,
+                dateOfBirth: dateOfBirth,
+                email: email,
+                address: address
+            };
+        } else {
+            requestData.patientId = currentPatientId;
+        }
+
+        console.log('Booking payload:', requestData, 'CSRF header:', csrfHeader, 'CSRF token:', csrfToken);
+
+        fetch('/attendant/book-appointment-json', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                [csrfHeader]: csrfToken
+            },
+            body: JSON.stringify(requestData)
+        })
+        .then(function(response) {
+            console.log('Booking response status:', response.status, response.statusText);
+
+            if (!response.ok) {
+                return response.text().then(function(text) {
+                    throw new Error('Server returned status ' + response.status + ': ' + (text || response.statusText));
+                });
+            }
+
+            return response.text().then(function(text) {
+                try {
+                    return JSON.parse(text);
+                } catch (e) {
+                    throw new Error('Invalid JSON response from server: ' + text);
+                }
+            });
+        })
+        .then(function(data) {
+            console.log('Booking response data:', data);
+            if (data.success) {
+                showMessage(data.message, 'success');
+                setTimeout(function() { resetForm(); }, 2000);
+            } else {
+                showMessage(data.message || 'Error booking appointment', 'danger');
+            }
+        })
+        .catch(function(error) {
+            console.error('Error:', error);
+            showMessage(error.message || 'Error booking appointment. Please try again.', 'danger');
+        });
+    };
+
+    window.resetForm = function() {
+        document.getElementById('phoneNumber').value = '';
+        document.getElementById('step2Wrap').style.display = 'none';
+        document.getElementById('step3Wrap').style.display = 'none';
+        document.getElementById('patientDetails').style.display = 'none';
+        document.getElementById('newPatientForm').style.display = 'none';
+        document.getElementById('multiplePatientsSection').style.display = 'none';
+
+        document.getElementById('firstName').value = '';
+        document.getElementById('lastName').value = '';
+        document.getElementById('gender').value = '';
+        document.getElementById('dateOfBirth').value = '';
+        document.getElementById('email').value = '';
+        document.getElementById('address').value = '';
+        document.getElementById('doctorId').value = '';
+
+        currentPatientId = null;
+    };
+
+    function showMessage(message, type) {
+        const iconMap = {
+            'success': 'success',
+            'danger': 'error',
+            'warning': 'warning',
+            'info': 'info'
+        };
+
+        const colorMap = {
+            'success': '#10B981',
+            'danger': '#EF4444',
+            'warning': '#F59E0B',
+            'info': '#0B4FB8'
+        };
+
+        Swal.fire({
+            icon: iconMap[type] || 'info',
+            title: type === 'success' ? 'Success!' : type === 'danger' ? 'Error!' : type === 'warning' ? 'Warning!' : 'Information',
+            text: message,
+            confirmButtonColor: colorMap[type] || '#0B4FB8',
+            timer: type === 'success' ? 3000 : undefined,
+            timerProgressBar: type === 'success'
+        });
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        var phoneInput = document.getElementById('phoneNumber');
+        if (phoneInput) {
+            phoneInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    searchPatient();
+                }
+            });
+        }
+    });
+</script>
+</th:block>
+</body>
+</html>

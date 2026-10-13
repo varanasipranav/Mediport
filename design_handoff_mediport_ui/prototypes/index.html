@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Mediport — UI Redesign</title>
+  <link rel="stylesheet" href="styles/tokens.css"/>
+  <style>
+    html, body, #root {
+      margin: 0; padding: 0;
+      height: 100%;
+      font-family: 'Manrope', system-ui, sans-serif;
+      background: #EEF1F6;
+      color: #0F1B2D;
+    }
+    /* Each artboard is a fully-styled screen */
+    .artboard-host { position: relative; }
+  </style>
+
+  <!-- React + Babel (pinned) -->
+  <script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+</head>
+<body>
+  <div id="root"></div>
+
+  <!-- Tweak defaults (rewriteable by host) -->
+  <script>
+    window.MP_TWEAK_DEFAULTS = /*EDITMODE-BEGIN*/{
+      "accent": "#0B4FB8"
+    }/*EDITMODE-END*/;
+  </script>
+
+  <!-- Order matters: deps first, then features, then app -->
+  <script type="text/babel" src="design-canvas.jsx"></script>
+  <script type="text/babel" src="tweaks-panel.jsx"></script>
+  <script type="text/babel" src="screens/icons.jsx"></script>
+  <script type="text/babel" src="screens/shell.jsx"></script>
+  <script type="text/babel" src="screens/design-system.jsx"></script>
+  <script type="text/babel" src="screens/login.jsx"></script>
+  <script type="text/babel" src="screens/doctor-today.jsx"></script>
+  <script type="text/babel" src="screens/doctor-schedule.jsx"></script>
+  <script type="text/babel" src="screens/prescription.jsx"></script>
+  <script type="text/babel" src="screens/admin-dashboard.jsx"></script>
+  <script type="text/babel" src="screens/attendant-checkin.jsx"></script>
+  <script type="text/babel" src="screens/patient-dashboard.jsx"></script>
+  <script type="text/babel" src="screens/pharma-dashboard.jsx"></script>
+
+  <script type="text/babel">
+    const { DesignCanvas, DCSection, DCArtboard } = window;
+    const {
+      MpDesignSystem, MpLogin,
+      MpDoctorToday, MpDoctorSchedule, MpPrescription,
+      MpAdminDashboard, MpAttendantCheckin,
+      MpPatientDashboard, MpPharmaDashboard,
+    } = window;
+    const { TweaksPanel, TweakSection, TweakColor, useTweaks } = window;
+
+    // Map hex → accent token (drives [data-accent] CSS-variable swap)
+    const ACCENT_MAP = {
+      '#0B4FB8': 'blue',
+      '#0E7C8C': 'teal',
+      '#4338CA': 'indigo',
+      '#047857': 'green',
+    };
+    function AccentEffect({ accent }) {
+      React.useEffect(() => {
+        document.documentElement.dataset.accent = ACCENT_MAP[accent] || 'blue';
+      }, [accent]);
+      return null;
+    }
+
+    function App() {
+      const [t, setTweak] = useTweaks(window.MP_TWEAK_DEFAULTS);
+      const W = 1440, H = 900;
+
+      return (
+        <>
+          <AccentEffect accent={t.accent}/>
+          <DesignCanvas>
+            <DCSection
+              id="foundations"
+              title="Foundations"
+              subtitle="Tokens, type and component vocabulary used across every Mediport screen."
+            >
+              <DCArtboard id="design-system" label="Design System" width={1100} height={1200}>
+                <MpDesignSystem/>
+              </DCArtboard>
+            </DCSection>
+
+            <DCSection
+              id="auth"
+              title="Entry"
+              subtitle="First impression — calm, trustworthy, immediately establishes WhatsApp as a booking channel."
+            >
+              <DCArtboard id="login" label="Login · Sign in" width={W} height={H}>
+                <MpLogin/>
+              </DCArtboard>
+            </DCSection>
+
+            <DCSection
+              id="doctor"
+              title="Doctor"
+              subtitle="Primary role. Queue is the heartbeat — patients flow through Waiting → In Consultation → Completed."
+            >
+              <DCArtboard id="doc-today" label="Today's Queue · hero" width={W} height={H}>
+                <MpDoctorToday/>
+              </DCArtboard>
+              <DCArtboard id="doc-schedule" label="Weekly Schedule Template" width={W} height={H}>
+                <MpDoctorSchedule/>
+              </DCArtboard>
+              <DCArtboard id="doc-rx" label="Create Prescription" width={W} height={H}>
+                <MpPrescription/>
+              </DCArtboard>
+            </DCSection>
+
+            <DCSection
+              id="admin"
+              title="Admin / Clinic owner"
+              subtitle="Operational overview — throughput, doctor utilization, WhatsApp booking volume."
+            >
+              <DCArtboard id="admin-dash" label="Clinic Overview" width={W} height={H}>
+                <MpAdminDashboard/>
+              </DCArtboard>
+            </DCSection>
+
+            <DCSection
+              id="attendant"
+              title="Front desk / Attendant"
+              subtitle="Three-step check-in — phone lookup, confirm patient, book."
+            >
+              <DCArtboard id="att-check" label="Check-in · Book Appointment" width={W} height={H}>
+                <MpAttendantCheckin/>
+              </DCArtboard>
+            </DCSection>
+
+            <DCSection
+              id="patient"
+              title="Patient"
+              subtitle="Mostly used on mobile via WhatsApp — this dashboard is the deeper web view."
+            >
+              <DCArtboard id="pat-dash" label="My Dashboard · Live queue" width={W} height={H}>
+                <MpPatientDashboard/>
+              </DCArtboard>
+            </DCSection>
+
+            <DCSection
+              id="pharma"
+              title="Pharmacist"
+              subtitle="Receives prescriptions from doctors as they're written — dispense, manage stock alerts."
+            >
+              <DCArtboard id="pharma-dash" label="Dispense Queue" width={W} height={H}>
+                <MpPharmaDashboard/>
+              </DCArtboard>
+            </DCSection>
+          </DesignCanvas>
+
+          <TweaksPanel title="Tweaks">
+            <TweakSection label="Brand">
+              <TweakColor
+                label="Accent color"
+                value={t.accent}
+                onChange={(v) => setTweak('accent', v)}
+                options={['#0B4FB8', '#0E7C8C', '#4338CA', '#047857']}
+              />
+            </TweakSection>
+          </TweaksPanel>
+        </>
+      );
+    }
+
+    ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+  </script>
+</body>
+</html>

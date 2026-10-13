@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/web/thymeleaf/layout"
+      xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity6"
+      layout:decorate="~{layout}">
+<head>
+    <title>My Schedule - Doctor</title>
+</head>
+<body>
+<div layout:fragment="content">
+    <div class="content-header">
+        <div class="container-fluid">
+            <div class="row mb-2">
+                <div class="col-sm-6">
+                    <h1 class="m-0">My Schedule</h1>
+                </div>
+                <div class="col-sm-6">
+                    <ol class="breadcrumb float-sm-right">
+                        <li class="breadcrumb-item"><a th:href="@{/dashboard}">Dashboard</a></li>
+                        <li class="breadcrumb-item active">My Schedule</li>
+                    </ol>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <section class="content">
+        <div class="container-fluid">
+
+            <!-- Success/Error Messages -->
+            <div th:if="${success}" class="alert alert-success alert-dismissible fade show">
+                <button type="button" class="close" data-dismiss="alert">&times;</button>
+                <i class="icon fas fa-check"></i> <span th:text="${success}"></span>
+            </div>
+            <div th:if="${error}" class="alert alert-danger alert-dismissible fade show">
+                <button type="button" class="close" data-dismiss="alert">&times;</button>
+                <i class="icon fas fa-ban"></i> <span th:text="${error}"></span>
+            </div>
+
+            <!-- Create Schedule Card -->
+            <div class="card card-primary">
+                <div class="card-header">
+                    <h3 class="card-title"><i class="fas fa-calendar-plus mr-2"></i>Create/Update Schedule</h3>
+                </div>
+                <form th:action="@{/doctor/schedule/save}" method="post">
+                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label>Date <span class="text-danger">*</span></label>
+                                    <input type="date" name="scheduleDate" class="form-control"
+                                           th:min="${today}" required/>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label>Shift Type <span class="text-danger">*</span></label>
+                                    <select name="shiftType" id="shiftType" class="form-control" required onchange="toggleCustomTime()">
+                                        <option value="">-- Select Shift --</option>
+                                        <option th:each="shift : ${shiftTypes}"
+                                                th:value="${shift}"
+                                                th:text="${shift.displayName}"></option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label>Slot Duration (minutes) <span class="text-danger">*</span></label>
+                                    <select name="slotDuration" class="form-control" required>
+                                        <option value="10">10 minutes</option>
+                                        <option value="15" selected>15 minutes</option>
+                                        <option value="20">20 minutes</option>
+                                        <option value="30">30 minutes</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Custom Time Fields (hidden by default) -->
+                        <div class="row" id="customTimeFields" style="display: none;">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label>Start Time <span class="text-danger">*</span></label>
+                                    <input type="time" name="startTime" class="form-control"/>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label>End Time <span class="text-danger">*</span></label>
+                                    <input type="time" name="endTime" class="form-control"/>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label>Max Patients (optional)</label>
+                                    <input type="number" name="maxPatients" class="form-control"
+                                           placeholder="Leave empty for auto-calculate" min="1"/>
+                                    <small class="form-text text-muted">
+                                        If not set, calculated from shift duration ÷ slot duration
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-footer">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save mr-2"></i>Save Schedule
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Upcoming Schedules -->
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title"><i class="fas fa-calendar mr-2"></i>Upcoming Schedules</h3>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-bordered table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Shift</th>
+                                    <th>Time</th>
+                                    <th>Slot Duration</th>
+                                    <th>Max Patients</th>
+                                    <th>Priority Delay</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr th:if="${schedules.empty}">
+                                    <td colspan="8" class="text-center text-muted">No schedules found. Create your first schedule above.</td>
+                                </tr>
+                                <tr th:each="schedule : ${schedules}">
+                                    <td th:text="${#temporals.format(schedule.scheduleDate, 'dd MMM yyyy')}"></td>
+                                    <td>
+                                        <span class="badge badge-info" th:text="${schedule.shiftType?.displayName ?: 'Custom'}"></span>
+                                    </td>
+                                    <td th:text="${#temporals.format(schedule.startTime, 'HH:mm')} + ' - ' + ${#temporals.format(schedule.endTime, 'HH:mm')}"></td>
+                                    <td th:text="${schedule.slotDurationMinutes} + ' min'"></td>
+                                    <td th:text="${schedule.maxPatients != null ? schedule.maxPatients : 'Auto (' + schedule.calculateTotalSlots() + ')'}"></td>
+                                    <td>
+                                        <span th:if="${schedule.priorityWorkMinutes > 0}"
+                                              class="badge badge-warning"
+                                              th:text="${schedule.priorityWorkMinutes} + ' min'"></span>
+                                        <span th:if="${schedule.priorityWorkMinutes == 0}" class="text-muted">None</span>
+                                    </td>
+                                    <td>
+                                        <span th:if="${schedule.isActive}" class="badge badge-success">Active</span>
+                                        <span th:unless="${schedule.isActive}" class="badge badge-secondary">Inactive</span>
+                                    </td>
+                                    <td>
+                                        <button type="button" class="btn btn-sm btn-warning"
+                                                data-toggle="modal"
+                                                th:data-target="'#priorityModal' + ${schedule.id}">
+                                            <i class="fas fa-clock"></i> Priority Work
+                                        </button>
+
+                                        <!-- Priority Work Modal -->
+                                        <div class="modal fade" th:id="'priorityModal' + ${schedule.id}">
+                                            <div class="modal-dialog">
+                                                <div class="modal-content">
+                                                    <div class="modal-header">
+                                                        <h4 class="modal-title">Add Priority Work</h4>
+                                                        <button type="button" class="close" data-dismiss="modal">&times;</button>
+                                                    </div>
+                                                    <form th:action="@{/doctor/schedule/add-priority-work}" method="post">
+                                                        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                                                        <input type="hidden" name="scheduleId" th:value="${schedule.id}"/>
+                                                        <div class="modal-body">
+                                                            <div class="form-group">
+                                                                <label>Delay Duration (minutes)</label>
+                                                                <input type="number" name="delayMinutes" class="form-control"
+                                                                       placeholder="e.g., 30" min="5" max="120" required/>
+                                                                <small class="form-text text-muted">
+                                                                    This will delay all upcoming appointments by the specified minutes
+                                                                </small>
+                                                            </div>
+                                                        </div>
+                                                        <div class="modal-footer">
+                                                            <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                                                            <button type="submit" class="btn btn-warning">Add Delay</button>
+                                                        </div>
+                                                    </form>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </section>
+</div>
+
+<th:block layout:fragment="scripts">
+<script th:inline="javascript">
+function toggleCustomTime() {
+    var shiftType = document.getElementById('shiftType').value;
+    var customFields = document.getElementById('customTimeFields');
+
+    if (shiftType === 'CUSTOM') {
+        customFields.style.display = 'flex';
+        customFields.querySelectorAll('input').forEach(input => input.required = true);
+    } else {
+        customFields.style.display = 'none';
+        customFields.querySelectorAll('input').forEach(input => {
+            input.required = false;
+            input.value = '';
+        });
+    }
+}
+</script>
+</th:block>
+</body>
+</html>

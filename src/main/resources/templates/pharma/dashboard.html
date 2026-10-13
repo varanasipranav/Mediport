@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/web/thymeleaf/layout"
+      layout:decorate="~{layout}">
+<head>
+    <title>Pharmacy Dashboard</title>
+    <style>
+        /* Prescription queue row */
+        .rx-row {
+            display: grid;
+            grid-template-columns: 1fr 160px 120px 140px;
+            gap: 16px;
+            align-items: center;
+            padding: 16px 24px;
+            border-bottom: 1px solid var(--border);
+        }
+        .rx-row:last-child { border-bottom: none; }
+        .rx-hdr {
+            font-size: 11px; font-weight: 700; color: var(--text-muted);
+            text-transform: uppercase; letter-spacing: 0.06em;
+        }
+        .rx-patient-name { font-size: 13px; font-weight: 600; color: var(--text-strong); margin-bottom: 2px; }
+        .rx-patient-meta { font-size: 11px; color: var(--text-muted); }
+        .rx-doctor { font-size: 13px; color: var(--text); }
+        .rx-date { font-size: 12px; color: var(--text-muted); }
+        .rx-printed-badge {
+            display: inline-flex; align-items: center; gap: 5px;
+            padding: 3px 9px; border-radius: 999px;
+            font-size: 11px; font-weight: 600;
+            background: var(--status-completed-bg);
+            color: var(--status-completed);
+        }
+        .rx-pending-badge {
+            display: inline-flex; align-items: center; gap: 5px;
+            padding: 3px 9px; border-radius: 999px;
+            font-size: 11px; font-weight: 600;
+            background: var(--status-waiting-bg);
+            color: var(--status-waiting);
+        }
+
+        .rx-medicines-preview {
+            font-size: 12px;
+            color: var(--text-muted);
+            background: var(--bg-muted);
+            border-radius: var(--r-sm);
+            padding: 8px 10px;
+            margin-top: 6px;
+            font-family: var(--font-mono);
+            white-space: pre-wrap;
+            max-height: 60px;
+            overflow: hidden;
+        }
+
+        @media (max-width: 900px) {
+            .rx-row { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+<div layout:fragment="content">
+
+    <!-- Page header -->
+    <div class="mp-page-header">
+        <div>
+            <h1 class="mp-page-title">Pharmacy Dashboard</h1>
+            <p class="mp-page-subtitle">Prescriptions — last 30 days</p>
+        </div>
+        <div>
+            <form th:action="@{/pharma/prescriptions/search}" method="get"
+                  style="display:flex;gap:0;">
+                <input type="text" name="searchTerm" class="mp-input"
+                       style="border-radius:var(--r-sm) 0 0 var(--r-sm);border-right:none;width:240px;"
+                       placeholder="Patient name or phone…"/>
+                <button type="submit" class="mp-btn mp-btn-primary"
+                        style="border-radius:0 var(--r-sm) var(--r-sm) 0;flex-shrink:0;">
+                    <i class="fas fa-search"></i> Search
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <div style="padding: 0 32px 32px;">
+
+    <!-- Alerts -->
+    <div th:if="${success}" class="mp-alert mp-alert-success" style="margin-bottom:16px;">
+        <i class="fas fa-check-circle"></i> <span th:text="${success}"></span>
+    </div>
+    <div th:if="${error}" class="mp-alert mp-alert-danger" style="margin-bottom:16px;">
+        <i class="fas fa-exclamation-circle"></i> <span th:text="${error}"></span>
+    </div>
+
+    <!-- Stat tiles -->
+    <div class="mp-stats-grid" style="margin-bottom:24px;">
+        <div class="mp-stat" style="border-left-color:var(--brand-primary);">
+            <div class="mp-stat-val" th:text="${totalCount ?: 0}">0</div>
+            <div class="mp-stat-lbl">Total prescriptions</div>
+        </div>
+        <div class="mp-stat" style="border-left-color:var(--status-waiting-bar);">
+            <div class="mp-stat-val" th:text="${pendingCount ?: 0}">0</div>
+            <div class="mp-stat-lbl">Pending dispense</div>
+        </div>
+        <div class="mp-stat" style="border-left-color:var(--brand-accent);">
+            <div class="mp-stat-val" th:text="${printedCount ?: 0}">0</div>
+            <div class="mp-stat-lbl">Dispensed today</div>
+        </div>
+        <div class="mp-stat" style="border-left-color:var(--status-in-bar);">
+            <div class="mp-stat-val" th:text="${todayCount ?: 0}">0</div>
+            <div class="mp-stat-lbl">New today</div>
+        </div>
+    </div>
+
+    <!-- Prescription queue -->
+    <div class="mp-card">
+        <div class="mp-card-header">
+            <h3 class="mp-card-title">Prescription Queue</h3>
+        </div>
+
+        <!-- Empty state -->
+        <div th:if="${prescriptions.empty}" style="text-align:center;padding:32px 24px;">
+            <i class="fas fa-file-prescription" style="font-size:32px;color:var(--text-soft);margin-bottom:12px;display:block;"></i>
+            <div style="font-size:13px;color:var(--text-muted);">No prescriptions found for this period.</div>
+        </div>
+
+        <!-- Header row -->
+        <div th:if="${!prescriptions.empty}" class="rx-row rx-hdr">
+            <span>Patient</span><span>Doctor</span><span>Date</span><span>Actions</span>
+        </div>
+
+        <!-- Prescription rows -->
+        <div th:each="prescription : ${prescriptions}" class="rx-row">
+
+            <!-- Patient info + medicines preview -->
+            <div>
+                <div style="display:flex;align-items:center;gap:10px;margin-bottom:4px;">
+                    <div th:with="initials=${prescription.patientFullName != null ? prescription.patientFullName.substring(0,1) : '?'}"
+                         class="mp-avatar mp-avatar-sm"
+                         th:text="${initials}">?</div>
+                    <div>
+                        <div class="rx-patient-name" th:text="${prescription.patientFullName}">Patient Name</div>
+                        <div class="rx-patient-meta">
+                            <i class="fas fa-phone" style="margin-right:3px;"></i>
+                            <span th:text="${prescription.patient.phoneNumber}"></span>
+                            &nbsp;·&nbsp;
+                            <span th:text="${prescription.patient.patientId}"></span>
+                        </div>
+                    </div>
+                </div>
+                <div class="rx-medicines-preview" th:text="${prescription.medicines}"></div>
+            </div>
+
+            <!-- Doctor -->
+            <div class="rx-doctor" th:text="${prescription.doctorFullName}"></div>
+
+            <!-- Date + status -->
+            <div>
+                <div class="rx-date" th:text="${#temporals.format(prescription.createdAt, 'dd MMM yyyy')}"></div>
+                <div style="margin-top:4px;">
+                    <span th:if="${prescription.printedAt != null}" class="rx-printed-badge">
+                        <i class="fas fa-check-circle"></i> Dispensed
+                    </span>
+                    <span th:if="${prescription.printedAt == null}" class="rx-pending-badge">
+                        <i class="fas fa-clock"></i> Pending
+                    </span>
+                </div>
+                <div th:if="${prescription.printedAt != null}"
+                     style="font-size:10px;color:var(--text-muted);margin-top:4px;"
+                     th:text="${#temporals.format(prescription.printedAt, 'dd MMM, HH:mm')}"></div>
+            </div>
+
+            <!-- Actions -->
+            <div style="display:flex;flex-direction:column;gap:6px;">
+                <a th:href="@{/pharma/prescriptions/view/{id}(id=${prescription.id})}"
+                   class="mp-btn mp-btn-secondary" style="font-size:12px;padding:7px 12px;justify-content:center;">
+                    <i class="fas fa-eye"></i> View
+                </a>
+                <form th:if="${prescription.printedAt == null}"
+                      th:action="@{/pharma/prescriptions/{id}/mark-printed(id=${prescription.id})}"
+                      method="post">
+                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                    <button type="submit" class="mp-btn mp-btn-accent"
+                            style="font-size:12px;padding:7px 12px;width:100%;justify-content:center;">
+                        <i class="fas fa-print"></i> Mark dispensed
+                    </button>
+                </form>
+            </div>
+
+        </div>
+    </div>
+
+</div>
+</div>
+</body>
+</html>

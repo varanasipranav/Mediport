@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/web/thymeleaf/layout"
+      xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity6">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title th:text="${pageTitle != null ? pageTitle + ' — Mediport' : 'Mediport | Healthcare'}">Mediport</title>
+    <link rel="shortcut icon" type="image/svg" th:href="@{/images/hospital-icon.svg}"/>
+
+    <!-- Google Fonts preconnect (faster) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com"/>
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="crossorigin"/>
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" th:href="@{/resources/lte3dot2/plugins/fontawesome-free/css/all.min.css}"/>
+    <!-- AdminLTE base (needed for grid + modal infrastructure) -->
+    <link rel="stylesheet" th:href="@{/resources/lte3dot2/dist/css/adminlte.min.css}"/>
+    <!-- Mediport design system — overrides AdminLTE -->
+    <link rel="stylesheet" th:href="@{/css/mediport-tokens.css}"/>
+</head>
+<body class="hold-transition sidebar-mini layout-fixed" style="font-family:var(--font-body);background:var(--bg-app);">
+<div class="wrapper">
+
+    <!-- Sidebar -->
+    <aside class="main-sidebar sidebar-dark-primary elevation-4" style="background:var(--sidebar-bg)!important;">
+        <th:block th:replace="~{fragments/main-sidebar :: sidebar}"></th:block>
+    </aside>
+
+    <!-- Navbar / Topbar -->
+    <nav class="main-header navbar navbar-expand navbar-white navbar-light"
+         style="background:var(--bg-card)!important;border-bottom:1px solid var(--border)!important;box-shadow:none!important;height:var(--topbar-h)!important;left:var(--sidebar-w)!important;right:0;position:fixed;top:0;z-index:1034;padding:0 28px;">
+        <th:block th:replace="~{fragments/header :: header}"></th:block>
+    </nav>
+
+    <!-- Content Wrapper -->
+    <div class="content-wrapper" style="background:var(--bg-app)!important;margin-left:var(--sidebar-w)!important;margin-top:var(--topbar-h)!important;min-height:calc(100vh - var(--topbar-h));padding:0;">
+        <!-- Content Header (Page header — fragment slot) -->
+        <section class="content-header" style="padding:0!important;" layout:fragment="header"></section>
+        <!-- Main content -->
+        <section class="content" style="padding:0!important;">
+            <div layout:fragment="content"></div>
+        </section>
+    </div>
+
+    <!-- Footer -->
+    <footer class="main-footer" style="background:var(--bg-card)!important;border-top:1px solid var(--border)!important;color:var(--text-muted)!important;margin-left:var(--sidebar-w)!important;padding:14px 32px;font-size:12px;">
+        <th:block th:replace="~{fragments/footer :: footer}"></th:block>
+    </footer>
+
+</div>
+<!-- ./wrapper -->
+
+<!-- jQuery + Bootstrap + AdminLTE bundle (needed for modals, dropdowns) -->
+<script th:src="@{/resources/lte3dot2/plugins/jquery/jquery.min.js}"></script>
+<script th:src="@{/resources/lte3dot2/plugins/bootstrap/js/bootstrap.bundle.min.js}"></script>
+<script th:src="@{/resources/lte3dot2/dist/js/adminlte.min.js}"></script>
+<!-- SweetAlert2 -->
+<script th:src="@{/resources/lte3dot2/plugins/sweetalert2/sweetalert2.min.js}"></script>
+<link rel="stylesheet" th:href="@{/resources/lte3dot2/plugins/sweetalert2/sweetalert2.min.css}"/>
+
+<!-- SweetAlert2 theme override -->
+<script>
+(function(){
+  var _swalDefaults = { confirmButtonColor: '#0B4FB8', cancelButtonColor: '#5B6B85' };
+  if(window.Swal) { Swal.mixin(_swalDefaults); }
+})();
+</script>
+
+<!-- Page-specific scripts -->
+<div layout:fragment="scriptContent"></div>
+
+</body>
+</html>

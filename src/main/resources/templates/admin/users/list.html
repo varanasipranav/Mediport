@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity6"
+      layout:decorate="~{layout}">
+<head>
+    <title>User Management</title>
+    <style>
+        /* Enhanced User Management Styles */
+        .user-management-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 2rem;
+            border-radius: 12px;
+            margin-bottom: 2rem;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+        }
+
+        .user-management-header h1 {
+            color: #fff;
+            font-size: 2rem;
+            font-weight: 700;
+            margin: 0 0 0.5rem 0;
+        }
+
+        .breadcrumb-custom {
+            background: rgba(255,255,255,0.2);
+            padding: 0.5rem 1rem;
+            border-radius: 50px;
+            display: inline-flex;
+            backdrop-filter: blur(10px);
+        }
+
+        .breadcrumb-custom .breadcrumb-item a {
+            color: #fff;
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .breadcrumb-custom .breadcrumb-item.active {
+            color: rgba(255,255,255,0.8);
+        }
+
+        .action-buttons-group {
+            display: flex;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+        }
+
+        .action-btn {
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            border: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .action-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+        }
+
+        .action-btn i {
+            font-size: 1.1rem;
+        }
+
+        .filter-card {
+            background: #fff;
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+        }
+
+        .filter-form {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .filter-form .form-select,
+        .filter-form .form-control {
+            border-radius: 8px;
+            border: 2px solid #e0e6ed;
+            padding: 0.6rem 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .filter-form .form-select:focus,
+        .filter-form .form-control:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 0.2rem rgba(102,126,234,0.25);
+        }
+
+        .user-table-card {
+            background: #fff;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+        }
+
+        .user-table-card .card-header {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            padding: 1.5rem;
+            border: none;
+        }
+
+        .table-enhanced {
+            margin-bottom: 0;
+        }
+
+        .table-enhanced thead th {
+            background: #f8f9fa;
+            color: #2d3748;
+            font-weight: 700;
+            text-transform: uppercase;
+            font-size: 0.75rem;
+            letter-spacing: 0.5px;
+            padding: 1rem;
+            border-bottom: 2px solid #dee2e6;
+        }
+
+        .table-enhanced tbody tr {
+            transition: all 0.2s ease;
+        }
+
+        .table-enhanced tbody tr:hover {
+            background: #f8f9fa;
+            transform: scale(1.01);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+        }
+
+        .table-enhanced tbody td {
+            padding: 1rem;
+            vertical-align: middle;
+            border-color: #f1f3f5;
+        }
+
+        .role-badge {
+            padding: 0.4rem 0.8rem;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.3rem;
+        }
+
+        .role-admin {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #fff;
+        }
+
+        .role-doctor {
+            background: linear-gradient(135deg, #56ab2f 0%, #a8e063 100%);
+            color: #fff;
+        }
+
+        .role-patient {
+            background: linear-gradient(135deg, #2193b0 0%, #6dd5ed 100%);
+            color: #fff;
+        }
+
+        .role-attendant {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: #fff;
+        }
+
+        .role-pharma {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: #fff;
+        }
+
+        .status-badge {
+            padding: 0.4rem 0.8rem;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.3rem;
+        }
+
+        .user-id-badge {
+            background: #e9ecef;
+            padding: 0.3rem 0.6rem;
+            border-radius: 6px;
+            font-family: 'Courier New', monospace;
+            font-weight: 600;
+            color: #495057;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .action-buttons .btn {
+            padding: 0.5rem 0.75rem;
+            border-radius: 6px;
+            transition: all 0.2s ease;
+        }
+
+        .action-buttons .btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .input-group-custom {
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .input-group-custom .input-group-text {
+            background: #667eea;
+            color: #fff;
+            border: none;
+        }
+    </style>
+</head>
+<body>
+
+<!-- Content Header -->
+<div layout:fragment="header">
+    <div class="container-fluid">
+        <div class="user-management-header">
+            <div class="d-flex justify-content-between align-items-start flex-wrap">
+                <div>
+                    <h1><i class="fas fa-users-cog me-2"></i>User Management</h1>
+                    <ol class="breadcrumb breadcrumb-custom mb-0">
+                        <li class="breadcrumb-item">
+                            <a th:href="@{/}"><i class="fas fa-home me-1"></i>Home</a>
+                        </li>
+                        <li class="breadcrumb-item">
+                            <a th:href="@{/admin}"><i class="fas fa-user-shield me-1"></i>Admin</a>
+                        </li>
+                        <li class="breadcrumb-item active">User Management</li>
+                    </ol>
+                </div>
+                <div class="action-buttons-group">
+                    <a th:href="@{/admin/users/create-doctor}" class="btn btn-success action-btn">
+                        <i class="fas fa-user-md"></i> Add Doctor
+                    </a>
+                    <a th:href="@{/admin/users/create-patient}" class="btn btn-info action-btn">
+                        <i class="fas fa-user-injured"></i> Add Patient
+                    </a>
+                    <a th:href="@{/admin/users/create-attendant}" class="btn btn-warning action-btn">
+                        <i class="fas fa-user-tie"></i> Add Attendant
+                    </a>
+                    <a th:href="@{/admin/users/create-pharma}" class="btn btn-primary action-btn">
+                        <i class="fas fa-pills"></i> Add Pharmacy
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Main Content -->
+<div layout:fragment="content">
+    <div class="container-fluid">
+
+        <!-- Filter Card -->
+        <div class="filter-card">
+            <h5 class="mb-3"><i class="fas fa-filter me-2"></i>Filter & Search</h5>
+            <form method="get" th:action="@{/admin/users/list}" class="filter-form">
+                <div style="min-width: 180px;">
+                    <select name="roleFilter" class="form-select">
+                        <option value="">All Roles</option>
+                        <option value="DOCTOR" th:selected="${roleFilter == 'DOCTOR'}">
+                            Doctor
+                        </option>
+                        <option value="PATIENT" th:selected="${roleFilter == 'PATIENT'}">
+                            Patient
+                        </option>
+                        <option value="ATTENDANT" th:selected="${roleFilter == 'ATTENDANT'}">
+                            Attendant
+                        </option>
+                        <option value="PHARMA" th:selected="${roleFilter == 'PHARMA'}">
+                            Pharmacy
+                        </option>
+                    </select>
+                </div>
+                <div class="input-group" style="min-width: 300px; flex: 1;">
+                    <span class="input-group-text"><i class="fas fa-search"></i></span>
+                    <input type="text" name="search" class="form-control"
+                           placeholder="Search by name, phone, email..." th:value="${search}">
+                </div>
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-search me-1"></i> Search
+                </button>
+                <a th:href="@{/admin/users/list}" class="btn btn-secondary">
+                    <i class="fas fa-redo me-1"></i> Reset
+                </a>
+            </form>
+        </div>
+
+        <!-- User List Card -->
+        <div class="user-table-card card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-users me-2"></i>All Users</h5>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-enhanced" id="usersTable">
+                        <thead>
+                            <tr>
+                                <th><i class="fas fa-hashtag me-1"></i>ID</th>
+                                <th><i class="fas fa-user me-1"></i>Username</th>
+                                <th><i class="fas fa-id-card me-1"></i>Name</th>
+                                <th><i class="fas fa-phone me-1"></i>Phone</th>
+                                <th><i class="fas fa-envelope me-1"></i>Email</th>
+                                <th><i class="fas fa-user-tag me-1"></i>Role</th>
+                                <th><i class="fas fa-building me-1"></i>Department</th>
+                                <th><i class="fas fa-toggle-on me-1"></i>Status</th>
+                                <th><i class="fas fa-cogs me-1"></i>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="user : ${users}">
+                                <td>
+                                    <span class="user-id-badge" th:text="${user.employeeId != null ? user.employeeId : user.patientId}"></span>
+                                </td>
+                                <td>
+                                    <strong><i class="fas fa-user-circle me-1 text-primary"></i><span th:text="${user.username}"></span></strong>
+                                </td>
+                                <td><i class="fas fa-id-badge me-1 text-secondary"></i><span th:text="${user.fullName}"></span></td>
+                                <td><i class="fas fa-phone-alt me-1 text-success"></i><span th:text="${user.phoneNumber}"></span></td>
+                                <td><i class="fas fa-at me-1 text-info"></i><span th:text="${user.email != null ? user.email : 'N/A'}"></span></td>
+                                <td>
+                                    <span th:each="role : ${user.roles}" class="role-badge me-1"
+                                          th:classappend="${role.name == 'ADMIN' ? 'role-admin' :
+                                                          role.name == 'DOCTOR' ? 'role-doctor' :
+                                                          role.name == 'PATIENT' ? 'role-patient' :
+                                                          role.name == 'ATTENDANT' ? 'role-attendant' :
+                                                          'role-pharma'}">
+                                        <i th:class="${role.name == 'ADMIN' ? 'fas fa-user-shield' :
+                                                      role.name == 'DOCTOR' ? 'fas fa-user-md' :
+                                                      role.name == 'PATIENT' ? 'fas fa-user-injured' :
+                                                      role.name == 'ATTENDANT' ? 'fas fa-user-tie' :
+                                                      'fas fa-pills'}"></i>
+                                        <span th:text="${role.name}"></span>
+                                    </span>
+                                </td>
+                                <td><i class="fas fa-hospital-alt me-1 text-warning"></i><span th:text="${user.department != null ? user.department : 'N/A'}"></span></td>
+                                <td>
+                                    <span th:if="${user.enabled}" class="status-badge bg-success">
+                                        <i class="fas fa-check-circle"></i> Active
+                                    </span>
+                                    <span th:unless="${user.enabled}" class="status-badge bg-danger">
+                                        <i class="fas fa-times-circle"></i> Inactive
+                                    </span>
+                                </td>
+                                <td>
+                                    <div class="action-buttons">
+                                        <a th:href="@{/admin/users/edit/{id}(id=${user.id})}"
+                                           class="btn btn-sm btn-outline-primary" title="Edit User">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                        <button type="button" class="btn btn-sm btn-outline-warning"
+                                                th:onclick="'toggleUserStatus(' + ${user.id} + ',' + ${user.enabled} + ')'"
+                                                th:title="${user.enabled ? 'Disable User' : 'Enable User'}">
+                                            <i th:class="${user.enabled ? 'fas fa-user-slash' : 'fas fa-user-check'}"></i>
+                                        </button>
+                                        <button type="button" class="btn btn-sm btn-outline-danger"
+                                                th:onclick="'confirmDelete(' + ${user.id} + ')'" title="Delete User">
+                                            <i class="fas fa-trash-alt"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<!-- Custom Scripts -->
+<div layout:fragment="scriptContent">
+    <script>
+        // Show success/error messages with SweetAlert2
+        const successMessage = /*[[${success}]]*/ null;
+        const errorMessage = /*[[${error}]]*/ null;
+
+        if (successMessage) {
+            Swal.fire({
+                icon: 'success',
+                title: 'Success!',
+                text: successMessage,
+                confirmButtonColor: '#28a745',
+                timer: 3000,
+                timerProgressBar: true,
+                showConfirmButton: true
+            });
+        }
+
+        if (errorMessage) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Error!',
+                text: errorMessage,
+                confirmButtonColor: '#dc3545'
+            });
+        }
+
+        function confirmDelete(userId) {
+            Swal.fire({
+                title: 'Are you sure?',
+                text: "This action cannot be undone!",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#dc3545',
+                cancelButtonColor: '#6c757d',
+                confirmButtonText: '<i class="fas fa-trash-alt me-1"></i> Yes, delete it!',
+                cancelButtonText: '<i class="fas fa-times me-1"></i> Cancel',
+                reverseButtons: true
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    const form = document.createElement('form');
+                    form.method = 'POST';
+                    form.action = '/admin/users/delete/' + userId;
+
+                    const csrfToken = document.querySelector('meta[name="_csrf"]')?.content;
+                    if (csrfToken) {
+                        const input = document.createElement('input');
+                        input.type = 'hidden';
+                        input.name = '_csrf';
+                        input.value = csrfToken;
+                        form.appendChild(input);
+                    }
+
+                    document.body.appendChild(form);
+                    form.submit();
+                }
+            });
+        }
+
+        function toggleUserStatus(userId, isEnabled) {
+            const action = isEnabled ? 'disable' : 'enable';
+            const actionTitle = isEnabled ? 'Disable' : 'Enable';
+
+            Swal.fire({
+                title: `${actionTitle} User?`,
+                text: `Are you sure you want to ${action} this user?`,
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: isEnabled ? '#ffc107' : '#28a745',
+                cancelButtonColor: '#6c757d',
+                confirmButtonText: `<i class="fas fa-${isEnabled ? 'user-slash' : 'user-check'} me-1"></i> Yes, ${action} it!`,
+                cancelButtonText: '<i class="fas fa-times me-1"></i> Cancel',
+                reverseButtons: true
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    const form = document.createElement('form');
+                    form.method = 'POST';
+                    form.action = '/admin/users/toggle-status/' + userId;
+
+                    const csrfToken = document.querySelector('meta[name="_csrf"]')?.content;
+                    if (csrfToken) {
+                        const input = document.createElement('input');
+                        input.type = 'hidden';
+                        input.name = '_csrf';
+                        input.value = csrfToken;
+                        form.appendChild(input);
+                    }
+
+                    document.body.appendChild(form);
+                    form.submit();
+                }
+            });
+        }
+    </script>
+</div>
+
+</body>
+</html>

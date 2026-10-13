@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<th:block th:fragment="scripts">
+    <!-- jQuery (local, with CDN fallback) -->
+    <script th:src="@{/resources/lte3dot2/plugins/jquery/jquery.min.js}"></script>
+    <script>
+        if (typeof jQuery === 'undefined') {
+            // CDN fallback
+            var script = document.createElement('script');
+            script.src = 'https://code.jquery.com/jquery-3.6.0.min.js';
+            // Correct SRI for jQuery 3.6.0 and set crossorigin to anonymous so the browser can verify integrity
+            script.integrity = 'sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=';
+            script.crossOrigin = 'anonymous';
+            document.head.appendChild(script);
+        }
+    </script>
+
+    <!-- SweetAlert2 for beautiful alerts -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <!-- Common Scripts -->
+    <script>
+    // Only run jQuery-dependent code if jQuery is available
+    function runCommonScripts() {
+        try {
+            if (window.jQuery) {
+                $(document).ready(function() {
+                    // Highlight active menu item
+                    var currentPath = window.location.pathname;
+                    $('.nav-link').each(function() {
+                        var href = $(this).attr('href');
+                        if (href && href !== '#' && href !== 'javascript:void(0)' && currentPath.indexOf(href) !== -1) {
+                            $(this).addClass('active');
+                            // Open parent submenu if exists
+                            var parent = $(this).closest('.nav-treeview');
+                            if (parent.length) {
+                                parent.closest('.nav-item').addClass('open');
+                            }
+                        }
+                    });
+                });
+            } else {
+                console.warn('jQuery not available: skipping jQuery-dependent initialization');
+            }
+        } catch (e) {
+            console.error('Error running common scripts', e);
+        }
+    }
+
+    // Run after a short delay to allow CDN fallback to load if used
+    window.addEventListener('load', function() {
+        // If jQuery is not yet available, wait up to 2s for it to load
+        var attempts = 0;
+        var interval = setInterval(function() {
+            if (window.jQuery || attempts > 20) {
+                clearInterval(interval);
+                runCommonScripts();
+            }
+            attempts++;
+        }, 100);
+    });
+
+    // Logout function
+    function logOut() {
+        if (document.forms['logoutForm']) {
+            document.forms['logoutForm'].submit();
+        }
+    }
+
+    // Toggle sidebar on mobile
+    function toggleSidebar() {
+        var wrapper = document.getElementById('mainWrapper');
+        var sidebar = document.querySelector('.main-sidebar');
+
+        if (window.innerWidth <= 991) {
+            sidebar.classList.toggle('mobile-open');
+        } else {
+            wrapper.classList.toggle('sidebar-collapsed');
+        }
+    }
+
+    // Close mobile sidebar when clicking outside
+    document.addEventListener('click', function(e) {
+        if (window.innerWidth <= 991) {
+            var sidebar = document.querySelector('.main-sidebar');
+            var menuToggle = document.querySelector('.menu-toggle');
+
+            if (sidebar && menuToggle && !sidebar.contains(e.target) && !menuToggle.contains(e.target)) {
+                sidebar.classList.remove('mobile-open');
+            }
+        }
+    });
+    </script>
+</th:block>
+
+</body>
+</html>

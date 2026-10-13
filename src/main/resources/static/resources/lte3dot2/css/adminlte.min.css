@@ -1,0 +1,46 @@
+/* Minimal local AdminLTE stub (replace with full AdminLTE assets when available)
+   This exists to prove local static CSS loading works in environments blocking CDNs. */
+
+/* AdminLTE layout helpers that your dashboard relies on */
+.wrapper { min-height: 100vh; }
+.main-sidebar { position: fixed; top: 0; left: 0; bottom: 0; width: 250px; z-index: 1038; }
+.content-wrapper { margin-left: 250px; min-height: calc(100vh - 57px); padding: 1rem; background: #f4f6f9; }
+.main-header { margin-left: 250px; }
+.main-footer { margin-left: 250px; padding: .75rem 1rem; background: #fff; border-top: 1px solid rgba(0,0,0,.125); }
+
+.nav-sidebar .nav-link { color: rgba(255,255,255,.85); }
+.nav-sidebar .nav-link.active, .nav-sidebar .nav-link:hover { background: rgba(255,255,255,.12); color:#fff; }
+
+/* Small boxes */
+.small-box { border-radius: .25rem; position: relative; display:block; margin-bottom: 1rem; color:#fff; padding: 1rem; }
+.small-box .inner { padding: .5rem; }
+.small-box .icon { position:absolute; top: .5rem; right: .75rem; font-size: 2.5rem; opacity:.25; }
+.small-box-footer { display:block; color: rgba(255,255,255,.85); padding:.35rem 1rem; background: rgba(0,0,0,.1); text-decoration:none; }
+.small-box-footer:hover { background: rgba(0,0,0,.18); color:#fff; }
+
+.bg-info { background:#17a2b8 !important; }
+.bg-success { background:#28a745 !important; }
+.bg-warning { background:#ffc107 !important; color:#1f2d3d !important; }
+.bg-danger { background:#dc3545 !important; }
+.bg-primary { background:#007bff !important; }
+.bg-secondary { background:#6c757d !important; }
+
+/* btn-app */
+.btn-app { border-radius:.25rem; padding: .75rem .5rem; min-width: 120px; display:inline-block; color:#fff; text-decoration:none; }
+.btn-app i { display:block; font-size:1.5rem; margin-bottom:.25rem; }
+
+/* basic */
+.card { background:#fff; border-radius:.25rem; border:1px solid rgba(0,0,0,.125); }
+.card-header { padding:.75rem 1rem; border-bottom:1px solid rgba(0,0,0,.125); }
+.card-body { padding:1rem; }
+.card-footer { padding:.75rem 1rem; border-top:1px solid rgba(0,0,0,.125); background: rgba(0,0,0,.03); }
+
+/* products-list */
+.products-list { list-style:none; margin:0; padding:0; }
+.products-list .item { display:flex; gap:.75rem; padding:.75rem 1rem; border-bottom:1px solid rgba(0,0,0,.06); }
+.product-img { width:40px; display:flex; align-items:center; justify-content:center; }
+.product-title { font-weight:600; color:#343a40; text-decoration:none; }
+.product-description { color:#6c757d; font-size:.875rem; }
+
+.breadcrumb { background: transparent; padding: 0; margin-bottom: 0; }
+.breadcrumb-item + .breadcrumb-item::before { content: "/"; }

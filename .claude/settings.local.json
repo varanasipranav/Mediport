@@ -1,0 +1,17 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(Get-ChildItem -Path \"C:\\\\webapp\" -Recurse)",
+      "Bash(Select-Object -Property FullName, PSIsContainer)",
+      "Bash(Sort-Object FullName)",
+      "Bash(Format-Table -AutoSize)",
+      "Bash(xargs wc -l)",
+      "Bash(Get-Content \"C:\\\\webapp\\\\src\\\\main\\\\resources\\\\templates\\\\pharma\\\\dashboard.html\")",
+      "Bash(Select-Object -Last 8)",
+      "Bash(Get-Content \"C:\\\\webapp\\\\src\\\\main\\\\resources\\\\templates\\\\doctor\\\\create-prescription.html\")",
+      "Bash(Get-Content \"C:\\\\webapp\\\\src\\\\main\\\\resources\\\\templates\\\\doctor\\\\weekly-schedule.html\")",
+      "Bash(Get-Content \"C:\\\\webapp\\\\src\\\\main\\\\resources\\\\templates\\\\patient\\\\dashboard.html\")",
+      "PowerShell($lines = Get-Content \"C:\\\\webapp\\\\src\\\\main\\\\resources\\\\templates\\\\doctor\\\\create-prescription.html\"; $total = $lines.Count; $lines[\\($total-20\\)..\\($total-1\\)])"
+    ]
+  }
+}

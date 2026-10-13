@@ -1,0 +1,357 @@
+/* ============================================================
+   Mediport — Design Tokens
+   Modern healthcare. Calm. Trustworthy. Comfortable density.
+   ============================================================ */
+
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Manrope:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600&display=swap');
+
+:root {
+  /* — Brand ————————————————————————————————————————— */
+  --brand-primary:        #0B4FB8;     /* deep medical blue   */
+  --brand-primary-600:    #0A47A6;
+  --brand-primary-700:    #073B8A;
+  --brand-primary-50:     #EAF1FC;
+  --brand-primary-100:    #D4E2F8;
+  --brand-accent:         #10B981;     /* vital green         */
+  --brand-accent-50:      #ECFDF5;
+  --brand-accent-100:     #D1FAE5;
+
+  /* — Sidebar (deep navy, not pure black) ————————— */
+  --sidebar-bg:           #0F1B2D;
+  --sidebar-bg-elev:      #16243A;
+  --sidebar-border:       rgba(255,255,255,0.06);
+  --sidebar-text:         rgba(255,255,255,0.78);
+  --sidebar-text-dim:     rgba(255,255,255,0.45);
+  --sidebar-text-strong:  #FFFFFF;
+  --sidebar-active-bg:    rgba(255,255,255,0.06);
+  --sidebar-active-bar:   var(--brand-accent);
+
+  /* — Surfaces ——————————————————————————————————————— */
+  --bg-app:               #F7F9FC;   /* very soft blue-cool   */
+  --bg-card:              #FFFFFF;
+  --bg-muted:             #F2F5FA;
+  --bg-subtle:            #FAFBFD;
+
+  /* — Borders ————————————————————————————————————————— */
+  --border:               #E5EAF2;
+  --border-strong:        #D5DCE7;
+  --border-focus:         var(--brand-primary);
+
+  /* — Text ————————————————————————————————————————— */
+  --text-strong:          #0F1B2D;
+  --text:                 #1F2A40;
+  --text-muted:           #5B6B85;
+  --text-soft:            #8595AE;
+  --text-inverse:         #FFFFFF;
+
+  /* — Status (soft + solid pairs) ——————————————————— */
+  --status-waiting:       #B5651D;     /* warm amber text     */
+  --status-waiting-bg:    #FEF3DC;
+  --status-waiting-bar:   #F59E0B;
+
+  --status-consult:       #0A47A6;
+  --status-consult-bg:    #E1ECFB;
+  --status-consult-bar:   #2563EB;
+
+  --status-completed:     #047857;
+  --status-completed-bg:  #D7F5E6;
+  --status-completed-bar: #10B981;
+
+  --status-missed:        #B91C1C;
+  --status-missed-bg:     #FDE3E3;
+  --status-missed-bar:    #EF4444;
+
+  --status-delayed:       #92400E;
+  --status-delayed-bg:    #FFEDD5;
+  --status-delayed-bar:   #F97316;
+
+  /* WhatsApp brand-echo (used sparingly, as badges only) */
+  --wa-green:             #25D366;
+  --wa-green-bg:          #E6F9EF;
+  --wa-text:              #075E54;
+
+  /* — Type ——————————————————————————————————————————— */
+  --font-display: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+  --font-body:    'Manrope', system-ui, -apple-system, sans-serif;
+  --font-mono:    'JetBrains Mono', ui-monospace, monospace;
+
+  /* — Radius ————————————————————————————————————————— */
+  --r-xs: 6px;
+  --r-sm: 8px;
+  --r-md: 10px;
+  --r-lg: 14px;
+  --r-pill: 999px;
+
+  /* — Shadow (very restrained) ——————————————————————— */
+  --shadow-card:  0 1px 2px rgba(15, 27, 45, 0.04), 0 1px 1px rgba(15, 27, 45, 0.02);
+  --shadow-pop:   0 8px 24px rgba(15, 27, 45, 0.08), 0 2px 6px rgba(15, 27, 45, 0.04);
+  --shadow-focus: 0 0 0 3px rgba(11, 79, 184, 0.15);
+
+  /* — Spacing scale (4-based) ——————————————————————— */
+  --s-1: 4px;
+  --s-2: 8px;
+  --s-3: 12px;
+  --s-4: 16px;
+  --s-5: 20px;
+  --s-6: 24px;
+  --s-8: 32px;
+  --s-10: 40px;
+  --s-12: 48px;
+
+  /* — Layout ————————————————————————————————————————— */
+  --sidebar-w: 248px;
+  --topbar-h: 64px;
+}
+
+/* Accent override applied by the Tweak panel */
+:root[data-accent="blue"]   { --brand-primary: #0B4FB8; --brand-primary-600: #0A47A6; --brand-primary-700: #073B8A; --brand-primary-50: #EAF1FC; --brand-primary-100: #D4E2F8; }
+:root[data-accent="teal"]   { --brand-primary: #0E7C8C; --brand-primary-600: #0B6C7B; --brand-primary-700: #095B68; --brand-primary-50: #E8F6F8; --brand-primary-100: #CDEAEF; }
+:root[data-accent="indigo"] { --brand-primary: #4338CA; --brand-primary-600: #3B30B5; --brand-primary-700: #322998; --brand-primary-50: #EEEDFB; --brand-primary-100: #DCDAF7; }
+:root[data-accent="green"]  { --brand-primary: #047857; --brand-primary-600: #036A4E; --brand-primary-700: #025C44; --brand-primary-50: #E7F6F0; --brand-primary-100: #CFEEE0; }
+
+/* ============================================================
+   Reset / base for artboards
+   ============================================================ */
+
+.mp-screen,
+.mp-screen * {
+  box-sizing: border-box;
+}
+
+.mp-screen {
+  font-family: var(--font-body);
+  color: var(--text);
+  background: var(--bg-app);
+  font-size: 14px;
+  line-height: 1.5;
+  letter-spacing: -0.005em;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  overflow: hidden;
+}
+
+.mp-screen h1, .mp-screen h2, .mp-screen h3, .mp-screen h4, .mp-screen h5 {
+  font-family: var(--font-display);
+  color: var(--text-strong);
+  font-weight: 700;
+  letter-spacing: -0.018em;
+  margin: 0;
+}
+
+.mp-screen button {
+  font-family: inherit;
+  cursor: pointer;
+  border: none;
+  background: none;
+}
+
+.mp-screen a { color: inherit; text-decoration: none; }
+
+/* ============================================================
+   Reusable atoms
+   ============================================================ */
+
+.mp-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  box-shadow: var(--shadow-card);
+}
+
+.mp-card-header {
+  padding: 20px 24px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--border);
+}
+
+.mp-card-title {
+  font-family: var(--font-display);
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text-strong);
+  margin: 0;
+  letter-spacing: -0.01em;
+}
+
+.mp-card-body { padding: 20px 24px; }
+
+/* Buttons */
+.mp-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  border-radius: var(--r-sm);
+  font-family: var(--font-body);
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: -0.005em;
+  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+  white-space: nowrap;
+  border: 1px solid transparent;
+  line-height: 1;
+}
+.mp-btn-primary {
+  background: var(--brand-primary);
+  color: #fff;
+}
+.mp-btn-primary:hover { background: var(--brand-primary-600); }
+.mp-btn-secondary {
+  background: var(--bg-card);
+  color: var(--text);
+  border-color: var(--border-strong);
+}
+.mp-btn-secondary:hover { background: var(--bg-muted); }
+.mp-btn-success {
+  background: var(--brand-accent);
+  color: #fff;
+}
+.mp-btn-success:hover { filter: brightness(0.96); }
+.mp-btn-danger {
+  background: #fff;
+  color: var(--status-missed);
+  border-color: #F4C5C5;
+}
+.mp-btn-danger:hover { background: var(--status-missed-bg); }
+.mp-btn-ghost {
+  background: transparent;
+  color: var(--text-muted);
+}
+.mp-btn-ghost:hover { background: var(--bg-muted); color: var(--text); }
+.mp-btn-sm { padding: 7px 12px; font-size: 13px; }
+.mp-btn-lg { padding: 13px 22px; font-size: 15px; }
+
+/* Status pills */
+.mp-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: var(--r-pill);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: -0.005em;
+  line-height: 1.4;
+}
+.mp-pill::before {
+  content: '';
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+  opacity: 0.7;
+}
+.mp-pill-waiting   { background: var(--status-waiting-bg);   color: var(--status-waiting); }
+.mp-pill-consult   { background: var(--status-consult-bg);   color: var(--status-consult); }
+.mp-pill-completed { background: var(--status-completed-bg); color: var(--status-completed); }
+.mp-pill-missed    { background: var(--status-missed-bg);    color: var(--status-missed); }
+.mp-pill-delayed   { background: var(--status-delayed-bg);   color: var(--status-delayed); }
+.mp-pill-wa        { background: var(--wa-green-bg);         color: var(--wa-text); }
+
+/* Inputs */
+.mp-input,
+.mp-select,
+.mp-textarea {
+  width: 100%;
+  padding: 11px 14px;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--r-sm);
+  font-family: var(--font-body);
+  font-size: 14px;
+  color: var(--text);
+  background: var(--bg-card);
+  transition: border 0.15s, box-shadow 0.15s;
+  outline: none;
+}
+.mp-input:focus,
+.mp-select:focus,
+.mp-textarea:focus {
+  border-color: var(--border-focus);
+  box-shadow: var(--shadow-focus);
+}
+.mp-input::placeholder { color: var(--text-soft); }
+.mp-label {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 6px;
+}
+.mp-helper {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-top: 6px;
+}
+
+/* Stat tile */
+.mp-stat {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  padding: 20px 22px;
+  box-shadow: var(--shadow-card);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 0;
+}
+.mp-stat-label {
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.mp-stat-value {
+  font-family: var(--font-display);
+  font-size: 32px;
+  font-weight: 700;
+  color: var(--text-strong);
+  letter-spacing: -0.02em;
+  line-height: 1;
+}
+.mp-stat-delta {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  font-weight: 600;
+}
+.mp-stat-delta.up   { color: var(--status-completed); }
+.mp-stat-delta.down { color: var(--status-missed); }
+.mp-stat-delta.flat { color: var(--text-muted); }
+
+/* Avatar */
+.mp-avatar {
+  width: 36px; height: 36px;
+  border-radius: 50%;
+  background: var(--brand-primary-50);
+  color: var(--brand-primary);
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 13px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  letter-spacing: 0;
+}
+.mp-avatar.lg { width: 48px; height: 48px; font-size: 16px; }
+.mp-avatar.sm { width: 28px; height: 28px; font-size: 11px; }
+
+/* Divider */
+.mp-divider {
+  height: 1px;
+  background: var(--border);
+  margin: 20px 0;
+}
+
+/* Scrollbars cosmetic */
+.mp-screen ::-webkit-scrollbar { width: 8px; height: 8px; }
+.mp-screen ::-webkit-scrollbar-thumb { background: #D5DCE7; border-radius: 4px; }
+.mp-screen ::-webkit-scrollbar-track { background: transparent; }

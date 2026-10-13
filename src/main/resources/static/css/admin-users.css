@@ -1,0 +1,146 @@
+/* Admin Users styles — matches Login page color scheme and overall UI theme */
+:root{
+    --primary-dark: #2D3748;
+    --primary: #4A5568;
+    --accent: #3B82F6;
+    --accent-light: #60A5FA;
+    --success: #10B981;
+    --warning: #F59E0B;
+    --danger: #EF4444;
+    --light-bg: #F7FAFC;
+    --border: #E2E8F0;
+    --text-primary: #1A202C;
+    --text-secondary: #718096;
+    --muted: rgba(26,32,44,0.65);
+}
+
+/* Page container tweaks */
+.content-wrapper .container-fluid {
+    padding-left: 28px;
+    padding-right: 28px;
+}
+
+/* Headings used in admin pages */
+h1, h2, h3, h4, h5 {
+    color: var(--text-primary);
+    font-family: 'Segoe UI', system-ui, -apple-system, 'Inter', sans-serif;
+}
+
+/* Breadcrumbs */
+.breadcrumb {
+    background: transparent !important;
+    padding: 0 !important;
+    margin: 0 !important;
+}
+.breadcrumb .breadcrumb-item a {
+    color: var(--accent) !important;
+    text-decoration: none !important;
+}
+.breadcrumb .breadcrumb-item.active {
+    color: var(--muted) !important;
+}
+
+/* Cards */
+.card {
+    border-radius: 6px;
+    border: 1px solid var(--border);
+    box-shadow: 0 6px 18px rgba(17,24,39,0.04);
+    background: #ffffff;
+}
+.card-header {
+    background: transparent;
+    border-bottom: none;
+    padding: 16px 20px;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+.card-body {
+    padding: 18px 20px;
+}
+
+/* Stat boxes (if used) */
+.stat-box {
+    border-radius: 6px;
+    padding: 18px;
+    color: #fff;
+}
+.stat-box .value { font-size: 28px; font-weight: 700; }
+.stat-box .label { font-size: 14px; opacity: 0.95; }
+
+/* Buttons - solid and outline */
+.btn {
+    border-radius: 6px;
+    padding: 8px 12px;
+    font-weight: 600;
+}
+.btn-primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+.btn-primary:hover { background: var(--accent-light); border-color: var(--accent-light); }
+.btn-success { background: var(--success); border-color: var(--success); color: #fff; }
+.btn-warning { background: var(--warning); border-color: var(--warning); color: #212529; }
+.btn-info { background: var(--accent-light); border-color: var(--accent-light); color: #fff; }
+.btn-secondary { background: #f1f1f1; border-color: #e9ecef; color: var(--text-primary); }
+
+/* Outline variants (keep border and color) */
+.btn-outline-primary { color: var(--accent); border: 1px solid var(--accent); background: transparent; }
+.btn-outline-primary:hover { background: rgba(59,130,246,0.06); }
+.btn-outline-warning { color: var(--warning); border: 1px solid var(--warning); }
+.btn-outline-danger { color: var(--danger); border: 1px solid var(--danger); }
+
+/* Badges for roles */
+.role-admin { background: var(--accent); color: #fff; }
+.role-doctor { background: #10B981; color: #fff; }
+.role-patient { background: #0EA5A4; color: #fff; }
+.role-attendant { background: var(--warning); color: #fff; }
+.role-pharma { background: #6B7280; color: #fff; }
+
+/* Table styles */
+.table {
+    border-collapse: separate;
+    border-spacing: 0;
+}
+.table thead th {
+    background: transparent;
+    border-bottom: 2px solid var(--border);
+    color: var(--text-primary);
+    font-weight: 700;
+    padding: 12px 16px;
+}
+.table tbody td { padding: 12px 16px; vertical-align: middle; }
+.table-hover tbody tr:hover { background: rgba(59,130,246,0.03); }
+.table-responsive { overflow: auto; }
+
+/* Datatable subtle styling for search box */
+.input-group { display: flex; align-items: center; }
+.input-group .input-group-text { background: transparent; border: 1px solid var(--border); border-right: none; padding: 8px 10px; color: var(--muted); }
+.input-group .form-control { border: 1px solid var(--border); border-left: none; padding: 8px 10px; border-radius: 6px; }
+
+/* Alerts */
+.alert { border-radius: 6px; }
+.alert .fas { margin-right: 8px; }
+
+/* Forms */
+.form-control { border: 1px solid var(--border); border-radius: 6px; padding: 8px 10px; }
+.form-select { border: 1px solid var(--border); border-radius: 6px; padding: 8px 10px; }
+
+/* Small utilities used in templates */
+.mb-0 { margin-bottom: 0 !important; }
+.mb-1 { margin-bottom: .25rem !important; }
+.mb-2 { margin-bottom: .5rem !important; }
+
+/* Responsive tweaks */
+@media (max-width: 991px) {
+    .content-wrapper .container-fluid { padding-left: 12px; padding-right: 12px; }
+    .card-header { padding: 12px; }
+}
+
+/* Make sure action buttons in tables are compact */
+.btn-group .btn { padding: 6px 8px; font-size: 13px; }
+
+/* Breadcrumb/heading spacing */
+.d-flex.justify-content-between.align-items-center.mb-3 { gap: 16px; }
+
+/* Utility: vertically center small icons used in UI */
+.icon-wrapper i { vertical-align: middle; }
+
+/* Ensure forms and tables align with login visual style */
+.container-fluid .card { background: #fff; }
