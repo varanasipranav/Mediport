@@ -75,7 +75,7 @@ public class SecurityConfiguration {
         		).permitAll()
         		// WhatsApp Webhook endpoints (must be publicly accessible)
         		.requestMatchers("/api/whatsapp/webhook", "/api/whatsapp/webhook/**").permitAll()
-        		.requestMatchers("/verify/rx/**").permitAll()
+        		.requestMatchers("/verify/rx/**", "/rx/pdf/**").permitAll()
                 .requestMatchers("/login*", "/logout.html", "/favicon.ico", "/offline/*",
                 		"/signin/**", "/signup/**", "/customLogin",
                         "/user/registration*", "/registrationConfirm*", "/expiredAccount*", "/registration*",

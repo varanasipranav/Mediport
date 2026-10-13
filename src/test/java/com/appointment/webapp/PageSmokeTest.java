@@ -61,6 +61,13 @@ class PageSmokeTest {
             pagesByUser.put("anon:PUBLIC", new String[] {"/verify/rx/" + rx.getId() + "/" + rxDocumentService.sign(rx.getId()), "/verify/rx/" + rx.getId() + "/bad"});
         }
 
+        // Inventory pages (pharmacy) - the medicine / dispense pages need data, so add them when it exists
+        pagesByUser.put("phr01:PHARMA:inv", new String[] {"/pharma/inventory"});
+        pagesByUser.put("admin:ADMIN:inv", new String[] {"/pharma/inventory"});
+        if (rx != null) {
+            pagesByUser.put("phr01:PHARMA:inv", new String[] {"/pharma/inventory", "/pharma/prescriptions/dispense/" + rx.getId(), "/pharma/dashboard"});
+        }
+
         Path out = Path.of("target", "pages");
         Files.createDirectories(out);
         List<String> failures = new ArrayList<>();

@@ -51,6 +51,7 @@ public class PharmaController {
         model.addAttribute("prescriptions", recentPrescriptions);
         model.addAttribute("totalCount", recentPrescriptions.size());
         model.addAttribute("today", LocalDate.now());
+        addPharmacyPanels(model, recentPrescriptions);
 
         return "pharma/dashboard";
     }
@@ -102,7 +103,31 @@ public class PharmaController {
         model.addAttribute("searchTerm", searchTerm);
         model.addAttribute("totalCount", prescriptions.size());
         model.addAttribute("today", LocalDate.now());
+        addPharmacyPanels(model, prescriptions);
 
         return "pharma/dashboard";
+    }
+
+    @Autowired
+    private com.appointment.webapp.service.inventory.InventoryService inventoryService;
+
+    /** Dispense status per prescription, stock alerts and recent activity for the pharmacy dashboard. */
+    private void addPharmacyPanels(Model model, List<Prescription> prescriptions) {
+        var statuses = inventoryService.dispenseStatuses();
+        long pending = prescriptions.stream().filter(p -> !statuses.containsKey(p.getId())).count();
+        long partial = prescriptions.stream().filter(p -> statuses.get(p.getId()) == com.appointment.webapp.model.inventory.DispenseRecord.Status.PARTIAL).count();
+        long dispensed = prescriptions.stream().filter(p -> statuses.get(p.getId()) == com.appointment.webapp.model.inventory.DispenseRecord.Status.DISPENSED).count();
+        var stock = inventoryService.stockOverview();
+        var alerts = stock.stream()
+            .filter(r -> r.level() != com.appointment.webapp.service.inventory.InventoryService.Level.OK)
+            .limit(6).toList();
+
+        model.addAttribute("statuses", statuses);
+        model.addAttribute("pendingCount", pending);
+        model.addAttribute("partialCount", partial);
+        model.addAttribute("dispensedCount", dispensed);
+        model.addAttribute("stockAlerts", alerts);
+        model.addAttribute("stockAlertCount", stock.stream().filter(r -> r.level() != com.appointment.webapp.service.inventory.InventoryService.Level.OK).count());
+        model.addAttribute("recentDispenses", inventoryService.recentDispenses());
     }
 }

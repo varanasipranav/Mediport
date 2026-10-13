@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<!-- Flash messages set by controllers via RedirectAttributes: success / warning / error -->
+<div th:fragment="flash" style="padding:0 32px;">
+    <div th:if="${success}" class="mp-alert mp-alert-success" style="margin-bottom:14px;">
+        <i class="fas fa-check-circle"></i> <span th:text="${success}"></span>
+    </div>
+    <div th:if="${warning}" class="mp-alert mp-alert-warning" style="margin-bottom:14px;">
+        <i class="fas fa-exclamation-triangle"></i> <span th:text="${warning}"></span>
+    </div>
+    <div th:if="${error}" class="mp-alert mp-alert-danger" style="margin-bottom:14px;">
+        <i class="fas fa-exclamation-circle"></i> <span th:text="${error}"></span>
+    </div>
+</div>
+
+</body>
+</html>

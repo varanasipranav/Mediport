@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/web/thymeleaf/layout"
+      layout:decorate="~{layout}">
+<head>
+    <title>Dispense</title>
+</head>
+<body>
+<div layout:fragment="content">
+
+    <div class="mp-page-header">
+        <div>
+            <a th:href="@{/pharma/dashboard}" class="mp-helper" style="display:inline-block;margin:0 0 8px;"><i class="fas fa-arrow-left"></i> Dispense queue</a>
+            <h1 class="mp-page-title">Dispense prescription</h1>
+            <div class="mp-page-subtitle">
+                <span class="font-mono" th:text="${rxNumber}">RX</span> ·
+                <strong th:text="${prescription.patient.firstName + ' ' + prescription.patient.lastName}">Patient</strong> ·
+                Dr. <span th:text="${prescription.doctor.firstName + ' ' + prescription.doctor.lastName}">Doctor</span>
+            </div>
+        </div>
+        <div class="mp-page-actions">
+            <a th:href="@{/pharma/prescriptions/view/{id}(id=${prescription.id})}" class="mp-btn mp-btn-secondary"><i class="fas fa-file-prescription"></i> View prescription</a>
+        </div>
+    </div>
+
+    <div th:replace="~{fragments/flash :: flash}"></div>
+
+    <div style="padding:0 32px;" th:if="${dispense != null}">
+        <div class="mp-alert" th:classappend="${dispense.status.name() == 'DISPENSED'} ? 'mp-alert-success' : 'mp-alert-warning'" style="margin-bottom:16px;">
+            <i class="fas fa-info-circle"></i>
+            <span th:if="${dispense.status.name() == 'DISPENSED'}">Already fully dispensed on <span th:text="${#temporals.format(dispense.dispensedAt,'dd MMM yyyy, HH:mm')}"></span> by <span th:text="${dispense.dispensedBy}"></span>.</span>
+            <span th:if="${dispense.status.name() == 'PARTIAL'}">Partly dispensed on <span th:text="${#temporals.format(dispense.dispensedAt,'dd MMM yyyy, HH:mm')}"></span> — you can complete it below.</span>
+        </div>
+    </div>
+
+    <form th:action="@{/pharma/prescriptions/dispense/{id}(id=${prescription.id})}" method="post" style="padding:0 32px 32px;">
+        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+
+        <div class="mp-card">
+            <div class="mp-card-header">
+                <h3 class="mp-card-title">Medicines</h3>
+                <span class="mp-helper" style="margin:0;">Match each line to your stock and confirm the quantity. Leave quantity 0 to skip a line.</span>
+            </div>
+
+            <div th:each="l : ${plan}" class="dsp-row">
+                <div class="dsp-rx">
+                    <div class="dsp-num" th:text="${l.line().no()}">1</div>
+                    <div>
+                        <div class="dsp-name" th:text="${l.line().name()}">Medicine</div>
+                        <div class="dsp-sub">
+                            <span th:text="${l.line().instructions()}">1 tab twice daily</span>
+                            <span th:if="${!#strings.isEmpty(l.line().duration())}"> · <span th:text="${l.line().duration()}"></span></span>
+                        </div>
+                    </div>
+                </div>
+                <div>
+                    <label class="mp-label" style="font-size:11px;color:var(--text-muted);">From stock</label>
+                    <select class="mp-select" name="medicineId" th:attr="data-row=${lStat.index}" onchange="updateStock(this)">
+                        <option value="">— not dispensing —</option>
+                        <option th:each="c : ${catalogue}" th:value="${c.medicine().id}"
+                                th:text="${c.medicine().displayName + '  (' + c.available() + ' in stock)'}"
+                                th:attr="data-stock=${c.available()}"
+                                th:selected="${l.match() != null and l.match().id == c.medicine().id}">Medicine</option>
+                    </select>
+                    <div class="dsp-hint" th:if="${l.match() == null}"><i class="fas fa-exclamation-circle"></i> No catalogue match — choose one manually.</div>
+                </div>
+                <div>
+                    <label class="mp-label" style="font-size:11px;color:var(--text-muted);">Quantity</label>
+                    <input class="mp-input font-mono" type="number" min="0" name="quantity" th:value="${l.suggestedQty() != null and l.match() != null ? l.suggestedQty() : 0}"/>
+                    <div class="dsp-hint" th:if="${l.suggestedQty() != null}">Suggested: <strong th:text="${l.suggestedQty()}"></strong></div>
+                    <div class="dsp-hint dsp-stock" th:if="${l.match() != null and l.suggestedQty() != null and l.inStock() < l.suggestedQty()}" style="color:var(--status-missed);">Only <span th:text="${l.inStock()}"></span> in stock</div>
+                </div>
+            </div>
+
+            <div class="mp-card-body" style="border-top:1px solid var(--border);">
+                <label class="mp-label">Notes (optional)</label>
+                <input class="mp-input" name="notes" placeholder="Counselling given, substitution made, partial reason…"/>
+            </div>
+            <div class="mp-card-body" style="border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;">
+                <span class="mp-helper" style="margin:0;"><i class="fas fa-info-circle"></i> Stock is taken from the batch that expires first.</span>
+                <button type="submit" class="mp-btn mp-btn-success mp-btn-lg"><i class="fas fa-check"></i> Dispense</button>
+            </div>
+        </div>
+    </form>
+
+    <style>
+        .dsp-row { display:grid; grid-template-columns:minmax(0,1.3fr) minmax(0,1.4fr) 150px; gap:20px; padding:18px 24px; border-bottom:1px solid var(--border); align-items:start; }
+        .dsp-rx { display:flex; gap:12px; }
+        .dsp-num { width:32px; height:32px; border-radius:8px; background:var(--brand-primary-50); color:var(--brand-primary); font:700 13px var(--font-display); display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+        .dsp-name { font-weight:700; color:var(--text-strong); }
+        .dsp-sub { font-size:12.5px; color:var(--text-muted); margin-top:2px; }
+        .dsp-hint { font-size:11.5px; color:var(--status-waiting); margin-top:5px; }
+        @media (max-width: 900px) { .dsp-row { grid-template-columns:1fr; } }
+    </style>
+</div>
+
+<th:block layout:fragment="scriptContent">
+<script>
+function updateStock(sel) {
+    var opt = sel.options[sel.selectedIndex];
+    var row = sel.closest('.dsp-row');
+    var q = row.querySelector('input[name=quantity]');
+    if (!sel.value) { q.value = 0; return; }
+    var stock = parseInt(opt.getAttribute('data-stock') || '0', 10);
+    if (parseInt(q.value || '0', 10) > stock) q.value = stock;
+}
+</script>
+</th:block>
+</body>
+</html>

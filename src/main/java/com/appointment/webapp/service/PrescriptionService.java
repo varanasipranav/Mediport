@@ -31,6 +31,9 @@ public class PrescriptionService {
     @Autowired
     private AppointmentRepository appointmentRepository;
 
+    @Autowired
+    private org.springframework.context.ApplicationEventPublisher events;
+
     /**
      * Create a new prescription after consultation
      */
@@ -58,6 +61,7 @@ public class PrescriptionService {
         Prescription saved = prescriptionRepository.save(prescription);
 
         logger.info("Created prescription {} for appointment {}", saved.getId(), appointmentId);
+        events.publishEvent(new PrescriptionCreatedEvent(saved.getId()));
 
         return saved;
     }

@@ -41,6 +41,9 @@ public class WhatsAppMessageProcessor {
     @Autowired
     private com.appointment.webapp.whatsapp.service.appointment.WhatsAppAppointmentManagementService appointmentManagementService;
 
+    @Autowired
+    private com.appointment.webapp.whatsapp.service.appointment.QueueStatusService queueStatusService;
+
     /**
      * Main entry point - process incoming message
      */
@@ -215,7 +218,8 @@ public class WhatsAppMessageProcessor {
         }
 
         // Check button ID or text input
-        String choice = message.getButtonId() != null ? message.getButtonId() : input;
+        String choice = message.getListId() != null ? message.getListId()
+            : (message.getButtonId() != null ? message.getButtonId() : input.trim());
 
         switch (choice.toLowerCase()) {
             case "book_appointment", "1", "book" -> {
@@ -230,6 +234,9 @@ public class WhatsAppMessageProcessor {
             case "cancel_appointment", "3", "cancel" -> {
                 conversationService.updateState(conversation, ConversationState.SELECTING_APPOINTMENT_TO_CANCEL);
                 showAppointmentsToCancel(conversation);
+            }
+            case "queue_status", "status", "queue", "5" -> {
+                showQueueStatus(conversation);
             }
             case "reschedule", "4" -> {
                 conversationService.updateState(conversation, ConversationState.SELECTING_APPOINTMENT_TO_RESCHEDULE);
@@ -251,16 +258,17 @@ public class WhatsAppMessageProcessor {
         logger.info("   To: {}", conversation.getWhatsappPhone());
 
         try {
-            String menuText = "What would you like to do?\n\nPlease choose an option:";
+            String menuText = "What would you like to do?\n\nTap the button below to choose an option.";
 
-            var buttons = java.util.List.of(
-                new WhatsAppMessageSender.Button("book_appointment", "📅 Book Appointment"),
-                new WhatsAppMessageSender.Button("view_appointments", "👁️ View Appointments"),
-                new WhatsAppMessageSender.Button("cancel_appointment", "❌ Cancel")
-            );
+            var section = new WhatsAppMessageSender.ListSection("Menu");
+            section.addRow(new WhatsAppMessageSender.ListRow("book_appointment", "Book appointment", "Pick a doctor and day"));
+            section.addRow(new WhatsAppMessageSender.ListRow("queue_status", "Queue status", "Where am I in today's queue?"));
+            section.addRow(new WhatsAppMessageSender.ListRow("view_appointments", "My appointments", "See upcoming bookings"));
+            section.addRow(new WhatsAppMessageSender.ListRow("reschedule", "Reschedule", "Move to another day"));
+            section.addRow(new WhatsAppMessageSender.ListRow("cancel_appointment", "Cancel appointment", "Cancel a booking"));
 
-            logger.info("📤 Sending button message with {} buttons...", buttons.size());
-            String result = messageSender.sendButtonMessage(conversation.getWhatsappPhone(), menuText, buttons);
+            logger.info("\uD83D\uDCE4 Sending main menu list...");
+            String result = messageSender.sendListMessage(conversation.getWhatsappPhone(), "Mediport", menuText, "Choose", java.util.List.of(section));
 
             if (result != null) {
                 logger.info("✅ Main menu sent successfully");
@@ -821,6 +829,43 @@ public class WhatsAppMessageProcessor {
             return appointmentService.today().plusDays(1);
         }
         return appointmentService.parseDate(v);
+    }
+
+    // ---------- Queue status ----------
+
+    private void showQueueStatus(WhatsAppConversation conversation) {
+        User patient = conversation.getUser();
+        if (patient == null) {
+            messageSender.sendTextMessage(conversation.getWhatsappPhone(), "Please book an appointment first - I'll then be able to track your queue.");
+            sendMainMenu(conversation);
+            return;
+        }
+        var fmt = java.time.format.DateTimeFormatter.ofPattern("hh:mm a");
+        var status = queueStatusService.todayFor(patient);
+        if (status.isEmpty()) {
+            messageSender.sendTextMessage(conversation.getWhatsappPhone(), "You don't have an appointment today.");
+        } else {
+            var s = status.get();
+            var a = s.appointment();
+            String doctor = "Dr. " + a.getDoctor().getFirstName() + " " + a.getDoctor().getLastName();
+            String text = switch (a.getStatus()) {
+                case IN_CONSULTATION -> "\uD83E\uDE7A You're with " + doctor + " right now.";
+                case COMPLETED -> "\u2705 Your consultation with " + doctor + " is complete. Take care!";
+                case NOT_ATTENDED -> "We marked your appointment today as missed. Send \"Hi\" to book a new one.";
+                case CANCELLED -> "Your appointment today was cancelled.";
+                default -> s.ahead() == 0
+                    ? "\uD83D\uDD14 *You're next!* No one is ahead of you with " + doctor + ". Please be ready."
+                    : "\uD83D\uDCCD *Your queue status*\n\n" +
+                      "\u2022 Doctor: " + doctor + "\n" +
+                      "\u2022 Queue number: #" + a.getQueueNumber() + "\n" +
+                      "\u2022 Booked slot: " + a.getScheduledTime().format(fmt) + "\n" +
+                      "\u2022 Patients ahead of you: *" + s.ahead() + "*\n" +
+                      "\u2022 Estimated time: *" + s.estimated().format(fmt) + "*" +
+                      (s.minutesLate() >= 20 ? "\n\nThe doctor is running about " + s.minutesLate() + " minutes behind. Thank you for your patience." : "");
+            };
+            messageSender.sendTextMessage(conversation.getWhatsappPhone(), text);
+        }
+        goToMainMenu(conversation);
     }
 
     // ---------- Cancel flow ----------

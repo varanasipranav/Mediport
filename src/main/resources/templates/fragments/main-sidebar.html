@@ -1,296 +1,98 @@
 <th:block xmlns:th="http://www.thymeleaf.org"
           xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity6">
 
-<nav th:fragment="sidebar" style="display:flex;flex-direction:column;height:100%;background:var(--sidebar-bg);">
+<!-- One navigation entry. match = URL prefix that marks it active. -->
+<li th:fragment="item(url, icon, label, match)" class="mp-nav-item">
+    <a th:href="@{${url}}" class="mp-nav-link"
+       th:classappend="${currentUri != null and currentUri.startsWith(match)} ? 'mp-nav-active' : ''">
+        <i th:class="${icon} + ' mp-nav-icon'"></i>
+        <span class="mp-nav-label" th:text="${label}">Label</span>
+    </a>
+</li>
+
+<nav th:fragment="sidebar" class="mp-sidebar">
 
     <!-- Brand -->
-    <a th:href="@{/dashboard}" class="brand-link" style="display:flex;align-items:center;gap:10px;padding:0 20px;height:var(--topbar-h);border-bottom:1px solid var(--sidebar-border);text-decoration:none;flex-shrink:0;">
-        <!-- Mediport mark: cross + pulse circle -->
-        <div style="width:30px;height:30px;border-radius:8px;background:linear-gradient(135deg,var(--brand-primary) 0%,var(--brand-primary-600) 100%);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+    <a th:href="@{/dashboard}" class="mp-brand">
+        <span class="mp-brand-mark">
             <svg width="18" height="18" viewBox="0 0 20 20" fill="none">
                 <path d="M10 3v14M3 10h14" stroke="#fff" stroke-width="2.2" stroke-linecap="round"/>
                 <circle cx="10" cy="10" r="2.3" fill="#10B981"/>
             </svg>
-        </div>
-        <span style="font-family:var(--font-display);font-size:18px;font-weight:800;color:var(--sidebar-text-strong);letter-spacing:-0.02em;">Mediport</span>
+        </span>
+        <span class="mp-brand-name">Mediport</span>
     </a>
 
     <!-- Role label -->
-    <div style="padding:16px 22px 8px;font-size:10px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--sidebar-text-dim);flex-shrink:0;">
+    <div class="mp-nav-section">
         <th:block sec:authorize="hasRole('ADMIN')">Administration</th:block>
         <th:block sec:authorize="hasRole('DOCTOR')">Doctor</th:block>
         <th:block sec:authorize="hasRole('PATIENT')">Patient</th:block>
-        <th:block sec:authorize="hasRole('ATTENDANT')">Front Desk</th:block>
-        <th:block sec:authorize="hasRole('PHARMA')">Pharmacist</th:block>
+        <th:block sec:authorize="hasRole('ATTENDANT')">Front desk</th:block>
+        <th:block sec:authorize="hasRole('PHARMA')">Pharmacy</th:block>
     </div>
 
     <!-- Navigation -->
-    <div style="flex:1;overflow-y:auto;overflow-x:hidden;padding:0 10px 12px;">
-        <ul style="list-style:none;padding:0;margin:0;">
+    <div class="mp-nav-scroll">
+        <ul class="mp-nav">
 
-            <!-- ── ADMIN ── -->
             <th:block sec:authorize="hasRole('ADMIN')">
-                <li th:with="p='/dashboard'" style="margin:2px 0;">
-                    <a th:href="@{/dashboard}" class="mp-nav-link"
-                       th:classappend="${currentUri == '/dashboard'} ? ' mp-nav-active' : ''"
-                       style="display:flex;align-items:center;gap:11px;padding:10px 14px;border-radius:8px;font-size:13px;font-weight:500;color:var(--sidebar-text);text-decoration:none;position:relative;transition:background 0.15s,color 0.15s;">
-                        <i class="fas fa-tachometer-alt" style="width:17px;text-align:center;font-size:14px;color:var(--sidebar-text-dim);flex-shrink:0;"></i>
-                        <span style="flex:1;">Overview</span>
-                    </a>
-                </li>
-                <li style="margin:2px 0;">
-                    <a th:href="@{/admin/users/list}" class="mp-nav-link"
-                       th:classappend="${currentUri.startsWith('/admin/users')} ? ' mp-nav-active' : ''"
-                       style="display:flex;align-items:center;gap:11px;padding:10px 14px;border-radius:8px;font-size:13px;font-weight:500;color:var(--sidebar-text);text-decoration:none;position:relative;transition:background 0.15s,color 0.15s;">
-                        <i class="fas fa-users" style="width:17px;text-align:center;font-size:14px;color:var(--sidebar-text-dim);flex-shrink:0;"></i>
-                        <span style="flex:1;">Staff &amp; Patients</span>
-                    </a>
-                </li>
-                <li style="margin:2px 0;">
-                    <a th:href="@{/admin/users/create-doctor}" class="mp-nav-link"
-                       th:classappend="${currentUri.contains('create-doctor')} ? ' mp-nav-active' : ''"
-                       style="display:flex;align-items:center;gap:11px;padding:10px 14px;border-radius:8px;font-size:13px;font-weight:500;color:var(--sidebar-text);text-decoration:none;position:relative;transition:background 0.15s,color 0.15s;">
-                        <i class="fas fa-user-md" style="width:17px;text-align:center;font-size:14px;color:var(--sidebar-text-dim);flex-shrink:0;"></i>
-                        <span style="flex:1;">Doctors</span>
-                    </a>
-                </li>
-                <li style="margin:2px 0;">
-                    <a th:href="@{/admin/users/create-patient}" class="mp-nav-link"
-                       th:classappend="${currentUri.contains('create-patient')} ? ' mp-nav-active' : ''"
-                       style="display:flex;align-items:center;gap:11px;padding:10px 14px;border-radius:8px;font-size:13px;font-weight:500;color:var(--sidebar-text);text-decoration:none;position:relative;transition:background 0.15s,color 0.15s;">
-                        <i class="fas fa-user-injured" style="width:17px;text-align:center;font-size:14px;color:var(--sidebar-text-dim);flex-shrink:0;"></i>
-                        <span style="flex:1;">Patients</span>
-                    </a>
-                </li>
-                <li style="margin:2px 0;">
-                    <a href="#" class="mp-nav-link"
-                       style="display:flex;align-items:center;gap:11px;padding:10px 14px;border-radius:8px;font-size:13px;font-weight:500;color:var(--sidebar-text);text-decoration:none;position:relative;transition:background 0.15s,color 0.15s;">
-                        <i class="fab fa-whatsapp" style="width:17px;text-align:center;font-size:14px;color:var(--sidebar-text-dim);flex-shrink:0;"></i>
-                        <span style="flex:1;">WhatsApp Log</span>
-                    </a>
-                </li>
-                <li style="margin:2px 0;">
-                    <a href="#" class="mp-nav-link"
-                       style="display:flex;align-items:center;gap:11px;padding:10px 14px;border-radius:8px;font-size:13px;font-weight:500;color:var(--sidebar-text);text-decoration:none;position:relative;transition:background 0.15s,color 0.15s;">
-                        <i class="fas fa-cog" style="width:17px;text-align:center;font-size:14px;color:var(--sidebar-text-dim);flex-shrink:0;"></i>
-                        <span style="flex:1;">Settings</span>
-                    </a>
-                </li>
+                <th:block th:replace="~{:: item('/dashboard', 'fas fa-tachometer-alt', 'Overview', '/dashboard')}"></th:block>
+                <th:block th:replace="~{:: item('/admin/users/list', 'fas fa-users', 'Staff & Patients', '/admin/users/list')}"></th:block>
+                <th:block th:replace="~{:: item('/admin/users/create-doctor', 'fas fa-user-md', 'Add doctor', '/admin/users/create-doctor')}"></th:block>
+                <th:block th:replace="~{:: item('/admin/users/create-patient', 'fas fa-user-injured', 'Add patient', '/admin/users/create-patient')}"></th:block>
+                <th:block th:replace="~{:: item('/pharma/inventory', 'fas fa-boxes', 'Inventory', '/pharma/inventory')}"></th:block>
             </th:block>
 
-            <!-- ── DOCTOR ── -->
             <th:block sec:authorize="hasRole('DOCTOR')">
-                <li style="margin:2px 0;">
-                    <a th:href="@{/dashboard}" class="mp-nav-link"
-                       th:classappend="${currentUri == '/dashboard'} ? ' mp-nav-active' : ''"
-                       style="display:flex;align-items:center;gap:11px;padding:10px 14px;border-radius:8px;font-size:13px;font-weight:500;color:var(--sidebar-text);text-decoration:none;position:relative;transition:background 0.15s,color 0.15s;">
-                        <i class="fas fa-tachometer-alt" style="width:17px;text-align:center;font-size:14px;color:var(--sidebar-text-dim);flex-shrink:0;"></i>
-                        <span style="flex:1;">Dashboard</span>
-                    </a>
-                </li>
-                <li style="margin:2px 0;">
-                    <a th:href="@{/doctor/appointments/today}" class="mp-nav-link"
-                       th:classappend="${currentUri.startsWith('/doctor/appointments')} ? ' mp-nav-active' : ''"
-                       style="display:flex;align-items:center;gap:11px;padding:10px 14px;border-radius:8px;font-size:13px;font-weight:500;color:var(--sidebar-text);text-decoration:none;position:relative;transition:background 0.15s,color 0.15s;">
-                        <i class="fas fa-list-ol" style="width:17px;text-align:center;font-size:14px;color:var(--sidebar-text-dim);flex-shrink:0;"></i>
-                        <span style="flex:1;">Today's Queue</span>
-                        <span th:if="${waitingCount != null and waitingCount > 0}"
-                              th:text="${waitingCount}"
-                              style="background:var(--brand-accent);color:#fff;font-size:10px;font-weight:700;padding:2px 7px;border-radius:999px;"></span>
-                    </a>
-                </li>
-                <li style="margin:2px 0;">
-                    <a th:href="@{/doctor/weekly-schedule}" class="mp-nav-link"
-                       th:classappend="${currentUri.startsWith('/doctor/weekly-schedule')} ? ' mp-nav-active' : ''"
-                       style="display:flex;align-items:center;gap:11px;padding:10px 14px;border-radius:8px;font-size:13px;font-weight:500;color:var(--sidebar-text);text-decoration:none;position:relative;transition:background 0.15s,color 0.15s;">
-                        <i class="fas fa-calendar-week" style="width:17px;text-align:center;font-size:14px;color:var(--sidebar-text-dim);flex-shrink:0;"></i>
-                        <span style="flex:1;">Weekly Schedule</span>
-                    </a>
-                </li>
-                <li style="margin:2px 0;">
-                    <a th:href="@{/doctor/schedule}" class="mp-nav-link"
-                       th:classappend="${currentUri == '/doctor/schedule'} ? ' mp-nav-active' : ''"
-                       style="display:flex;align-items:center;gap:11px;padding:10px 14px;border-radius:8px;font-size:13px;font-weight:500;color:var(--sidebar-text);text-decoration:none;position:relative;transition:background 0.15s,color 0.15s;">
-                        <i class="fas fa-calendar-day" style="width:17px;text-align:center;font-size:14px;color:var(--sidebar-text-dim);flex-shrink:0;"></i>
-                        <span style="flex:1;">Daily Schedules</span>
-                    </a>
-                </li>
-                <li style="margin:2px 0;">
-                    <a th:href="@{/doctor/prescriptions/my-prescriptions}" class="mp-nav-link"
-                       th:classappend="${currentUri.startsWith('/doctor/prescriptions')} ? ' mp-nav-active' : ''"
-                       style="display:flex;align-items:center;gap:11px;padding:10px 14px;border-radius:8px;font-size:13px;font-weight:500;color:var(--sidebar-text);text-decoration:none;position:relative;transition:background 0.15s,color 0.15s;">
-                        <i class="fas fa-file-prescription" style="width:17px;text-align:center;font-size:14px;color:var(--sidebar-text-dim);flex-shrink:0;"></i>
-                        <span style="flex:1;">Prescriptions</span>
-                    </a>
-                </li>
-                <li style="margin:2px 0;">
-                    <a href="#" class="mp-nav-link"
-                       style="display:flex;align-items:center;gap:11px;padding:10px 14px;border-radius:8px;font-size:13px;font-weight:500;color:var(--sidebar-text);text-decoration:none;position:relative;transition:background 0.15s,color 0.15s;">
-                        <i class="fab fa-whatsapp" style="width:17px;text-align:center;font-size:14px;color:var(--sidebar-text-dim);flex-shrink:0;"></i>
-                        <span style="flex:1;">WhatsApp Log</span>
-                    </a>
-                </li>
+                <th:block th:replace="~{:: item('/dashboard', 'fas fa-tachometer-alt', 'Dashboard', '/dashboard')}"></th:block>
+                <th:block th:replace="~{:: item('/doctor/appointments/today', 'fas fa-list-ol', 'Live queue', '/doctor/appointments')}"></th:block>
+                <th:block th:replace="~{:: item('/doctor/weekly-schedule', 'fas fa-calendar-week', 'Weekly schedule', '/doctor/weekly-schedule')}"></th:block>
+                <th:block th:replace="~{:: item('/doctor/schedule', 'fas fa-calendar-day', 'Daily schedules', '/doctor/schedule')}"></th:block>
+                <th:block th:replace="~{:: item('/doctor/prescriptions/my-prescriptions', 'fas fa-file-prescription', 'Prescriptions', '/doctor/prescriptions')}"></th:block>
             </th:block>
 
-            <!-- ── PATIENT ── -->
             <th:block sec:authorize="hasRole('PATIENT')">
-                <li style="margin:2px 0;">
-                    <a th:href="@{/patient/dashboard}" class="mp-nav-link"
-                       th:classappend="${currentUri == '/patient/dashboard'} ? ' mp-nav-active' : ''"
-                       style="display:flex;align-items:center;gap:11px;padding:10px 14px;border-radius:8px;font-size:13px;font-weight:500;color:var(--sidebar-text);text-decoration:none;position:relative;transition:background 0.15s,color 0.15s;">
-                        <i class="fas fa-tachometer-alt" style="width:17px;text-align:center;font-size:14px;color:var(--sidebar-text-dim);flex-shrink:0;"></i>
-                        <span style="flex:1;">My Dashboard</span>
-                    </a>
-                </li>
-                <li style="margin:2px 0;">
-                    <a th:href="@{/patient/book-appointment}" class="mp-nav-link"
-                       th:classappend="${currentUri == '/patient/book-appointment'} ? ' mp-nav-active' : ''"
-                       style="display:flex;align-items:center;gap:11px;padding:10px 14px;border-radius:8px;font-size:13px;font-weight:500;color:var(--sidebar-text);text-decoration:none;position:relative;transition:background 0.15s,color 0.15s;">
-                        <i class="fas fa-calendar-plus" style="width:17px;text-align:center;font-size:14px;color:var(--sidebar-text-dim);flex-shrink:0;"></i>
-                        <span style="flex:1;">Book Appointment</span>
-                    </a>
-                </li>
-                <li style="margin:2px 0;">
-                    <a th:href="@{/patient/appointments}" class="mp-nav-link"
-                       th:classappend="${currentUri == '/patient/appointments'} ? ' mp-nav-active' : ''"
-                       style="display:flex;align-items:center;gap:11px;padding:10px 14px;border-radius:8px;font-size:13px;font-weight:500;color:var(--sidebar-text);text-decoration:none;position:relative;transition:background 0.15s,color 0.15s;">
-                        <i class="fas fa-calendar-check" style="width:17px;text-align:center;font-size:14px;color:var(--sidebar-text-dim);flex-shrink:0;"></i>
-                        <span style="flex:1;">My Appointments</span>
-                    </a>
-                </li>
-                <li style="margin:2px 0;">
-                    <a th:href="@{/patient/prescriptions}" class="mp-nav-link"
-                       th:classappend="${currentUri == '/patient/prescriptions'} ? ' mp-nav-active' : ''"
-                       style="display:flex;align-items:center;gap:11px;padding:10px 14px;border-radius:8px;font-size:13px;font-weight:500;color:var(--sidebar-text);text-decoration:none;position:relative;transition:background 0.15s,color 0.15s;">
-                        <i class="fas fa-pills" style="width:17px;text-align:center;font-size:14px;color:var(--sidebar-text-dim);flex-shrink:0;"></i>
-                        <span style="flex:1;">Prescriptions</span>
-                    </a>
-                </li>
+                <th:block th:replace="~{:: item('/patient/dashboard', 'fas fa-tachometer-alt', 'My dashboard', '/patient/dashboard')}"></th:block>
+                <th:block th:replace="~{:: item('/patient/book-appointment', 'fas fa-calendar-plus', 'Book appointment', '/patient/book-appointment')}"></th:block>
+                <th:block th:replace="~{:: item('/patient/appointments', 'fas fa-calendar-check', 'My appointments', '/patient/appointments')}"></th:block>
+                <th:block th:replace="~{:: item('/patient/prescriptions', 'fas fa-file-prescription', 'Prescriptions', '/patient/prescriptions')}"></th:block>
             </th:block>
 
-            <!-- ── ATTENDANT ── -->
             <th:block sec:authorize="hasRole('ATTENDANT')">
-                <li style="margin:2px 0;">
-                    <a th:href="@{/attendant/check-in}" class="mp-nav-link"
-                       th:classappend="${currentUri.startsWith('/attendant/check-in')} ? ' mp-nav-active' : ''"
-                       style="display:flex;align-items:center;gap:11px;padding:10px 14px;border-radius:8px;font-size:13px;font-weight:500;color:var(--sidebar-text);text-decoration:none;position:relative;transition:background 0.15s,color 0.15s;">
-                        <i class="fas fa-user-check" style="width:17px;text-align:center;font-size:14px;color:var(--sidebar-text-dim);flex-shrink:0;"></i>
-                        <span style="flex:1;">Check-in</span>
-                    </a>
-                </li>
-                <li style="margin:2px 0;">
-                    <a th:href="@{/attendant/queue}" class="mp-nav-link"
-                       th:classappend="${currentUri.startsWith('/attendant/queue')} ? ' mp-nav-active' : ''"
-                       style="display:flex;align-items:center;gap:11px;padding:10px 14px;border-radius:8px;font-size:13px;font-weight:500;color:var(--sidebar-text);text-decoration:none;position:relative;transition:background 0.15s,color 0.15s;">
-                        <i class="fas fa-list-ol" style="width:17px;text-align:center;font-size:14px;color:var(--sidebar-text-dim);flex-shrink:0;"></i>
-                        <span style="flex:1;">Live Queue</span>
-                    </a>
-                </li>
-                <li style="margin:2px 0;">
-                    <a href="#" class="mp-nav-link"
-                       style="display:flex;align-items:center;gap:11px;padding:10px 14px;border-radius:8px;font-size:13px;font-weight:500;color:var(--sidebar-text);text-decoration:none;position:relative;transition:background 0.15s,color 0.15s;">
-                        <i class="fas fa-calendar" style="width:17px;text-align:center;font-size:14px;color:var(--sidebar-text-dim);flex-shrink:0;"></i>
-                        <span style="flex:1;">Today's Schedule</span>
-                    </a>
-                </li>
-                <li style="margin:2px 0;">
-                    <a href="#" class="mp-nav-link"
-                       style="display:flex;align-items:center;gap:11px;padding:10px 14px;border-radius:8px;font-size:13px;font-weight:500;color:var(--sidebar-text);text-decoration:none;position:relative;transition:background 0.15s,color 0.15s;">
-                        <i class="fab fa-whatsapp" style="width:17px;text-align:center;font-size:14px;color:var(--sidebar-text-dim);flex-shrink:0;"></i>
-                        <span style="flex:1;">WhatsApp Log</span>
-                    </a>
-                </li>
+                <th:block th:replace="~{:: item('/attendant/check-in', 'fas fa-user-check', 'Check-in', '/attendant/check-in')}"></th:block>
+                <th:block th:replace="~{:: item('/attendant/queue', 'fas fa-list-ol', 'Live queue', '/attendant/queue')}"></th:block>
             </th:block>
 
-            <!-- ── PHARMA ── -->
             <th:block sec:authorize="hasRole('PHARMA')">
-                <li style="margin:2px 0;">
-                    <a th:href="@{/pharma/dashboard}" class="mp-nav-link"
-                       th:classappend="${currentUri.startsWith('/pharma/dashboard')} ? ' mp-nav-active' : ''"
-                       style="display:flex;align-items:center;gap:11px;padding:10px 14px;border-radius:8px;font-size:13px;font-weight:500;color:var(--sidebar-text);text-decoration:none;position:relative;transition:background 0.15s,color 0.15s;">
-                        <i class="fas fa-capsules" style="width:17px;text-align:center;font-size:14px;color:var(--sidebar-text-dim);flex-shrink:0;"></i>
-                        <span style="flex:1;">Dispense Queue</span>
-                    </a>
-                </li>
-                <li style="margin:2px 0;">
-                    <a th:href="@{/pharma/dashboard}" class="mp-nav-link"
-                       style="display:flex;align-items:center;gap:11px;padding:10px 14px;border-radius:8px;font-size:13px;font-weight:500;color:var(--sidebar-text);text-decoration:none;position:relative;transition:background 0.15s,color 0.15s;">
-                        <i class="fas fa-file-prescription" style="width:17px;text-align:center;font-size:14px;color:var(--sidebar-text-dim);flex-shrink:0;"></i>
-                        <span style="flex:1;">Prescriptions</span>
-                    </a>
-                </li>
+                <th:block th:replace="~{:: item('/pharma/dashboard', 'fas fa-capsules', 'Dispense queue', '/pharma/dashboard')}"></th:block>
+                <th:block th:replace="~{:: item('/pharma/inventory', 'fas fa-boxes', 'Inventory', '/pharma/inventory')}"></th:block>
             </th:block>
 
         </ul>
     </div>
 
-    <!-- User card (bottom) -->
-    <div style="padding:12px;border-top:1px solid var(--sidebar-border);flex-shrink:0;">
-        <div style="display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:8px;">
-            <!-- Avatar with initials -->
-            <div style="width:34px;height:34px;border-radius:50%;background:var(--brand-primary);color:#fff;display:inline-flex;align-items:center;justify-content:center;font-family:var(--font-display);font-weight:700;font-size:12px;flex-shrink:0;"
-                 th:text="${#authentication != null and #authentication.name != null ? #authentication.name.substring(0,1).toUpperCase() : 'U'}">U</div>
-            <div style="flex:1;min-width:0;">
-                <div style="font-size:12px;font-weight:600;color:var(--sidebar-text-strong);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;"
-                     th:text="${#authentication != null ? #authentication.name : 'User'}">User</div>
-                <div style="font-size:10px;color:var(--sidebar-text-dim);">
-                    <th:block sec:authorize="hasRole('ADMIN')">Administrator</th:block>
-                    <th:block sec:authorize="hasRole('DOCTOR')">Doctor</th:block>
-                    <th:block sec:authorize="hasRole('PATIENT')">Patient</th:block>
-                    <th:block sec:authorize="hasRole('ATTENDANT')">Front Desk</th:block>
-                    <th:block sec:authorize="hasRole('PHARMA')">Pharmacist</th:block>
-                </div>
+    <!-- User card -->
+    <div class="mp-user-card">
+        <div class="mp-user-avatar"
+             th:text="${#authentication != null and #authentication.name != null ? #authentication.name.substring(0,1).toUpperCase() : 'U'}">U</div>
+        <div class="mp-user-meta">
+            <div class="mp-user-name" th:text="${#authentication != null ? #authentication.name : 'User'}">User</div>
+            <div class="mp-user-role">
+                <th:block sec:authorize="hasRole('ADMIN')">Administrator</th:block>
+                <th:block sec:authorize="hasRole('DOCTOR')">Doctor</th:block>
+                <th:block sec:authorize="hasRole('PATIENT')">Patient</th:block>
+                <th:block sec:authorize="hasRole('ATTENDANT')">Front desk</th:block>
+                <th:block sec:authorize="hasRole('PHARMA')">Pharmacist</th:block>
             </div>
-            <!-- Logout -->
-            <button type="button" onclick="document.getElementById('sidebarLogoutForm').submit()"
-                    title="Logout"
-                    style="background:transparent;border:none;color:var(--sidebar-text-dim);cursor:pointer;display:inline-flex;align-items:center;justify-content:center;padding:4px;border-radius:6px;transition:color 0.15s;"
-                    onmouseover="this.style.color='var(--sidebar-text-strong)'" onmouseout="this.style.color='var(--sidebar-text-dim)'">
-                <i class="fas fa-sign-out-alt" style="font-size:14px;"></i>
-            </button>
         </div>
+        <button type="button" class="mp-user-logout" title="Sign out" onclick="document.getElementById('sidebarLogoutForm').submit()">
+            <i class="fas fa-sign-out-alt"></i>
+        </button>
         <form th:action="@{/logout}" method="post" id="sidebarLogoutForm" style="display:none;">
             <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
         </form>
     </div>
-
-    <style>
-        /* Active nav item styling */
-        .mp-nav-active {
-            background: var(--sidebar-active-bg) !important;
-            color: var(--sidebar-text-strong) !important;
-        }
-        .mp-nav-active i {
-            color: var(--brand-accent) !important;
-        }
-        .mp-nav-active::before {
-            content: '';
-            position: absolute;
-            left: -10px;
-            top: 50%;
-            transform: translateY(-50%);
-            width: 3px;
-            height: 22px;
-            background: var(--sidebar-active-bar);
-            border-radius: 0 3px 3px 0;
-        }
-        .mp-nav-link:hover {
-            background: var(--sidebar-active-bg) !important;
-            color: var(--sidebar-text-strong) !important;
-        }
-        .mp-nav-link:hover i {
-            color: rgba(255,255,255,0.7) !important;
-        }
-        /* Remove AdminLTE default sidebar item styles */
-        .main-sidebar .nav-item .nav-link,
-        .main-sidebar .nav-sidebar .nav-link {
-            padding: 0 !important;
-            margin: 0 !important;
-        }
-        /* Scrollbar */
-        .main-sidebar ::-webkit-scrollbar { width: 4px; }
-        .main-sidebar ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 2px; }
-    </style>
 
 </nav>
 

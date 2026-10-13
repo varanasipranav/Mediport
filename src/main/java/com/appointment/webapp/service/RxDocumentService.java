@@ -132,6 +132,32 @@ public class RxDocumentService {
             sign(prescriptionId).getBytes(StandardCharsets.UTF_8), signature.getBytes(StandardCharsets.UTF_8));
     }
 
+    /** Public PDF link that stops working after a week: /rx/pdf/{id}/{expiryEpochDay}/{signature}. */
+    public String signedPdfUrl(Long prescriptionId) {
+        long expiry = LocalDate.now().plusDays(7).toEpochDay();
+        return publicUrl + "/rx/pdf/" + prescriptionId + "/" + expiry + "/" + sign(prescriptionId + ":" + expiry);
+    }
+
+    public boolean verifyPdfLink(Long prescriptionId, long expiryEpochDay, String signature) {
+        return LocalDate.now().toEpochDay() <= expiryEpochDay
+            && signature != null
+            && MessageDigest.isEqual(sign(prescriptionId + ":" + expiryEpochDay).getBytes(StandardCharsets.UTF_8),
+                                     signature.getBytes(StandardCharsets.UTF_8));
+    }
+
+    public String sign(String payload) {
+        try {
+            Mac mac = Mac.getInstance("HmacSHA256");
+            mac.init(new SecretKeySpec(signingKey, "HmacSHA256"));
+            byte[] h = mac.doFinal(("rx:" + payload).getBytes(StandardCharsets.UTF_8));
+            StringBuilder sb = new StringBuilder();
+            for (int i = 0; i < 12; i++) sb.append(String.format("%02x", h[i]));
+            return sb.toString();
+        } catch (Exception e) {
+            throw new IllegalStateException("Cannot sign link", e);
+        }
+    }
+
     public String verifyUrl(Long prescriptionId) {
         return publicUrl + "/verify/rx/" + prescriptionId + "/" + sign(prescriptionId);
     }

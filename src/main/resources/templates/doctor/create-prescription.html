@@ -59,6 +59,22 @@
 </head>
 <body>
 <div layout:fragment="content">
+    <style>
+        .med-finder { margin-bottom: 12px; }
+        .med-search { position: relative; }
+        .med-search > i { position: absolute; left: 13px; top: 14px; color: var(--text-soft); font-size: 13px; }
+        .med-search .mp-input { padding-left: 36px; }
+        .med-results { position: absolute; z-index: 20; left: 0; right: 0; top: 100%; margin-top: 4px; background: #fff; border: 1px solid var(--border); border-radius: 10px; box-shadow: var(--shadow-pop); display: none; max-height: 280px; overflow-y: auto; }
+        .med-result { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 10px 14px; cursor: pointer; border-bottom: 1px solid var(--border); }
+        .med-result:last-child { border-bottom: 0; }
+        .med-result:hover { background: var(--brand-primary-50); }
+        .med-result small { color: var(--text-muted); display: block; }
+        .med-builder { margin-top: 10px; padding: 16px; border: 1px solid var(--brand-primary-100); background: var(--brand-primary-50); border-radius: 10px; }
+        .med-builder-title { font-weight: 700; color: var(--text-strong); margin-bottom: 12px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+        .med-builder-grid { display: grid; grid-template-columns: 1fr 1.2fr 1.2fr 1fr; gap: 12px; }
+        @media (max-width: 800px) { .med-builder-grid { grid-template-columns: 1fr 1fr; } }
+    </style>
+
 
     <!-- Page header -->
     <div class="mp-page-header">
@@ -121,6 +137,46 @@
                         <div class="rx-section-title">
                             <i class="fas fa-pills"></i> Prescribed Medications
                             <span style="color:var(--status-missed);margin-left:2px;">*</span>
+                        </div>
+                        <!-- Medicine finder: searches the pharmacy catalogue and builds a correct line -->
+                        <div class="med-finder" id="medFinder">
+                            <div class="med-search">
+                                <i class="fas fa-search"></i>
+                                <input type="text" id="medQuery" class="mp-input" autocomplete="off" placeholder="Search medicine by brand or generic name to add it…"/>
+                                <div class="med-results" id="medResults"></div>
+                            </div>
+                            <div class="med-builder" id="medBuilder" style="display:none;">
+                                <div class="med-builder-title"><i class="fas fa-capsules"></i> <span id="medPicked"></span> <span id="medStock" class="mp-pill"></span></div>
+                                <div class="med-builder-grid">
+                                    <div><label class="mp-label">Dose</label><input class="mp-input" id="medDose" value="1 tab"/></div>
+                                    <div><label class="mp-label">How often</label>
+                                        <select class="mp-select" id="medFreq">
+                                            <option value="once daily">Once daily</option>
+                                            <option value="twice daily" selected="selected">Twice daily</option>
+                                            <option value="three times daily">Three times daily</option>
+                                            <option value="four times daily">Four times daily</option>
+                                            <option value="at bedtime">At bedtime</option>
+                                            <option value="only when needed">Only when needed</option>
+                                        </select></div>
+                                    <div><label class="mp-label">When</label>
+                                        <select class="mp-select" id="medWhen">
+                                            <option value="after meals">After meals</option>
+                                            <option value="before meals">Before meals</option>
+                                            <option value="with meals">With meals</option>
+                                            <option value="on an empty stomach">Empty stomach</option>
+                                            <option value="">Any time</option>
+                                        </select></div>
+                                    <div><label class="mp-label">For</label>
+                                        <select class="mp-select" id="medDays">
+                                            <option>3 days</option><option selected="selected">5 days</option><option>7 days</option>
+                                            <option>10 days</option><option>14 days</option><option>30 days</option>
+                                        </select></div>
+                                </div>
+                                <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:12px;">
+                                    <button type="button" class="mp-btn mp-btn-ghost mp-btn-sm" id="medCancel">Cancel</button>
+                                    <button type="button" class="mp-btn mp-btn-primary mp-btn-sm" id="medAdd"><i class="fas fa-plus"></i> Add to prescription</button>
+                                </div>
+                            </div>
                         </div>
                         <textarea class="mp-textarea" id="medicines" name="medicines"
                                   rows="8" required
@@ -272,6 +328,71 @@
         }
     });
 </script>
+<script>
+(function () {
+    var q = document.getElementById('medQuery'), box = document.getElementById('medResults');
+    var builder = document.getElementById('medBuilder'), area = document.getElementById('medicines');
+    var picked = null, timer = null;
+
+    function hide() { box.style.display = 'none'; }
+    function search() {
+        var term = q.value.trim();
+        if (term.length < 2) { hide(); return; }
+        fetch('/api/medicines/search?q=' + encodeURIComponent(term), {credentials: 'same-origin'})
+            .then(function (r) { return r.ok ? r.json() : []; })
+            .then(function (items) {
+                box.innerHTML = '';
+                if (!items.length) {
+                    box.innerHTML = '<div class="med-result" style="cursor:default;color:var(--text-muted);">Not in the pharmacy catalogue — you can still type it in the box below.</div>';
+                } else {
+                    items.forEach(function (m) {
+                        var d = document.createElement('div');
+                        d.className = 'med-result';
+                        var stockPill = m.inStock > 0
+                            ? '<span class="mp-pill mp-pill-completed">' + m.inStock + ' in stock</span>'
+                            : '<span class="mp-pill mp-pill-missed">Out of stock</span>';
+                        d.innerHTML = '<div><strong></strong><small></small></div>' + stockPill;
+                        d.querySelector('strong').textContent = m.name;
+                        d.querySelector('small').textContent = m.generic || '';
+                        d.addEventListener('click', function () { choose(m); });
+                        box.appendChild(d);
+                    });
+                }
+                box.style.display = 'block';
+            })
+            .catch(hide);
+    }
+    function choose(m) {
+        picked = m;
+        hide();
+        q.value = '';
+        document.getElementById('medPicked').textContent = m.name;
+        var pill = document.getElementById('medStock');
+        pill.className = 'mp-pill ' + (m.inStock > 0 ? 'mp-pill-completed' : 'mp-pill-missed');
+        pill.textContent = m.inStock > 0 ? m.inStock + ' in stock' : 'Out of stock';
+        builder.style.display = 'block';
+        document.getElementById('medDose').focus();
+    }
+    function addLine() {
+        if (!picked) return;
+        var when = document.getElementById('medWhen').value;
+        var instr = document.getElementById('medDose').value.trim() + ' ' + document.getElementById('medFreq').value + (when ? ' ' + when : '');
+        var existing = area.value.replace(/\s+$/, '');
+        var n = existing ? existing.split(/\n/).filter(function (l) { return l.trim(); }).length + 1 : 1;
+        var line = n + '. ' + picked.name + ' \u2014 ' + instr + ' \u2014 ' + document.getElementById('medDays').value;
+        area.value = (existing ? existing + '\n' : '') + line;
+        builder.style.display = 'none';
+        picked = null;
+        q.focus();
+    }
+    q.addEventListener('input', function () { clearTimeout(timer); timer = setTimeout(search, 200); });
+    q.addEventListener('keydown', function (e) { if (e.key === 'Escape') hide(); });
+    document.addEventListener('click', function (e) { if (!e.target.closest('.med-search')) hide(); });
+    document.getElementById('medAdd').addEventListener('click', addLine);
+    document.getElementById('medCancel').addEventListener('click', function () { builder.style.display = 'none'; picked = null; });
+})();
+</script>
+
 </div>
 </body>
 </html>

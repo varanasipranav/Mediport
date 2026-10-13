@@ -112,6 +112,16 @@
 			<version>5.3</version>
 		</dependency>
 
+		<!-- Database migrations -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-flyway</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.flywaydb</groupId>
+			<artifactId>flyway-mysql</artifactId>
+		</dependency>
+
 		<!-- PDF generation (prescriptions) -->
 		<dependency>
 			<groupId>com.github.librepdf</groupId>

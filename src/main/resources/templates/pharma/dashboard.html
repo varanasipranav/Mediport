@@ -3,191 +3,174 @@
       xmlns:layout="http://www.ultraq.net.nz/web/thymeleaf/layout"
       layout:decorate="~{layout}">
 <head>
-    <title>Pharmacy Dashboard</title>
-    <style>
-        /* Prescription queue row */
-        .rx-row {
-            display: grid;
-            grid-template-columns: 1fr 160px 120px 140px;
-            gap: 16px;
-            align-items: center;
-            padding: 16px 24px;
-            border-bottom: 1px solid var(--border);
-        }
-        .rx-row:last-child { border-bottom: none; }
-        .rx-hdr {
-            font-size: 11px; font-weight: 700; color: var(--text-muted);
-            text-transform: uppercase; letter-spacing: 0.06em;
-        }
-        .rx-patient-name { font-size: 13px; font-weight: 600; color: var(--text-strong); margin-bottom: 2px; }
-        .rx-patient-meta { font-size: 11px; color: var(--text-muted); }
-        .rx-doctor { font-size: 13px; color: var(--text); }
-        .rx-date { font-size: 12px; color: var(--text-muted); }
-        .rx-printed-badge {
-            display: inline-flex; align-items: center; gap: 5px;
-            padding: 3px 9px; border-radius: 999px;
-            font-size: 11px; font-weight: 600;
-            background: var(--status-completed-bg);
-            color: var(--status-completed);
-        }
-        .rx-pending-badge {
-            display: inline-flex; align-items: center; gap: 5px;
-            padding: 3px 9px; border-radius: 999px;
-            font-size: 11px; font-weight: 600;
-            background: var(--status-waiting-bg);
-            color: var(--status-waiting);
-        }
-
-        .rx-medicines-preview {
-            font-size: 12px;
-            color: var(--text-muted);
-            background: var(--bg-muted);
-            border-radius: var(--r-sm);
-            padding: 8px 10px;
-            margin-top: 6px;
-            font-family: var(--font-mono);
-            white-space: pre-wrap;
-            max-height: 60px;
-            overflow: hidden;
-        }
-
-        @media (max-width: 900px) {
-            .rx-row { grid-template-columns: 1fr; }
-        }
-    </style>
+    <title>Pharmacy</title>
 </head>
 <body>
 <div layout:fragment="content">
 
-    <!-- Page header -->
     <div class="mp-page-header">
         <div>
-            <h1 class="mp-page-title">Pharmacy Dashboard</h1>
-            <p class="mp-page-subtitle">Prescriptions — last 30 days</p>
+            <h1 class="mp-page-title">Dispense queue</h1>
+            <div class="mp-page-subtitle">Prescriptions from the last 30 days · <span th:text="${#temporals.format(today, 'EEEE, dd MMMM yyyy')}">Today</span></div>
         </div>
-        <div>
-            <form th:action="@{/pharma/prescriptions/search}" method="get"
-                  style="display:flex;gap:0;">
-                <input type="text" name="searchTerm" class="mp-input"
-                       style="border-radius:var(--r-sm) 0 0 var(--r-sm);border-right:none;width:240px;"
-                       placeholder="Patient name or phone…"/>
-                <button type="submit" class="mp-btn mp-btn-primary"
-                        style="border-radius:0 var(--r-sm) var(--r-sm) 0;flex-shrink:0;">
-                    <i class="fas fa-search"></i> Search
-                </button>
+        <div class="mp-page-actions">
+            <form th:action="@{/pharma/prescriptions/search}" method="get" style="margin:0;position:relative;">
+                <i class="fas fa-search" style="position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--text-soft);font-size:13px;"></i>
+                <input type="text" name="searchTerm" th:value="${searchTerm}" class="mp-input" placeholder="Patient name or phone" style="padding-left:34px;width:240px;" required="required"/>
             </form>
+            <a th:href="@{/pharma/inventory}" class="mp-btn mp-btn-secondary"><i class="fas fa-boxes"></i> Inventory</a>
         </div>
     </div>
 
-    <div style="padding: 0 32px 32px;">
+    <div th:replace="~{fragments/flash :: flash}"></div>
 
-    <!-- Alerts -->
-    <div th:if="${success}" class="mp-alert mp-alert-success" style="margin-bottom:16px;">
-        <i class="fas fa-check-circle"></i> <span th:text="${success}"></span>
-    </div>
-    <div th:if="${error}" class="mp-alert mp-alert-danger" style="margin-bottom:16px;">
-        <i class="fas fa-exclamation-circle"></i> <span th:text="${error}"></span>
-    </div>
-
-    <!-- Stat tiles -->
-    <div class="mp-stats-grid" style="margin-bottom:24px;">
-        <div class="mp-stat" style="border-left-color:var(--brand-primary);">
-            <div class="mp-stat-val" th:text="${totalCount ?: 0}">0</div>
-            <div class="mp-stat-lbl">Total prescriptions</div>
+    <div class="mp-stats-grid">
+        <div class="mp-stat">
+            <div class="mp-stat-label"><i class="fas fa-file-prescription"></i> Prescriptions</div>
+            <div class="mp-stat-value" th:text="${totalCount}">0</div>
+            <span class="mp-stat-delta flat">last 30 days</span>
         </div>
-        <div class="mp-stat" style="border-left-color:var(--status-waiting-bar);">
-            <div class="mp-stat-val" th:text="${pendingCount ?: 0}">0</div>
-            <div class="mp-stat-lbl">Pending dispense</div>
+        <div class="mp-stat" style="border-left:3px solid var(--status-waiting-bar);">
+            <div class="mp-stat-label"><i class="fas fa-hourglass-half"></i> Waiting</div>
+            <div class="mp-stat-value" th:text="${pendingCount}">0</div>
+            <span class="mp-stat-delta flat">not yet dispensed</span>
         </div>
-        <div class="mp-stat" style="border-left-color:var(--brand-accent);">
-            <div class="mp-stat-val" th:text="${printedCount ?: 0}">0</div>
-            <div class="mp-stat-lbl">Dispensed today</div>
+        <div class="mp-stat" style="border-left:3px solid var(--status-delayed-bar);">
+            <div class="mp-stat-label"><i class="fas fa-adjust"></i> Partial</div>
+            <div class="mp-stat-value" th:text="${partialCount}">0</div>
+            <span class="mp-stat-delta flat">stock ran short</span>
         </div>
-        <div class="mp-stat" style="border-left-color:var(--status-in-bar);">
-            <div class="mp-stat-val" th:text="${todayCount ?: 0}">0</div>
-            <div class="mp-stat-lbl">New today</div>
+        <div class="mp-stat" style="border-left:3px solid var(--status-completed-bar);">
+            <div class="mp-stat-label"><i class="fas fa-check-double"></i> Dispensed</div>
+            <div class="mp-stat-value" th:text="${dispensedCount}">0</div>
+            <span class="mp-stat-delta up">complete</span>
         </div>
     </div>
 
-    <!-- Prescription queue -->
-    <div class="mp-card">
-        <div class="mp-card-header">
-            <h3 class="mp-card-title">Prescription Queue</h3>
-        </div>
+    <div class="ph-grid">
 
-        <!-- Empty state -->
-        <div th:if="${prescriptions.empty}" style="text-align:center;padding:32px 24px;">
-            <i class="fas fa-file-prescription" style="font-size:32px;color:var(--text-soft);margin-bottom:12px;display:block;"></i>
-            <div style="font-size:13px;color:var(--text-muted);">No prescriptions found for this period.</div>
-        </div>
+        <!-- Queue -->
+        <div class="mp-card" style="overflow:visible;">
+            <div class="mp-card-header">
+                <h3 class="mp-card-title">Prescriptions</h3>
+                <div class="ph-tabs" id="phTabs">
+                    <button type="button" class="active" data-f="open">To dispense</button>
+                    <button type="button" data-f="DISPENSED">Dispensed</button>
+                    <button type="button" data-f="all">All</button>
+                </div>
+            </div>
 
-        <!-- Header row -->
-        <div th:if="${!prescriptions.empty}" class="rx-row rx-hdr">
-            <span>Patient</span><span>Doctor</span><span>Date</span><span>Actions</span>
-        </div>
+            <div th:if="${#lists.isEmpty(prescriptions)}" style="padding:56px 24px;text-align:center;color:var(--text-muted);">
+                <div style="width:56px;height:56px;border-radius:14px;background:var(--bg-muted);display:inline-flex;align-items:center;justify-content:center;font-size:22px;margin-bottom:12px;"><i class="fas fa-file-prescription"></i></div>
+                <div style="font-weight:700;color:var(--text-strong);font-size:16px;">No prescriptions found</div>
+                <div style="margin-top:4px;">New prescriptions from doctors appear here.</div>
+            </div>
 
-        <!-- Prescription rows -->
-        <div th:each="prescription : ${prescriptions}" class="rx-row">
-
-            <!-- Patient info + medicines preview -->
-            <div>
-                <div style="display:flex;align-items:center;gap:10px;margin-bottom:4px;">
-                    <div th:with="initials=${prescription.patientFullName != null ? prescription.patientFullName.substring(0,1) : '?'}"
-                         class="mp-avatar mp-avatar-sm"
-                         th:text="${initials}">?</div>
-                    <div>
-                        <div class="rx-patient-name" th:text="${prescription.patientFullName}">Patient Name</div>
-                        <div class="rx-patient-meta">
-                            <i class="fas fa-phone" style="margin-right:3px;"></i>
-                            <span th:text="${prescription.patient.phoneNumber}"></span>
-                            &nbsp;·&nbsp;
-                            <span th:text="${prescription.patient.patientId}"></span>
+            <div id="phList">
+                <div th:each="p : ${prescriptions}" class="ph-row"
+                     th:attr="data-status=${statuses.get(p.id) != null ? statuses.get(p.id).name() : 'NEW'}">
+                    <div class="mp-avatar" th:text="${#strings.substring(p.patient.firstName,0,1) + #strings.substring(p.patient.lastName,0,1)}">AB</div>
+                    <div class="ph-main">
+                        <div class="ph-name" th:text="${p.patient.firstName + ' ' + p.patient.lastName}">Patient</div>
+                        <div class="ph-meta">
+                            <span class="font-mono" th:text="${'RX-' + #temporals.format(p.createdAt,'yyyy') + '-' + #numbers.formatInteger(p.id,5)}">RX</span> ·
+                            Dr. <span th:text="${p.doctor.firstName + ' ' + p.doctor.lastName}">Doctor</span> ·
+                            <span th:text="${#temporals.format(p.createdAt, 'dd MMM, HH:mm')}">date</span>
                         </div>
+                        <div class="ph-meds" th:text="${#strings.abbreviate(#strings.replace(p.medicines, #strings.unescapeJava('\n'), ' · '), 110)}">Medicines</div>
+                    </div>
+                    <div>
+                        <span class="mp-pill mp-pill-waiting" th:if="${statuses.get(p.id) == null}">Waiting</span>
+                        <span class="mp-pill mp-pill-delayed" th:if="${statuses.get(p.id) != null and statuses.get(p.id).name() == 'PARTIAL'}">Partial</span>
+                        <span class="mp-pill mp-pill-completed" th:if="${statuses.get(p.id) != null and statuses.get(p.id).name() == 'DISPENSED'}">Dispensed</span>
+                    </div>
+                    <div class="ph-actions">
+                        <a th:href="@{/pharma/prescriptions/dispense/{id}(id=${p.id})}" class="mp-btn mp-btn-success mp-btn-sm"
+                           th:if="${statuses.get(p.id) == null or statuses.get(p.id).name() == 'PARTIAL'}"><i class="fas fa-pills"></i> Dispense</a>
+                        <a th:href="@{/pharma/prescriptions/view/{id}(id=${p.id})}" class="mp-btn mp-btn-secondary mp-btn-sm"><i class="fas fa-eye"></i> View</a>
                     </div>
                 </div>
-                <div class="rx-medicines-preview" th:text="${prescription.medicines}"></div>
+                <div id="phEmpty" style="display:none;padding:40px 24px;text-align:center;color:var(--text-muted);">Nothing in this view.</div>
             </div>
+        </div>
 
-            <!-- Doctor -->
-            <div class="rx-doctor" th:text="${prescription.doctorFullName}"></div>
-
-            <!-- Date + status -->
-            <div>
-                <div class="rx-date" th:text="${#temporals.format(prescription.createdAt, 'dd MMM yyyy')}"></div>
-                <div style="margin-top:4px;">
-                    <span th:if="${prescription.printedAt != null}" class="rx-printed-badge">
-                        <i class="fas fa-check-circle"></i> Dispensed
-                    </span>
-                    <span th:if="${prescription.printedAt == null}" class="rx-pending-badge">
-                        <i class="fas fa-clock"></i> Pending
-                    </span>
+        <!-- Sidebar -->
+        <div>
+            <div class="mp-card" style="margin-bottom:20px;">
+                <div class="mp-card-header">
+                    <h3 class="mp-card-title"><i class="fas fa-exclamation-triangle" style="color:var(--status-waiting-bar);margin-right:8px;"></i>Stock alerts</h3>
+                    <a th:href="@{/pharma/inventory}" class="mp-helper" style="margin:0;">View all</a>
                 </div>
-                <div th:if="${prescription.printedAt != null}"
-                     style="font-size:10px;color:var(--text-muted);margin-top:4px;"
-                     th:text="${#temporals.format(prescription.printedAt, 'dd MMM, HH:mm')}"></div>
-            </div>
-
-            <!-- Actions -->
-            <div style="display:flex;flex-direction:column;gap:6px;">
-                <a th:href="@{/pharma/prescriptions/view/{id}(id=${prescription.id})}"
-                   class="mp-btn mp-btn-secondary" style="font-size:12px;padding:7px 12px;justify-content:center;">
-                    <i class="fas fa-eye"></i> View
+                <div th:if="${#lists.isEmpty(stockAlerts)}" style="padding:24px;color:var(--text-muted);text-align:center;"><i class="fas fa-check-circle" style="color:var(--brand-accent);"></i> Everything is well stocked.</div>
+                <a th:each="r : ${stockAlerts}" th:href="@{/pharma/inventory/medicine/{id}(id=${r.medicine().id})}" class="ph-alert">
+                    <div>
+                        <div style="font-weight:700;color:var(--text-strong);" th:text="${r.medicine().displayName}">Medicine</div>
+                        <div class="ph-meta"><span th:text="${r.available()}">0</span> left · reorder at <span th:text="${r.medicine().reorderLevel}">10</span></div>
+                    </div>
+                    <span class="mp-pill mp-pill-missed" th:if="${r.level().name() == 'OUT'}">Out</span>
+                    <span class="mp-pill mp-pill-delayed" th:if="${r.level().name() == 'LOW'}">Low</span>
                 </a>
-                <form th:if="${prescription.printedAt == null}"
-                      th:action="@{/pharma/prescriptions/{id}/mark-printed(id=${prescription.id})}"
-                      method="post">
-                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
-                    <button type="submit" class="mp-btn mp-btn-accent"
-                            style="font-size:12px;padding:7px 12px;width:100%;justify-content:center;">
-                        <i class="fas fa-print"></i> Mark dispensed
-                    </button>
-                </form>
             </div>
 
+            <div class="mp-card">
+                <div class="mp-card-header"><h3 class="mp-card-title">Recently dispensed</h3></div>
+                <div th:if="${#lists.isEmpty(recentDispenses)}" style="padding:24px;color:var(--text-muted);text-align:center;">Nothing dispensed yet.</div>
+                <div th:each="d : ${recentDispenses}" class="ph-alert" th:if="${dStat.index < 6}">
+                    <div>
+                        <div style="font-weight:700;color:var(--text-strong);" th:text="${d.prescription.patient.firstName + ' ' + d.prescription.patient.lastName}">Patient</div>
+                        <div class="ph-meta"><span th:text="${#temporals.format(d.dispensedAt,'dd MMM, HH:mm')}">date</span> · <span th:text="${d.dispensedBy}">user</span></div>
+                    </div>
+                    <span class="mp-pill mp-pill-completed" th:if="${d.status.name() == 'DISPENSED'}">Done</span>
+                    <span class="mp-pill mp-pill-delayed" th:if="${d.status.name() == 'PARTIAL'}">Partial</span>
+                </div>
+            </div>
         </div>
     </div>
 
+    <style>
+        .ph-grid { display:grid; grid-template-columns:minmax(0,1.8fr) minmax(0,1fr); gap:20px; padding:0 32px 32px; align-items:start; }
+        .ph-row { display:grid; grid-template-columns:44px minmax(0,1fr) 110px 190px; gap:16px; align-items:center; padding:16px 24px; border-bottom:1px solid var(--border); }
+        .ph-row:last-of-type { border-bottom:0; }
+        .ph-name { font-weight:700; color:var(--text-strong); }
+        .ph-meta { font-size:12px; color:var(--text-muted); margin-top:2px; }
+        .ph-meds { font-size:12px; color:var(--text-muted); background:var(--bg-muted); border-radius:6px; padding:6px 10px; margin-top:8px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+        .ph-actions { display:flex; gap:6px; justify-content:flex-end; }
+        .ph-alert { display:flex; justify-content:space-between; align-items:center; gap:12px; padding:13px 24px; border-bottom:1px solid var(--border); color:inherit; }
+        .ph-alert:last-child { border-bottom:0; }
+        a.ph-alert:hover { background:var(--bg-subtle); text-decoration:none; color:inherit; }
+        .ph-tabs { display:flex; gap:4px; background:var(--bg-muted); padding:3px; border-radius:8px; }
+        .ph-tabs button { border:0; background:transparent; padding:5px 14px; border-radius:6px; font:600 12px var(--font-body); color:var(--text-muted); cursor:pointer; }
+        .ph-tabs button.active { background:#fff; color:var(--text-strong); box-shadow:0 1px 2px rgba(15,27,45,.1); }
+        @media (max-width: 1100px) { .ph-grid { grid-template-columns:1fr; } }
+        @media (max-width: 760px) { .ph-row { grid-template-columns:44px 1fr; } .ph-actions { grid-column:1/-1; justify-content:flex-start; } }
+    </style>
 </div>
-</div>
+
+<th:block layout:fragment="scriptContent">
+<script>
+(function () {
+    var rows = document.querySelectorAll('#phList .ph-row');
+    var empty = document.getElementById('phEmpty');
+    function apply(f) {
+        var shown = 0;
+        rows.forEach(function (r) {
+            var s = r.getAttribute('data-status');
+            var ok = f === 'all' || (f === 'open' && s !== 'DISPENSED') || s === f;
+            r.style.display = ok ? '' : 'none';
+            if (ok) shown++;
+        });
+        if (empty) empty.style.display = rows.length && !shown ? '' : 'none';
+    }
+    document.querySelectorAll('#phTabs button').forEach(function (b) {
+        b.addEventListener('click', function () {
+            document.querySelectorAll('#phTabs button').forEach(function (x) { x.classList.remove('active'); });
+            b.classList.add('active');
+            apply(b.getAttribute('data-f'));
+        });
+    });
+    apply('open');
+})();
+</script>
+</th:block>
 </body>
 </html>

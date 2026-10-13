@@ -145,6 +145,13 @@ public interface AppointmentRepository extends JpaRepository<Appointment, Long> 
     List<Appointment> findUpcomingWithDetails(@Param("patient") User patient, @Param("fromDate") LocalDate fromDate);
 
     /**
+     * Every appointment on a date with patient, doctor and schedule loaded (used by queue alerts)
+     */
+    @Query("SELECT a FROM Appointment a JOIN FETCH a.patient JOIN FETCH a.doctor JOIN FETCH a.schedule " +
+           "WHERE a.appointmentDate = :date")
+    List<Appointment> findByDateWithDetails(@Param("date") LocalDate date);
+
+    /**
      * Waiting appointments in a date range with patient and doctor loaded (used by reminders)
      */
     @Query("SELECT a FROM Appointment a JOIN FETCH a.patient JOIN FETCH a.doctor " +

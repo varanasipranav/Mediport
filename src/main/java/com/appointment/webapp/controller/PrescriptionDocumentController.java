@@ -50,6 +50,20 @@ public class PrescriptionDocumentController {
             .body(pdf);
     }
 
+    /** Public but signed and short-lived: the link sent to the patient on WhatsApp. */
+    @GetMapping("/rx/pdf/{id}/{expiry}/{signature}")
+    public ResponseEntity<byte[]> sharedPdf(@PathVariable Long id, @PathVariable long expiry, @PathVariable String signature) {
+        if (!rxDocumentService.verifyPdfLink(id, expiry, signature)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
+        Prescription prescription = prescriptionService.getPrescriptionById(id);
+        return ResponseEntity.ok()
+            .contentType(MediaType.APPLICATION_PDF)
+            .header(HttpHeaders.CONTENT_DISPOSITION,
+                ContentDisposition.inline().filename(rxDocumentService.rxNumber(prescription) + ".pdf").build().toString())
+            .body(rxDocumentService.buildPdf(prescription));
+    }
+
     /** Public: scanned from the QR code on a printed prescription. Shows only non-sensitive facts. */
     @GetMapping("/verify/rx/{id}/{signature}")
     public String verify(@PathVariable Long id, @PathVariable String signature, Model model) {
