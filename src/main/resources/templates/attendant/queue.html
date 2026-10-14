@@ -1,289 +1,131 @@
 <!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org"
       xmlns:layout="http://www.ultraq.net.nz/web/thymeleaf/layout"
-      xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity6"
       layout:decorate="~{layout}">
 <head>
-    <title>Live Queue - Attendant</title>
-    <style>
-        .queue-card {
-            border-left: 4px solid #ccc;
-            transition: all 0.3s ease;
-            margin-bottom: 15px;
-        }
-        .queue-card.status-WAITING {
-            border-left-color: #6c757d;
-        }
-        .queue-card.status-IN_CONSULTATION {
-            border-left-color: #007bff;
-            background-color: #e7f3ff;
-        }
-        .queue-card.status-COMPLETED {
-            border-left-color: #28a745;
-            opacity: 0.6;
-        }
-        .queue-card.status-NOT_ATTENDED {
-            border-left-color: #dc3545;
-            background-color: #ffe0e0;
-        }
-        .queue-card.status-DELAYED {
-            border-left-color: #ffc107;
-            background-color: #fff3cd;
-        }
-        .queue-number {
-            font-size: 2.5rem;
-            font-weight: bold;
-            color: #007bff;
-        }
-        .patient-name {
-            font-size: 1.3rem;
-            font-weight: 600;
-        }
-    </style>
+    <title>Live queue</title>
 </head>
 <body>
 <div layout:fragment="content">
-    <div class="content-header">
-        <div class="container-fluid">
-            <div class="row mb-2">
-                <div class="col-sm-6">
-                    <h1 class="m-0">Live Appointment Queue</h1>
-                </div>
-                <div class="col-sm-6">
-                    <ol class="breadcrumb float-sm-right">
-                        <li class="breadcrumb-item"><a th:href="@{/dashboard}">Dashboard</a></li>
-                        <li class="breadcrumb-item"><a th:href="@{/attendant/check-in}">Check-in</a></li>
-                        <li class="breadcrumb-item active">Queue</li>
-                    </ol>
-                </div>
-            </div>
+
+    <div class="mp-page-header">
+        <div>
+            <h1 class="mp-page-title">Live queue</h1>
+            <div class="mp-page-subtitle">See who is waiting, with the doctor, or done — and keep the line moving.</div>
+        </div>
+        <div class="mp-page-actions">
+            <a th:href="@{/attendant/check-in}" class="mp-btn mp-btn-secondary"><i class="fas fa-user-check"></i> Check-in</a>
+            <button type="button" class="mp-btn mp-btn-secondary" onclick="location.reload()"><i class="fas fa-sync-alt"></i> Refresh</button>
         </div>
     </div>
 
-    <section class="content">
-        <div class="container-fluid">
+    <div th:replace="~{fragments/flash :: flash}"></div>
 
-            <!-- Success/Error Messages -->
-            <div th:if="${success}" class="alert alert-success alert-dismissible fade show">
-                <button type="button" class="close" data-dismiss="alert">&times;</button>
-                <i class="icon fas fa-check"></i> <span th:text="${success}"></span>
+    <!-- Filters -->
+    <div style="padding:0 32px 20px;">
+        <form method="get" th:action="@{/attendant/queue}" class="mp-card" style="padding:16px 20px;display:grid;grid-template-columns:minmax(0,2fr) minmax(0,1fr);gap:16px;align-items:end;">
+            <div>
+                <label class="mp-label">Doctor</label>
+                <select name="doctorId" class="mp-select" onchange="this.form.submit()">
+                    <option value="">Select a doctor…</option>
+                    <option th:each="doctor : ${doctors}" th:value="${doctor.id}"
+                            th:selected="${selectedDoctor != null and selectedDoctor.id == doctor.id}"
+                            th:text="${'Dr. ' + doctor.firstName + ' ' + doctor.lastName + (doctor.specialization != null ? ' — ' + doctor.specialization : '')}">Doctor</option>
+                </select>
             </div>
-            <div th:if="${error}" class="alert alert-danger alert-dismissible fade show">
-                <button type="button" class="close" data-dismiss="alert">&times;</button>
-                <i class="icon fas fa-ban"></i> <span th:text="${error}"></span>
+            <div>
+                <label class="mp-label">Date</label>
+                <input type="date" name="date" class="mp-input" th:value="${selectedDate}" onchange="this.form.submit()"/>
             </div>
-            <div th:if="${warning}" class="alert alert-warning alert-dismissible fade show">
-                <button type="button" class="close" data-dismiss="alert">&times;</button>
-                <i class="icon fas fa-exclamation-triangle"></i> <span th:text="${warning}"></span>
-            </div>
-            <div th:if="${info}" class="alert alert-info alert-dismissible fade show">
-                <button type="button" class="close" data-dismiss="alert">&times;</button>
-                <i class="icon fas fa-info-circle"></i> <span th:text="${info}"></span>
-            </div>
+        </form>
+    </div>
 
-            <!-- Filter Card -->
-            <div class="card">
-                <div class="card-body">
-                    <form method="get" th:action="@{/attendant/queue}">
-                        <div class="row">
-                            <div class="col-md-5">
-                                <div class="form-group">
-                                    <label>Select Doctor</label>
-                                    <select name="doctorId" class="form-control" onchange="this.form.submit()">
-                                        <option value="">-- Select Doctor --</option>
-                                        <option th:each="doctor : ${doctors}"
-                                                th:value="${doctor.id}"
-                                                th:selected="${selectedDoctor != null && selectedDoctor.id == doctor.id}"
-                                                th:text="${doctor.firstName} + ' ' + ${doctor.lastName} + ' - ' + ${doctor.specialization}">
-                                        </option>
-                                    </select>
-                                </div>
-                            </div>
-                            <div class="col-md-4">
-                                <div class="form-group">
-                                    <label>Date</label>
-                                    <input type="date" name="date" class="form-control"
-                                           th:value="${selectedDate}" onchange="this.form.submit()"/>
-                                </div>
-                            </div>
-                            <div class="col-md-3">
-                                <label>&nbsp;</label>
-                                <button type="button" class="btn btn-primary btn-block" onclick="location.reload()">
-                                    <i class="fas fa-sync-alt"></i> Refresh
-                                </button>
-                            </div>
-                        </div>
-                    </form>
-                </div>
-            </div>
-
-            <div th:if="${selectedDoctor != null}">
-                <!-- Statistics Cards -->
-                <div class="row">
-                    <div class="col-lg-3 col-6">
-                        <div class="small-box bg-info">
-                            <div class="inner">
-                                <h3 th:text="${appointments != null ? appointments.size() : 0}">0</h3>
-                                <p>Total Patients</p>
-                            </div>
-                            <div class="icon">
-                                <i class="fas fa-users"></i>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-lg-3 col-6">
-                        <div class="small-box bg-warning">
-                            <div class="inner">
-                                <h3 th:text="${waitingCount}">0</h3>
-                                <p>Waiting</p>
-                            </div>
-                            <div class="icon">
-                                <i class="fas fa-clock"></i>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-lg-3 col-6">
-                        <div class="small-box bg-primary">
-                            <div class="inner">
-                                <h3 th:text="${inConsultationCount}">0</h3>
-                                <p>In Consultation</p>
-                            </div>
-                            <div class="icon">
-                                <i class="fas fa-user-md"></i>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-lg-3 col-6">
-                        <div class="small-box bg-success">
-                            <div class="inner">
-                                <h3 th:text="${completedCount}">0</h3>
-                                <p>Completed</p>
-                            </div>
-                            <div class="icon">
-                                <i class="fas fa-check-circle"></i>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Queue -->
-                <div class="card">
-                    <div class="card-header">
-                        <h3 class="card-title">
-                            <i class="fas fa-list-ol mr-2"></i>Queue for
-                            <strong th:text="${selectedDoctor.firstName} + ' ' + ${selectedDoctor.lastName}"></strong>
-                            on <strong th:text="${#temporals.format(selectedDate, 'dd MMM yyyy')}"></strong>
-                        </h3>
-                    </div>
-                    <div class="card-body">
-                        <div th:if="${appointments == null || appointments.empty}" class="alert alert-info">
-                            <i class="fas fa-info-circle mr-2"></i>
-                            No appointments found for this doctor on this date.
-                        </div>
-
-                        <div th:each="appointment : ${appointments}"
-                             class="card queue-card"
-                             th:classappend="'status-' + ${appointment.status}">
-                            <div class="card-body">
-                                <div class="row align-items-center">
-                                    <!-- Queue Number -->
-                                    <div class="col-md-1 text-center">
-                                        <div class="queue-number" th:text="'#' + ${appointment.queueNumber}"></div>
-                                    </div>
-
-                                    <!-- Patient Info -->
-                                    <div class="col-md-3">
-                                        <div class="patient-name" th:text="${appointment.patientFullName}"></div>
-                                        <div class="text-muted">
-                                            <i class="fas fa-id-card mr-1"></i>
-                                            <span th:text="${appointment.patient.patientId}"></span>
-                                        </div>
-                                        <div class="text-muted">
-                                            <i class="fas fa-phone mr-1"></i>
-                                            <span th:text="${appointment.patient.phoneNumber}"></span>
-                                        </div>
-                                    </div>
-
-                                    <!-- Time & Status -->
-                                    <div class="col-md-3">
-                                        <div>
-                                            <strong>Scheduled:</strong>
-                                            <span th:text="${#temporals.format(appointment.scheduledTime, 'HH:mm')}"></span>
-                                        </div>
-                                        <div th:if="${appointment.actualStartTime != null}">
-                                            <strong>Started:</strong>
-                                            <span th:text="${#temporals.format(appointment.actualStartTime, 'HH:mm')}"></span>
-                                        </div>
-                                        <div>
-                                            <strong>Status:</strong>
-                                            <span class="badge"
-                                                  th:classappend="'badge-' + ${appointment.status.badgeClass}"
-                                                  th:text="${appointment.status.displayName}"></span>
-                                        </div>
-                                    </div>
-
-                                    <!-- Notes -->
-                                    <div class="col-md-3">
-                                        <div th:if="${appointment.notes}" class="text-muted">
-                                            <i class="fas fa-sticky-note mr-1"></i>
-                                            <small th:text="${appointment.notes}"></small>
-                                        </div>
-                                    </div>
-
-                                    <!-- Actions -->
-                                    <div class="col-md-2">
-                                        <div class="btn-group-vertical btn-block" role="group">
-                                            <!-- Finish -->
-                                            <form th:if="${appointment.status.name() == 'WAITING' || appointment.status.name() == 'IN_CONSULTATION'}"
-                                                  th:action="@{/attendant/appointment/{id}/finish(id=${appointment.id})}"
-                                                  method="post" style="display: inline;">
-                                                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
-                                                <button type="submit" class="btn btn-success btn-sm btn-block"
-                                                        onclick="return confirm('Mark this appointment as finished?')">
-                                                    <i class="fas fa-check"></i> Finish
-                                                </button>
-                                            </form>
-
-                                            <!-- Not Attended -->
-                                            <form th:if="${appointment.status.name() == 'WAITING'}"
-                                                  th:action="@{/attendant/appointment/{id}/not-attended(id=${appointment.id})}"
-                                                  method="post" style="display: inline;">
-                                                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
-                                                <button type="submit" class="btn btn-danger btn-sm btn-block"
-                                                        onclick="return confirm('Mark as NOT ATTENDED? Patient will be moved to end of queue.')">
-                                                    <i class="fas fa-times"></i> Not Attended
-                                                </button>
-                                            </form>
-
-                                            <!-- Delay -->
-                                            <form th:if="${appointment.status.name() == 'WAITING'}"
-                                                  th:action="@{/attendant/appointment/{id}/delay(id=${appointment.id})}"
-                                                  method="post" style="display: inline;">
-                                                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
-                                                <button type="submit" class="btn btn-warning btn-sm btn-block"
-                                                        onclick="return confirm('Delay appointment by 2 positions?')">
-                                                    <i class="fas fa-pause"></i> Delay (−2)
-                                                </button>
-                                            </form>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
+    <!-- Nothing chosen -->
+    <div th:if="${selectedDoctor == null}" style="padding:0 32px 32px;">
+        <div class="mp-card" style="padding:56px 24px;text-align:center;color:var(--text-muted);">
+            <div style="width:56px;height:56px;border-radius:14px;background:var(--bg-muted);display:inline-flex;align-items:center;justify-content:center;font-size:22px;margin-bottom:12px;"><i class="fas fa-user-md"></i></div>
+            <div style="font-weight:700;color:var(--text-strong);font-size:16px;">Choose a doctor to see their queue</div>
         </div>
-    </section>
+    </div>
+
+    <th:block th:if="${selectedDoctor != null}">
+        <div class="mp-stats-grid">
+            <div class="mp-stat"><div class="mp-stat-label"><i class="fas fa-users"></i> Total</div><div class="mp-stat-value" th:text="${#lists.size(appointments)}">0</div></div>
+            <div class="mp-stat" style="border-left:3px solid var(--status-waiting-bar);"><div class="mp-stat-label"><i class="fas fa-hourglass-half"></i> Waiting</div><div class="mp-stat-value" th:text="${waitingCount}">0</div></div>
+            <div class="mp-stat" style="border-left:3px solid var(--status-consult-bar);"><div class="mp-stat-label"><i class="fas fa-stethoscope"></i> In consultation</div><div class="mp-stat-value" th:text="${inConsultationCount}">0</div></div>
+            <div class="mp-stat" style="border-left:3px solid var(--status-completed-bar);"><div class="mp-stat-label"><i class="fas fa-check-circle"></i> Completed</div><div class="mp-stat-value" th:text="${completedCount}">0</div></div>
+        </div>
+
+        <div style="padding:0 32px 32px;">
+            <div class="mp-card">
+                <div class="mp-card-header">
+                    <h3 class="mp-card-title">Queue — <span th:text="'Dr. ' + ${selectedDoctor.firstName + ' ' + selectedDoctor.lastName}">Doctor</span></h3>
+                    <span class="mp-helper" style="margin:0;" th:text="${#temporals.format(selectedDate, 'EEEE, dd MMM yyyy')}">date</span>
+                </div>
+
+                <div th:if="${#lists.isEmpty(appointments)}" style="padding:48px 24px;text-align:center;color:var(--text-muted);">
+                    <div style="font-weight:700;color:var(--text-strong);font-size:16px;">No appointments for this day</div>
+                    <div style="margin-top:4px;">Bookings made on WhatsApp, the patient portal or at the desk show up here.</div>
+                </div>
+
+                <div th:each="a : ${appointments}" class="aq-row"
+                     th:classappend="${a.status.name() == 'IN_CONSULTATION'} ? 'aq-active' : (${a.status.name() == 'COMPLETED' or a.status.name() == 'CANCELLED' or a.status.name() == 'NOT_ATTENDED'} ? 'aq-done' : '')">
+                    <div class="aq-num" th:classappend="${a.status.name() == 'IN_CONSULTATION'} ? 'active'" th:text="'#' + ${a.queueNumber}">#1</div>
+                    <div class="mp-avatar" th:text="${#strings.substring(a.patient.firstName,0,1) + #strings.substring(a.patient.lastName,0,1)}">AB</div>
+                    <div class="aq-main">
+                        <div class="aq-name" th:text="${a.patient.firstName + ' ' + a.patient.lastName}">Patient</div>
+                        <div class="aq-meta">
+                            <span class="font-mono" th:text="${a.patient.patientId}">PAT00001</span>
+                            <span th:if="${a.patient.phoneNumber != null}"> · <i class="fas fa-phone-alt"></i> <span th:text="${a.patient.phoneNumber}"></span></span>
+                        </div>
+                    </div>
+                    <div class="aq-time">
+                        <div class="font-mono" style="font-weight:700;color:var(--text-strong);" th:text="${#temporals.format(a.scheduledTime, 'HH:mm')}">09:00</div>
+                        <span th:replace="~{fragments/status-pill :: pill(${a.status})}"></span>
+                    </div>
+                    <div class="aq-actions">
+                        <th:block th:if="${a.status.name() == 'WAITING' or a.status.name() == 'DELAYED' or a.status.name() == 'IN_CONSULTATION'}">
+                            <form th:action="@{/attendant/appointment/{id}/finish(id=${a.id})}" method="post" style="margin:0;">
+                                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                                <button type="submit" class="mp-btn mp-btn-success mp-btn-sm" title="Mark as finished"><i class="fas fa-check"></i> Finish</button>
+                            </form>
+                        </th:block>
+                        <th:block th:if="${a.status.name() == 'WAITING' or a.status.name() == 'DELAYED'}">
+                            <form th:action="@{/attendant/appointment/{id}/delay(id=${a.id})}" method="post" style="margin:0;" onsubmit="return confirm('Move this patient back by two places?');">
+                                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                                <button type="submit" class="mp-btn mp-btn-secondary mp-btn-sm" title="Move back two places"><i class="fas fa-angle-double-down"></i> Delay</button>
+                            </form>
+                            <form th:action="@{/attendant/appointment/{id}/not-attended(id=${a.id})}" method="post" style="margin:0;" onsubmit="return confirm('Mark this patient as not attended?');">
+                                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                                <button type="submit" class="mp-btn mp-btn-danger mp-btn-sm" title="Patient did not show up"><i class="fas fa-user-times"></i> No-show</button>
+                            </form>
+                        </th:block>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </th:block>
+
+    <style>
+        .aq-row { display:grid; grid-template-columns:52px 44px minmax(0,1fr) 150px auto; gap:16px; align-items:center; padding:14px 24px; border-bottom:1px solid var(--border); position:relative; }
+        .aq-row:last-child { border-bottom:0; }
+        .aq-active { background:var(--brand-primary-50); }
+        .aq-active::before { content:''; position:absolute; left:0; top:8px; bottom:8px; width:3px; background:var(--brand-primary); border-radius:0 3px 3px 0; }
+        .aq-done { opacity:.62; }
+        .aq-num { width:44px; height:44px; border-radius:10px; background:var(--bg-muted); color:var(--text-strong); display:inline-flex; align-items:center; justify-content:center; font:800 16px var(--font-display); }
+        .aq-num.active { background:var(--brand-primary); color:#fff; }
+        .aq-name { font-weight:700; color:var(--text-strong); }
+        .aq-meta { font-size:12px; color:var(--text-muted); margin-top:2px; }
+        .aq-time { display:flex; flex-direction:column; gap:4px; align-items:flex-start; }
+        .aq-actions { display:flex; gap:6px; justify-content:flex-end; flex-wrap:wrap; }
+        @media (max-width: 980px) { .aq-row { grid-template-columns:44px minmax(0,1fr) auto; } .aq-row .mp-avatar, .aq-time { display:none; } .aq-actions { grid-column:1/-1; justify-content:flex-start; } }
+    </style>
 </div>
 
-<th:block layout:fragment="scripts">
-<script th:inline="javascript">
-// Auto-refresh every 30 seconds
-setTimeout(function() {
-    location.reload();
-}, 30000);
+<th:block layout:fragment="scriptContent">
+<script>
+    // keep the desk's view fresh without a manual refresh
+    setTimeout(function () { location.reload(); }, 30000);
 </script>
 </th:block>
 </body>

@@ -20,6 +20,10 @@ import java.util.Collections;
 @RequestMapping("/admin/users")
 public class UserCreationEditController {
 
+    @Autowired
+    private com.appointment.webapp.service.PhoneNormalizer phoneNormalizer;
+
+
     private static final Logger logger = LoggerFactory.getLogger(UserCreationEditController.class);
 
     @Autowired
@@ -70,6 +74,10 @@ public class UserCreationEditController {
             }
 
             user.setPassword(passwordEncoder.encode(user.getPassword()));
+            user.setWhatsappPhone(phoneNormalizer.toE164(user.getWhatsappPhone()));
+            if (user.getAge() == null && user.getDateOfBirth() != null) {
+                user.setAge((int) java.time.temporal.ChronoUnit.YEARS.between(user.getDateOfBirth(), java.time.LocalDate.now()));
+            }
             String employeeId = generateEmployeeId("DOC");
             user.setEmployeeId(employeeId);
             user.setCreatedBy(authentication.getName());
@@ -121,6 +129,10 @@ public class UserCreationEditController {
             }
 
             user.setPassword(passwordEncoder.encode(user.getPassword()));
+            user.setWhatsappPhone(phoneNormalizer.toE164(user.getWhatsappPhone()));
+            if (user.getAge() == null && user.getDateOfBirth() != null) {
+                user.setAge((int) java.time.temporal.ChronoUnit.YEARS.between(user.getDateOfBirth(), java.time.LocalDate.now()));
+            }
             String patientId = generatePatientId();
             user.setPatientId(patientId);
             user.setCreatedBy(authentication.getName());
@@ -172,6 +184,10 @@ public class UserCreationEditController {
             }
 
             user.setPassword(passwordEncoder.encode(user.getPassword()));
+            user.setWhatsappPhone(phoneNormalizer.toE164(user.getWhatsappPhone()));
+            if (user.getAge() == null && user.getDateOfBirth() != null) {
+                user.setAge((int) java.time.temporal.ChronoUnit.YEARS.between(user.getDateOfBirth(), java.time.LocalDate.now()));
+            }
             String employeeId = generateEmployeeId("ATT");
             user.setEmployeeId(employeeId);
             user.setCreatedBy(authentication.getName());
@@ -223,6 +239,10 @@ public class UserCreationEditController {
             }
 
             user.setPassword(passwordEncoder.encode(user.getPassword()));
+            user.setWhatsappPhone(phoneNormalizer.toE164(user.getWhatsappPhone()));
+            if (user.getAge() == null && user.getDateOfBirth() != null) {
+                user.setAge((int) java.time.temporal.ChronoUnit.YEARS.between(user.getDateOfBirth(), java.time.LocalDate.now()));
+            }
             String employeeId = generateEmployeeId("PHA");
             user.setEmployeeId(employeeId);
             user.setDepartment("Pharmacy");
@@ -277,6 +297,12 @@ public class UserCreationEditController {
             existingUser.setDepartment(updatedUser.getDepartment());
             existingUser.setSpecialization(updatedUser.getSpecialization());
             existingUser.setLicenseNumber(updatedUser.getLicenseNumber());
+            existingUser.setWhatsappPhone(phoneNormalizer.toE164(updatedUser.getWhatsappPhone()));
+            if (updatedUser.getDateOfBirth() != null) {
+                existingUser.setAge((int) java.time.temporal.ChronoUnit.YEARS.between(updatedUser.getDateOfBirth(), java.time.LocalDate.now()));
+            } else {
+                existingUser.setAge(updatedUser.getAge());
+            }
 
             if (newPassword != null && !newPassword.trim().isEmpty()) {
                 existingUser.setPassword(passwordEncoder.encode(newPassword));

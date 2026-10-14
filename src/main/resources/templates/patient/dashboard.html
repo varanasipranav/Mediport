@@ -1,233 +1,162 @@
 <!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org"
       xmlns:layout="http://www.ultraq.net.nz/web/thymeleaf/layout"
-      xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity6"
       layout:decorate="~{layout}">
 <head>
-    <title>My Dashboard</title>
-    <style>
-        /* Hero queue card */
-        .pd-hero {
-            background: linear-gradient(135deg, var(--brand-primary) 0%, #1a5fc8 100%);
-            border-radius: var(--r-lg);
-            padding: 28px 32px;
-            color: #fff;
-            margin-bottom: 24px;
-            position: relative;
-            overflow: hidden;
-        }
-        .pd-hero::after {
-            content: '';
-            position: absolute;
-            right: -40px; top: -40px;
-            width: 220px; height: 220px;
-            border-radius: 50%;
-            background: rgba(255,255,255,0.06);
-            pointer-events: none;
-        }
-        .pd-hero-label { font-size: 11px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; opacity: 0.7; margin-bottom: 8px; }
-        .pd-hero-queue { font-family: var(--font-display); font-size: 72px; font-weight: 800; line-height: 1; letter-spacing: -0.04em; }
-        .pd-hero-queue-label { font-size: 14px; opacity: 0.8; margin-top: 4px; }
-        .pd-hero-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0; margin-top: 24px; padding-top: 20px; border-top: 1px solid rgba(255,255,255,0.15); }
-        .pd-hero-item-val { font-family: var(--font-display); font-size: 20px; font-weight: 700; }
-        .pd-hero-item-lbl { font-size: 11px; opacity: 0.65; margin-top: 2px; }
-
-        /* No appointment hero */
-        .pd-no-appt {
-            background: var(--bg-card);
-            border: 2px dashed var(--border-strong);
-            border-radius: var(--r-lg);
-            padding: 32px;
-            text-align: center;
-            margin-bottom: 24px;
-        }
-
-        /* Quick actions */
-        .pd-actions-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-bottom: 24px; }
-        .pd-action-tile {
-            display: flex; align-items: center; gap: 14px;
-            padding: 16px 18px;
-            background: var(--bg-card);
-            border: 1px solid var(--border);
-            border-radius: var(--r-md);
-            text-decoration: none;
-            transition: border-color 0.15s, box-shadow 0.15s;
-            color: inherit;
-        }
-        .pd-action-tile:hover { border-color: var(--brand-primary); box-shadow: var(--shadow-sm); text-decoration: none; color: inherit; }
-        .pd-action-icon {
-            width: 40px; height: 40px; border-radius: 10px;
-            display: flex; align-items: center; justify-content: center;
-            font-size: 16px; flex-shrink: 0;
-        }
-        .pd-action-title { font-size: 13px; font-weight: 600; color: var(--text-strong); }
-        .pd-action-sub { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
-
-        /* Upcoming table */
-        .pd-upcoming-row {
-            display: grid;
-            grid-template-columns: 100px 56px 90px 1fr 120px;
-            gap: 12px;
-            align-items: center;
-            padding: 12px 0;
-            border-bottom: 1px solid var(--border);
-            font-size: 13px;
-        }
-        .pd-upcoming-row:last-child { border-bottom: none; }
-        .pd-upcoming-hdr {
-            font-size: 11px; font-weight: 700; color: var(--text-muted);
-            text-transform: uppercase; letter-spacing: 0.06em;
-        }
-
-        /* Status pill mapping */
-        .status-chip-WAITING       { background: var(--status-waiting-bg);   color: var(--status-waiting);   }
-        .status-chip-IN_CONSULTATION { background: var(--status-in-bg);      color: var(--status-in);        }
-        .status-chip-COMPLETED     { background: var(--status-completed-bg); color: var(--status-completed); }
-        .status-chip-NOT_ATTENDED  { background: var(--status-missed-bg);    color: var(--status-missed);    }
-        .status-chip-DELAYED       { background: var(--status-delayed-bg);   color: var(--status-delayed);   }
-        .status-chip {
-            display: inline-flex; align-items: center;
-            padding: 3px 9px; border-radius: 999px;
-            font-size: 11px; font-weight: 600;
-        }
-    </style>
+    <title>My dashboard</title>
 </head>
 <body>
 <div layout:fragment="content">
 
-    <!-- Page header -->
     <div class="mp-page-header">
         <div>
-            <h1 class="mp-page-title">My Dashboard</h1>
-            <p class="mp-page-subtitle">
-                Welcome back, <strong th:text="${patient.firstName} + ' ' + ${patient.lastName}">Patient</strong>
-            </p>
+            <h1 class="mp-page-title">Hello, <span th:text="${patient.firstName}">there</span></h1>
+            <div class="mp-page-subtitle" th:text="${#temporals.format(today, 'EEEE, dd MMMM yyyy')}">Today</div>
         </div>
-        <div style="display:flex;gap:10px;">
-            <a th:href="@{/patient/book-appointment}" class="mp-btn mp-btn-primary">
-                <i class="fas fa-calendar-plus"></i> Book appointment
-            </a>
+        <div class="mp-page-actions">
+            <a th:href="@{/patient/book-appointment}" class="mp-btn mp-btn-primary"><i class="fas fa-calendar-plus"></i> Book appointment</a>
         </div>
     </div>
 
-    <div style="padding: 0 32px 32px;">
+    <div th:replace="~{fragments/flash :: flash}"></div>
 
-    <!-- ── TODAY'S APPOINTMENT HERO ── -->
-    <div th:if="${todayAppointment != null}" class="pd-hero">
-        <div style="display:grid;grid-template-columns:auto 1fr;gap:32px;align-items:center;">
-            <div>
-                <div class="pd-hero-label">Your queue number today</div>
-                <div class="pd-hero-queue" th:text="'#' + ${todayAppointment.queueNumber}">#—</div>
-                <div class="pd-hero-queue-label">
-                    <span th:text="${todayAppointment.doctorFullName}">Doctor</span>
-                    &nbsp;·&nbsp;
-                    <span th:text="${todayAppointment.doctor.specialization}">Specialization</span>
+    <div class="pd-grid">
+
+        <!-- LEFT -->
+        <div>
+            <!-- Live queue hero -->
+            <div class="pd-hero" th:if="${queue != null and (queue.appointment().status.name() == 'WAITING' or queue.appointment().status.name() == 'DELAYED' or queue.appointment().status.name() == 'IN_CONSULTATION')}">
+                <div class="pd-hero-top">
+                    <span class="pd-live"><i></i> Live queue</span>
+                    <span class="pd-hero-doc" th:text="${'Dr. ' + queue.appointment().doctor.firstName + ' ' + queue.appointment().doctor.lastName}">Dr. Name</span>
+                </div>
+
+                <div th:if="${queue.appointment().status.name() == 'IN_CONSULTATION'}" class="pd-big">
+                    <div class="pd-big-title">You're with the doctor</div>
+                    <div class="pd-big-sub">Your consultation is in progress.</div>
+                </div>
+                <div th:unless="${queue.appointment().status.name() == 'IN_CONSULTATION'}">
+                    <div class="pd-hero-main">
+                        <div>
+                            <div class="pd-label">Patients ahead of you</div>
+                            <div class="pd-num" th:text="${queue.ahead()}">3</div>
+                        </div>
+                        <div>
+                            <div class="pd-label">Estimated time</div>
+                            <div class="pd-time" th:text="${#temporals.format(queue.estimated(), 'hh:mm a')}">10:30 am</div>
+                        </div>
+                        <div>
+                            <div class="pd-label">Your queue number</div>
+                            <div class="pd-time">#<span th:text="${queue.appointment().queueNumber}">4</span></div>
+                        </div>
+                    </div>
+                    <div class="pd-strip" th:with="n=${queue.ahead() > 11 ? 11 : queue.ahead()}">
+                        <span class="pd-block" th:each="i : ${#numbers.sequence(1, n)}" th:if="${n > 0}"></span>
+                        <span class="pd-block you">You</span>
+                    </div>
+                    <div class="pd-note" th:if="${queue.ahead() == 0}"><i class="fas fa-bell"></i> You're next — please be ready outside the doctor's room.</div>
+                    <div class="pd-note" th:if="${queue.ahead() > 0 and queue.minutesLate() >= 20}"><i class="fas fa-clock"></i> The doctor is about <span th:text="${queue.minutesLate()}">20</span> minutes behind schedule. Thank you for your patience.</div>
+                    <div class="pd-note" th:if="${queue.ahead() > 0 and queue.minutesLate() < 20}"><i class="fas fa-info-circle"></i> Booked slot <strong th:text="${#temporals.format(queue.appointment().scheduledTime, 'hh:mm a')}">09:00 am</strong>. This updates as the queue moves.</div>
                 </div>
             </div>
-            <div class="pd-hero-grid">
-                <div>
-                    <div class="pd-hero-item-val" th:text="${#temporals.format(todayAppointment.scheduledTime, 'HH:mm')}">—</div>
-                    <div class="pd-hero-item-lbl">Scheduled time</div>
+
+            <!-- Nothing today -->
+            <div class="mp-card pd-empty" th:if="${queue == null or !(queue.appointment().status.name() == 'WAITING' or queue.appointment().status.name() == 'DELAYED' or queue.appointment().status.name() == 'IN_CONSULTATION')}">
+                <div class="pd-empty-icon"><i class="fas" th:classappend="${queue != null and queue.appointment().status.name() == 'COMPLETED'} ? 'fa-check-circle' : 'fa-calendar-day'"></i></div>
+                <div th:if="${queue != null and queue.appointment().status.name() == 'COMPLETED'}">
+                    <div class="pd-empty-title">Your consultation today is complete</div>
+                    <div class="pd-empty-sub">Your prescription, if any, is under <a th:href="@{/patient/prescriptions}">Prescriptions</a>.</div>
                 </div>
-                <div>
-                    <div class="pd-hero-item-val"
-                         th:text="${estimatedWaitMinutes != null and estimatedWaitMinutes > 0 ? estimatedWaitMinutes + ' min' : (estimatedWaitMinutes == 0 ? 'Soon!' : '—')}">—</div>
-                    <div class="pd-hero-item-lbl">Estimated wait</div>
+                <div th:unless="${queue != null and queue.appointment().status.name() == 'COMPLETED'}">
+                    <div class="pd-empty-title">No appointment today</div>
+                    <div class="pd-empty-sub">Book a slot and we'll show your live queue position here.</div>
+                    <a th:href="@{/patient/book-appointment}" class="mp-btn mp-btn-primary" style="margin-top:14px;"><i class="fas fa-calendar-plus"></i> Book now</a>
                 </div>
-                <div>
-                    <div class="pd-hero-item-val" th:text="${todayAppointment.status.displayName}">—</div>
-                    <div class="pd-hero-item-lbl">Status</div>
+            </div>
+
+            <!-- Upcoming -->
+            <div class="mp-card" style="margin-top:20px;">
+                <div class="mp-card-header">
+                    <h3 class="mp-card-title">Upcoming appointments</h3>
+                    <a th:href="@{/patient/appointments}" class="mp-helper" style="margin:0;">View all</a>
+                </div>
+                <div th:if="${#lists.isEmpty(upcomingAppointments)}" style="padding:32px 24px;text-align:center;color:var(--text-muted);">
+                    Nothing booked. <a th:href="@{/patient/book-appointment}">Book one now</a>.
+                </div>
+                <div th:each="a : ${upcomingAppointments}" class="pd-up" th:if="${aStat.index < 5}">
+                    <div class="pd-date">
+                        <div class="d" th:text="${#temporals.format(a.appointmentDate,'dd')}">14</div>
+                        <div class="m" th:text="${#temporals.format(a.appointmentDate,'MMM')}">Oct</div>
+                    </div>
+                    <div style="flex:1;min-width:0;">
+                        <div style="font-weight:700;color:var(--text-strong);" th:text="${'Dr. ' + a.doctor.firstName + ' ' + a.doctor.lastName}">Dr. Name</div>
+                        <div style="font-size:12.5px;color:var(--text-muted);"><span class="font-mono" th:text="${#temporals.format(a.scheduledTime,'HH:mm')}">09:00</span> · Queue #<span th:text="${a.queueNumber}">1</span></div>
+                    </div>
+                    <span th:replace="~{fragments/status-pill :: pill(${a.status})}"></span>
                 </div>
             </div>
         </div>
-    </div>
 
-    <!-- ── NO APPOINTMENT TODAY ── -->
-    <div th:if="${todayAppointment == null}" class="pd-no-appt">
-        <i class="fas fa-calendar-times" style="font-size:32px;color:var(--text-soft);margin-bottom:12px;display:block;"></i>
-        <div style="font-size:15px;font-weight:600;color:var(--text-strong);margin-bottom:6px;">No appointment today</div>
-        <div style="font-size:13px;color:var(--text-muted);margin-bottom:18px;">You don't have anything scheduled for today.</div>
-        <a th:href="@{/patient/book-appointment}" class="mp-btn mp-btn-primary">
-            <i class="fas fa-calendar-plus"></i> Book now
-        </a>
-    </div>
+        <!-- RIGHT -->
+        <div>
+            <div class="pd-actions">
+                <a th:href="@{/patient/book-appointment}" class="pd-action"><i class="fas fa-calendar-plus"></i><span>Book</span></a>
+                <a th:href="@{/patient/appointments}" class="pd-action"><i class="fas fa-calendar-check"></i><span>Appointments</span></a>
+                <a th:href="@{/patient/prescriptions}" class="pd-action"><i class="fas fa-file-prescription"></i><span>Prescriptions</span></a>
+            </div>
 
-    <!-- ── QUICK ACTIONS ── -->
-    <div class="pd-actions-grid">
-        <a th:href="@{/patient/book-appointment}" class="pd-action-tile">
-            <div class="pd-action-icon" style="background:var(--brand-primary-50);color:var(--brand-primary);">
-                <i class="fas fa-calendar-plus"></i>
-            </div>
-            <div>
-                <div class="pd-action-title">Book appointment</div>
-                <div class="pd-action-sub">Schedule with a doctor</div>
-            </div>
-        </a>
-        <a th:href="@{/patient/appointments}" class="pd-action-tile">
-            <div class="pd-action-icon" style="background:var(--status-in-bg);color:var(--status-in-bar);">
-                <i class="fas fa-history"></i>
-            </div>
-            <div>
-                <div class="pd-action-title">My appointments</div>
-                <div class="pd-action-sub">View all past &amp; upcoming</div>
-            </div>
-        </a>
-        <a th:href="@{/patient/prescriptions}" class="pd-action-tile">
-            <div class="pd-action-icon" style="background:var(--status-completed-bg);color:var(--status-completed-bar);">
-                <i class="fas fa-file-prescription"></i>
-            </div>
-            <div>
-                <div class="pd-action-title">Prescriptions</div>
-                <div class="pd-action-sub">View &amp; download Rx</div>
-            </div>
-        </a>
-        <div class="pd-action-tile" style="background:var(--wa-green-bg);border-color:#C7EED9;cursor:default;">
-            <div class="pd-action-icon" style="background:#D1FAE5;color:var(--wa-green);">
+            <div class="pd-wa">
                 <i class="fab fa-whatsapp"></i>
-            </div>
-            <div>
-                <div class="pd-action-title" style="color:var(--wa-text);">Book via WhatsApp</div>
-                <div class="pd-action-sub" style="color:var(--wa-text);opacity:0.75;">Send "Hi" to +91 80 4000 1234</div>
+                <div>
+                    <strong>Manage everything on WhatsApp</strong>
+                    <div>Send "Hi" to the clinic's WhatsApp number to book, reschedule, cancel or check your queue status.</div>
+                </div>
             </div>
         </div>
     </div>
 
-    <!-- ── UPCOMING APPOINTMENTS ── -->
-    <div class="mp-card">
-        <div class="mp-card-header">
-            <h3 class="mp-card-title">Upcoming appointments</h3>
-            <a th:href="@{/patient/appointments}" style="font-size:12px;color:var(--brand-primary);font-weight:600;">View all</a>
-        </div>
-        <div style="padding: 0 24px 8px;">
+    <style>
+        .pd-grid { display:grid; grid-template-columns:minmax(0,1.6fr) minmax(0,1fr); gap:20px; padding:0 32px 32px; align-items:start; }
+        .pd-hero { background:linear-gradient(160deg,#0F1B2D,#12306B); color:#fff; border-radius:14px; padding:24px 26px; box-shadow:var(--shadow-pop); }
+        .pd-hero-top { display:flex; justify-content:space-between; align-items:center; gap:12px; margin-bottom:18px; flex-wrap:wrap; }
+        .pd-live { display:inline-flex; align-items:center; gap:8px; font-size:12px; font-weight:700; letter-spacing:.06em; text-transform:uppercase; color:#6EE7B7; }
+        .pd-live i { width:8px; height:8px; border-radius:50%; background:#34D399; animation:pdBlink 1.4s ease-in-out infinite; }
+        @keyframes pdBlink { 0%,100% { opacity:1; } 50% { opacity:.3; } }
+        .pd-hero-doc { font-weight:600; color:rgba(255,255,255,.85); }
+        .pd-hero-main { display:grid; grid-template-columns:repeat(3,1fr); gap:16px; }
+        .pd-label { font-size:11.5px; letter-spacing:.05em; text-transform:uppercase; color:rgba(255,255,255,.6); font-weight:600; }
+        .pd-num { font:800 56px var(--font-display); line-height:1.05; letter-spacing:-0.03em; }
+        .pd-time { font:700 26px var(--font-display); margin-top:10px; letter-spacing:-0.02em; }
+        .pd-strip { display:flex; gap:6px; margin-top:22px; flex-wrap:wrap; }
+        .pd-block { width:34px; height:10px; border-radius:6px; background:rgba(255,255,255,.22); }
+        .pd-block.you { width:auto; height:auto; padding:3px 12px; font-size:11px; font-weight:700; background:var(--brand-accent); color:#06281E; }
+        .pd-note { margin-top:18px; padding:11px 14px; border-radius:10px; background:rgba(255,255,255,.1); font-size:13px; }
+        .pd-big-title { font:800 28px var(--font-display); }
+        .pd-big-sub { color:rgba(255,255,255,.75); margin-top:4px; }
+        .pd-empty { padding:40px 24px; text-align:center; }
+        .pd-empty-icon { width:60px; height:60px; border-radius:16px; background:var(--brand-primary-50); color:var(--brand-primary); display:inline-flex; align-items:center; justify-content:center; font-size:24px; margin-bottom:14px; }
+        .pd-empty-title { font:700 18px var(--font-display); color:var(--text-strong); }
+        .pd-empty-sub { color:var(--text-muted); margin-top:4px; }
+        .pd-up { display:flex; align-items:center; gap:16px; padding:14px 24px; border-bottom:1px solid var(--border); }
+        .pd-up:last-child { border-bottom:0; }
+        .pd-date { width:52px; text-align:center; background:var(--bg-muted); border-radius:10px; padding:6px 0; }
+        .pd-date .d { font:800 20px var(--font-display); line-height:1; color:var(--text-strong); }
+        .pd-date .m { font-size:11px; color:var(--text-muted); font-weight:600; text-transform:uppercase; }
+        .pd-actions { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin-bottom:20px; }
+        .pd-action { background:#fff; border:1px solid var(--border); border-radius:12px; padding:18px 8px; text-align:center; color:var(--text-strong); box-shadow:var(--shadow-card); transition:transform .15s, border-color .15s; display:flex; flex-direction:column; gap:8px; align-items:center; font-weight:600; font-size:13px; }
+        .pd-action i { width:40px; height:40px; border-radius:10px; background:var(--brand-primary-50); color:var(--brand-primary); display:flex; align-items:center; justify-content:center; font-size:16px; }
+        .pd-action:hover { transform:translateY(-2px); border-color:var(--brand-primary); text-decoration:none; color:var(--text-strong); }
+        .pd-wa { display:flex; gap:14px; padding:18px; border-radius:12px; background:var(--wa-green-bg); border:1px solid #BFEBD3; color:var(--wa-text); font-size:13px; line-height:1.5; }
+        .pd-wa > i { font-size:28px; color:var(--wa-green); }
+        @media (max-width: 1000px) { .pd-grid { grid-template-columns:1fr; padding:0 16px 24px; } .pd-hero-main { grid-template-columns:1fr 1fr; } }
+    </style>
+</div>
 
-        <div th:if="${upcomingAppointments != null and !upcomingAppointments.empty}">
-            <!-- Header -->
-            <div class="pd-upcoming-row pd-upcoming-hdr">
-                <span>Date</span><span>Queue</span><span>Time</span><span>Doctor</span><span>Status</span>
-            </div>
-            <div th:each="apt : ${upcomingAppointments}" class="pd-upcoming-row">
-                <span th:text="${#temporals.format(apt.appointmentDate, 'dd MMM yyyy')}" style="color:var(--text-muted);"></span>
-                <span style="font-family:var(--font-display);font-weight:700;color:var(--text-strong);" th:text="'#' + ${apt.queueNumber}"></span>
-                <span th:text="${#temporals.format(apt.scheduledTime, 'HH:mm')}" style="color:var(--text-muted);"></span>
-                <span th:text="${apt.doctorFullName}" style="color:var(--text-strong);font-weight:500;"></span>
-                <span th:with="st=${apt.status.name()}"
-                      class="status-chip"
-                      th:classappend="'status-chip-' + ${st}"
-                      th:text="${apt.status.displayName}"></span>
-            </div>
-        </div>
-
-        <div th:if="${upcomingAppointments == null or upcomingAppointments.empty}"
-             style="text-align:center;padding:24px 0;">
-            <i class="fas fa-calendar" style="font-size:24px;color:var(--text-soft);margin-bottom:10px;display:block;"></i>
-            <div style="font-size:13px;color:var(--text-muted);">No upcoming appointments.
-                <a th:href="@{/patient/book-appointment}" style="color:var(--brand-primary);font-weight:600;">Book one now</a>
-            </div>
-        </div>
-        </div><!-- /padding -->
-    </div><!-- /mp-card -->
-
-</div><!-- /content-pad -->
-</div><!-- /layout:fragment -->
+<th:block layout:fragment="scriptContent">
+<script>
+    // the queue position changes as the doctor works through the line
+    setTimeout(function () { location.reload(); }, 60000);
+</script>
+</th:block>
 </body>
 </html>

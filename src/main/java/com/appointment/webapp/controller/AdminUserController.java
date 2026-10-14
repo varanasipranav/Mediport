@@ -54,10 +54,8 @@ public class AdminUserController {
     }
 
     @GetMapping("/create")
-    public String showCreateForm(Model model) {
-        model.addAttribute("user", new User());
-        model.addAttribute("pageTitle", "Create User");
-        return "admin/users/create";
+    public String showCreateForm() {
+        return "redirect:/admin/users/list";
     }
 
     @PostMapping("/create")
@@ -93,6 +91,7 @@ public class AdminUserController {
 
             model.addAttribute("user", user);
             model.addAttribute("isEdit", true);
+            user.getRoles().stream().findFirst().ifPresent(r -> model.addAttribute("role", r.getName()));
             model.addAttribute("pageTitle", "Edit User");
 
             // Return role-specific form
@@ -153,8 +152,17 @@ public class AdminUserController {
 
     @GetMapping("/search")
     @ResponseBody
-    public List<User> searchUsers(@RequestParam String keyword) {
-        return userService.searchUsers(keyword);
+    public List<java.util.Map<String, Object>> searchUsers(@RequestParam String keyword) {
+        // Only what a picker needs - never the password hash or other account internals
+        return userService.searchUsers(keyword).stream().map(u -> {
+            java.util.Map<String, Object> m = new java.util.LinkedHashMap<>();
+            m.put("id", u.getId());
+            m.put("username", u.getUsername());
+            m.put("name", (u.getFirstName() + " " + u.getLastName()).trim());
+            m.put("phone", u.getPhoneNumber());
+            m.put("email", u.getEmail());
+            return m;
+        }).toList();
     }
 
     // Role-specific user creation pages

@@ -1,306 +1,115 @@
 <!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org"
       xmlns:layout="http://www.ultraq.net.nz/web/thymeleaf/layout"
-      xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity6"
       layout:decorate="~{layout}">
 <head>
-    <title>My Appointments - Patient</title>
-    <style>
-        .appointments-header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            padding: 2rem;
-            border-radius: 12px;
-            margin-bottom: 2rem;
-            box-shadow: 0 8px 16px rgba(0,0,0,0.1);
-            color: white;
-        }
-
-        .appointments-header h1 {
-            font-size: 2rem;
-            font-weight: 700;
-            margin: 0;
-        }
-
-        .appointments-card {
-            background: white;
-            border-radius: 12px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-            overflow: hidden;
-        }
-
-        .appointments-card .card-header {
-            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-            padding: 1.5rem;
-            border: none;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .appointments-card .card-title {
-            color: #2d3748;
-            font-weight: 700;
-            margin: 0;
-        }
-
-        .table-enhanced {
-            margin-bottom: 0;
-        }
-
-        .table-enhanced thead th {
-            background: #f8f9fa;
-            color: #2d3748;
-            font-weight: 700;
-            text-transform: uppercase;
-            font-size: 0.75rem;
-            letter-spacing: 0.5px;
-            padding: 1rem;
-            border-bottom: 2px solid #dee2e6;
-        }
-
-        .table-enhanced tbody tr {
-            transition: all 0.2s ease;
-        }
-
-        .table-enhanced tbody tr:hover {
-            background: #f8f9fa;
-            transform: scale(1.01);
-            box-shadow: 0 4px 8px rgba(0,0,0,0.05);
-        }
-
-        .table-enhanced tbody td {
-            padding: 1rem;
-            vertical-align: middle;
-            border-color: #f1f3f5;
-        }
-
-        .status-badge {
-            padding: 0.4rem 0.8rem;
-            border-radius: 20px;
-            font-size: 0.75rem;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        .btn-book-new {
-            background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
-            color: white;
-            padding: 0.5rem 1.5rem;
-            border-radius: 8px;
-            font-weight: 600;
-            border: none;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-            transition: all 0.3s ease;
-        }
-
-        .btn-book-new:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 12px rgba(0,0,0,0.15);
-            color: white;
-        }
-
-        .btn-cancel-apt {
-            background: #dc3545;
-            color: white;
-            padding: 0.4rem 0.8rem;
-            border-radius: 6px;
-            font-weight: 600;
-            border: none;
-            transition: all 0.2s ease;
-        }
-
-        .btn-cancel-apt:hover {
-            background: #c82333;
-            transform: translateY(-2px);
-        }
-
-        .empty-state {
-            background: linear-gradient(135deg, #e0f2fe 0%, #bfdbfe 100%);
-            padding: 2rem;
-            border-radius: 12px;
-            text-align: center;
-            border-left: 4px solid #3b82f6;
-        }
-
-        .empty-state i {
-            font-size: 4rem;
-            color: #3b82f6;
-            margin-bottom: 1rem;
-        }
-
-        .empty-state h5 {
-            color: #1e40af;
-            font-weight: 700;
-            margin-bottom: 0.5rem;
-        }
-
-        .empty-state p {
-            color: #1e3a8a;
-            margin-bottom: 1rem;
-        }
-    </style>
+    <title>My appointments</title>
 </head>
 <body>
 <div layout:fragment="content">
-    <div class="container-fluid">
 
-        <!-- Header -->
-        <div class="appointments-header">
-            <div class="d-flex justify-content-between align-items-center flex-wrap">
-                <div>
-                    <h1><i class="fas fa-calendar-check me-2"></i>My Appointments</h1>
-                    <p class="mb-0 mt-2 opacity-90">View and manage your appointment history</p>
-                </div>
-                <div>
-                    <a th:href="@{/patient/book-appointment}" class="btn btn-light">
-                        <i class="fas fa-plus me-2"></i>Book New Appointment
-                    </a>
-                </div>
-            </div>
+    <div class="mp-page-header">
+        <div>
+            <h1 class="mp-page-title">My appointments</h1>
+            <div class="mp-page-subtitle">Everything you've booked, newest first.</div>
         </div>
-
-        <!-- Appointments List -->
-        <div class="card appointments-card">
-            <div class="card-header">
-                <h3 class="card-title"><i class="fas fa-history me-2"></i>Appointment History</h3>
-                <div class="card-tools">
-                    <a th:href="@{/patient/book-appointment}" class="btn-book-new">
-                        <i class="fas fa-plus me-1"></i>Book New
-                    </a>
-                </div>
-            </div>
-            <div class="card-body">
-                <div th:if="${appointments == null || appointments.empty}" class="empty-state">
-                    <i class="fas fa-calendar-times"></i>
-                    <h5>No Appointments Yet</h5>
-                    <p>You haven't scheduled any appointments.</p>
-                    <a th:href="@{/patient/book-appointment}" class="btn btn-primary">
-                        <i class="fas fa-calendar-plus me-2"></i>Book Your First Appointment
-                    </a>
-                </div>
-
-                <div th:if="${appointments != null && !appointments.empty}" class="table-responsive">
-                    <table class="table table-enhanced">
-                        <thead>
-                            <tr>
-                                <th><i class="fas fa-calendar me-1"></i>Date</th>
-                                <th><i class="fas fa-list-ol me-1"></i>Queue</th>
-                                <th><i class="fas fa-clock me-1"></i>Time</th>
-                                <th><i class="fas fa-user-md me-1"></i>Doctor</th>
-                                <th><i class="fas fa-info-circle me-1"></i>Status</th>
-                                <th><i class="fas fa-notes-medical me-1"></i>Notes</th>
-                                <th><i class="fas fa-cogs me-1"></i>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr th:each="apt : ${appointments}">
-                                <td>
-                                    <i class="fas fa-calendar-day me-2 text-primary"></i>
-                                    <strong th:text="${#temporals.format(apt.appointmentDate, 'dd MMM yyyy')}"></strong>
-                                </td>
-                                <td>
-                                    <span class="badge bg-secondary" th:text="'#' + ${apt.queueNumber}"></span>
-                                </td>
-                                <td>
-                                    <i class="fas fa-clock me-2 text-success"></i>
-                                    <span th:text="${#temporals.format(apt.scheduledTime, 'HH:mm')}"></span>
-                                </td>
-                                <td>
-                                    <div>
-                                        <i class="fas fa-user-md me-2 text-info"></i>
-                                        <strong th:text="${apt.doctorFullName}"></strong>
-                                    </div>
-                                    <small class="text-muted">
-                                        <i class="fas fa-stethoscope me-1"></i>
-                                        <span th:text="${apt.doctor.specialization}"></span>
-                                    </small>
-                                </td>
-                                <td>
-                                    <span class="status-badge"
-                                          th:classappend="'bg-' + ${apt.status.badgeClass}"
-                                          th:text="${apt.status.displayName}"></span>
-                                </td>
-                                <td>
-                                    <small th:text="${apt.notes ?: '-'}"></small>
-                                </td>
-                                <td>
-                                    <button th:if="${apt.status.name() == 'WAITING' && apt.appointmentDate.isAfter(T(java.time.LocalDate).now())}"
-                                            type="button" class="btn-cancel-apt"
-                                            th:onclick="'confirmCancelAppointment(' + ${apt.id} + ')'">
-                                        <i class="fas fa-times me-1"></i> Cancel
-                                    </button>
-                                    <span th:if="${apt.status.name() != 'WAITING' || !apt.appointmentDate.isAfter(T(java.time.LocalDate).now())}"
-                                          class="text-muted">-</span>
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
+        <div class="mp-page-actions">
+            <a th:href="@{/patient/book-appointment}" class="mp-btn mp-btn-primary"><i class="fas fa-calendar-plus"></i> Book appointment</a>
         </div>
-
     </div>
+
+    <div th:replace="~{fragments/flash :: flash}"></div>
+
+    <div style="padding:0 32px 32px;">
+        <div class="mp-card">
+            <div class="mp-card-header">
+                <h3 class="mp-card-title">History</h3>
+                <div class="pa-tabs" id="paTabs">
+                    <button type="button" class="active" data-f="upcoming">Upcoming</button>
+                    <button type="button" data-f="past">Past</button>
+                    <button type="button" data-f="all">All</button>
+                </div>
+            </div>
+
+            <div th:if="${#lists.isEmpty(appointments)}" style="padding:56px 24px;text-align:center;color:var(--text-muted);">
+                <div style="width:56px;height:56px;border-radius:14px;background:var(--bg-muted);display:inline-flex;align-items:center;justify-content:center;font-size:22px;margin-bottom:12px;"><i class="fas fa-calendar-times"></i></div>
+                <div style="font-weight:700;color:var(--text-strong);font-size:16px;">No appointments yet</div>
+                <div style="margin:4px 0 16px;">Book your first visit in a few taps.</div>
+                <a th:href="@{/patient/book-appointment}" class="mp-btn mp-btn-primary"><i class="fas fa-calendar-plus"></i> Book appointment</a>
+            </div>
+
+            <div id="paList">
+                <div th:each="a : ${appointments}" class="pa-row"
+                     th:attr="data-when=${(!a.appointmentDate.isBefore(#temporals.createToday()) and (a.status.name() == 'WAITING' or a.status.name() == 'DELAYED' or a.status.name() == 'IN_CONSULTATION')) ? 'upcoming' : 'past'}">
+                    <div class="pa-date">
+                        <div class="pa-day" th:text="${#temporals.format(a.appointmentDate, 'dd')}">14</div>
+                        <div class="pa-mon" th:text="${#temporals.format(a.appointmentDate, 'MMM yyyy')}">Oct 2026</div>
+                    </div>
+                    <div class="pa-main">
+                        <div class="pa-doc" th:text="${'Dr. ' + a.doctor.firstName + ' ' + a.doctor.lastName}">Dr. Name</div>
+                        <div class="pa-sub" th:text="${a.doctor.specialization != null ? a.doctor.specialization : 'General practice'}">Specialization</div>
+                    </div>
+                    <div class="pa-slot">
+                        <div class="font-mono" style="font-weight:700;color:var(--text-strong);" th:text="${#temporals.format(a.scheduledTime, 'HH:mm')}">09:00</div>
+                        <div class="pa-sub">Queue #<span th:text="${a.queueNumber}">1</span></div>
+                    </div>
+                    <div><span th:replace="~{fragments/status-pill :: pill(${a.status})}"></span></div>
+                    <div class="pa-actions">
+                        <form th:if="${a.status.name() == 'WAITING' or a.status.name() == 'DELAYED'}"
+                              th:action="@{/patient/appointment/{id}/cancel(id=${a.id})}" method="post" style="margin:0;"
+                              onsubmit="return confirm('Cancel this appointment?');">
+                            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                            <button type="submit" class="mp-btn mp-btn-danger mp-btn-sm"><i class="fas fa-times"></i> Cancel</button>
+                        </form>
+                    </div>
+                </div>
+                <div id="paEmpty" style="display:none;padding:40px 24px;text-align:center;color:var(--text-muted);">Nothing in this view.</div>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        .pa-row { display:grid; grid-template-columns:76px minmax(0,1fr) 110px 150px 110px; gap:16px; align-items:center; padding:16px 24px; border-bottom:1px solid var(--border); }
+        .pa-row:last-of-type { border-bottom:0; }
+        .pa-date { text-align:center; background:var(--bg-muted); border-radius:10px; padding:8px 0; }
+        .pa-day { font:800 22px var(--font-display); color:var(--text-strong); line-height:1; }
+        .pa-mon { font-size:11px; color:var(--text-muted); font-weight:600; margin-top:2px; }
+        .pa-doc { font-weight:700; color:var(--text-strong); }
+        .pa-sub { font-size:12.5px; color:var(--text-muted); }
+        .pa-actions { display:flex; justify-content:flex-end; }
+        .pa-tabs { display:flex; gap:4px; background:var(--bg-muted); padding:3px; border-radius:8px; }
+        .pa-tabs button { border:0; background:transparent; padding:5px 14px; border-radius:6px; font:600 12px var(--font-body); color:var(--text-muted); cursor:pointer; }
+        .pa-tabs button.active { background:#fff; color:var(--text-strong); box-shadow:0 1px 2px rgba(15,27,45,.1); }
+        @media (max-width: 800px) { .pa-row { grid-template-columns:64px minmax(0,1fr) auto; } .pa-slot { display:none; } .pa-actions { grid-column:1/-1; justify-content:flex-start; } }
+    </style>
 </div>
 
-<div layout:fragment="scriptContent">
-    <script>
-        // Show success/error messages with SweetAlert2
-        const successMessage = /*[[${success}]]*/ null;
-        const errorMessage = /*[[${error}]]*/ null;
-
-        if (successMessage) {
-            Swal.fire({
-                icon: 'success',
-                title: 'Success!',
-                text: successMessage,
-                confirmButtonColor: '#48bb78',
-                timer: 3000,
-                timerProgressBar: true
-            });
-        }
-
-        if (errorMessage) {
-            Swal.fire({
-                icon: 'error',
-                title: 'Error!',
-                text: errorMessage,
-                confirmButtonColor: '#dc3545'
-            });
-        }
-
-        function confirmCancelAppointment(appointmentId) {
-            Swal.fire({
-                title: 'Cancel Appointment?',
-                text: "Are you sure you want to cancel this appointment?",
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonColor: '#dc3545',
-                cancelButtonColor: '#6c757d',
-                confirmButtonText: '<i class="fas fa-times me-1"></i> Yes, cancel it!',
-                cancelButtonText: '<i class="fas fa-arrow-left me-1"></i> No, keep it',
-                reverseButtons: true
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    const form = document.createElement('form');
-                    form.method = 'POST';
-                    form.action = '/patient/appointment/' + appointmentId + '/cancel';
-
-                    const csrfToken = document.querySelector('meta[name="_csrf"]')?.content;
-                    if (csrfToken) {
-                        const input = document.createElement('input');
-                        input.type = 'hidden';
-                        input.name = '_csrf';
-                        input.value = csrfToken;
-                        form.appendChild(input);
-                    }
-
-                    document.body.appendChild(form);
-                    form.submit();
-                }
-            });
-        }
-    </script>
-</div>
+<th:block layout:fragment="scriptContent">
+<script>
+(function () {
+    var rows = document.querySelectorAll('#paList .pa-row'), empty = document.getElementById('paEmpty');
+    function apply(f) {
+        var shown = 0;
+        rows.forEach(function (r) {
+            var ok = f === 'all' || r.getAttribute('data-when') === f;
+            r.style.display = ok ? '' : 'none';
+            if (ok) shown++;
+        });
+        if (empty) empty.style.display = rows.length && !shown ? '' : 'none';
+    }
+    document.querySelectorAll('#paTabs button').forEach(function (b) {
+        b.addEventListener('click', function () {
+            document.querySelectorAll('#paTabs button').forEach(function (x) { x.classList.remove('active'); });
+            b.classList.add('active');
+            apply(b.getAttribute('data-f'));
+        });
+    });
+    apply(document.querySelector('#paList .pa-row[data-when="upcoming"]') ? 'upcoming' : 'all');
+    if (!document.querySelector('#paList .pa-row[data-when="upcoming"]')) {
+        document.querySelectorAll('#paTabs button').forEach(function (x) { x.classList.toggle('active', x.getAttribute('data-f') === 'all'); });
+    }
+})();
+</script>
+</th:block>
 </body>
 </html>

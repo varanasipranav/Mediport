@@ -36,6 +36,12 @@ public class PatientController {
     @Autowired
     private UserRepository userRepository;
 
+    @Autowired
+    private com.appointment.webapp.whatsapp.service.appointment.WhatsAppAppointmentService whatsAppAppointmentService;
+
+    @Autowired
+    private com.appointment.webapp.whatsapp.service.appointment.QueueStatusService queueStatusService;
+
     /**
      * Show patient dashboard with today's appointment and upcoming appointments
      */
@@ -52,6 +58,8 @@ public class PatientController {
             .filter(a -> a.getAppointmentDate().equals(LocalDate.now()))
             .findFirst()
             .orElse(null);
+
+        queueStatusService.todayFor(patient).ifPresent(q -> model.addAttribute("queue", q));
 
         model.addAttribute("patient", patient);
         model.addAttribute("todayAppointment", todayAppointment);
@@ -78,6 +86,33 @@ public class PatientController {
         model.addAttribute("today", LocalDate.now());
 
         return "patient/book-appointment";
+    }
+
+    /**
+     * Days on which this doctor has a free slot (from the doctor's real schedule), with the time and queue
+     * number the patient would get. Same rules as the WhatsApp bot.
+     */
+    @GetMapping("/availability")
+    @org.springframework.web.bind.annotation.ResponseBody
+    public List<java.util.Map<String, Object>> availability(@RequestParam Long doctorId, Authentication authentication) {
+        User patient = userRepository.findByUsername(authentication.getName())
+            .orElseThrow(() -> new RuntimeException("Patient not found"));
+        User doctor = userRepository.findById(doctorId).orElseThrow(() -> new RuntimeException("Doctor not found"));
+
+        var fmt = java.time.format.DateTimeFormatter.ofPattern("dd MMM");
+        List<java.util.Map<String, Object>> out = new java.util.ArrayList<>();
+        for (var day : whatsAppAppointmentService.getBookableDays(doctor, patient)) {
+            java.util.Map<String, Object> item = new java.util.LinkedHashMap<>();
+            item.put("date", day.date().toString());
+            item.put("label", whatsAppAppointmentService.getDayName(day.date()));
+            item.put("short", day.date().format(fmt));
+            item.put("time", day.timeText());
+            item.put("queue", day.queueNumber());
+            item.put("left", day.slotsLeft());
+            item.put("hours", day.hoursText());
+            out.add(item);
+        }
+        return out;
     }
 
     /**

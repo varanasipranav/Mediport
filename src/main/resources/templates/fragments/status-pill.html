@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<!-- Appointment status as one of the Mediport pills. Usage: th:replace="~{fragments/status-pill :: pill(${a.status})}" -->
+<span th:fragment="pill(status)" class="mp-pill"
+      th:classappend="${status.name() == 'WAITING'} ? 'mp-pill-waiting' :
+                      (${status.name() == 'IN_CONSULTATION'} ? 'mp-pill-consult' :
+                      (${status.name() == 'COMPLETED'} ? 'mp-pill-completed' :
+                      (${status.name() == 'DELAYED'} ? 'mp-pill-delayed' : 'mp-pill-missed')))"
+      th:text="${status.displayName}">Waiting</span>
+
+</body>
+</html>

@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<!--
+  One form for all four staff/patient types. Model: user, role (DOCTOR|PATIENT|ATTENDANT|PHARMA), isEdit (optional).
+  Create posts to /admin/users/create-<role>; edit posts to /admin/users/update/{id}.
+-->
+<div th:fragment="form"
+     th:with="r=${role != null ? role : (user.roles != null and !user.roles.isEmpty() ? user.roles.iterator().next().name : 'PATIENT')},
+              edit=${isEdit != null and isEdit}">
+
+    <div class="mp-page-header">
+        <div>
+            <a th:href="@{/admin/users/list}" class="mp-helper" style="display:inline-block;margin:0 0 8px;"><i class="fas fa-arrow-left"></i> All users</a>
+            <h1 class="mp-page-title">
+                <span th:text="${edit ? 'Edit ' : 'Add '}">Add </span>
+                <span th:text="${r == 'DOCTOR' ? 'doctor' : (r == 'PATIENT' ? 'patient' : (r == 'ATTENDANT' ? 'front-desk staff' : 'pharmacy staff'))}">doctor</span>
+            </h1>
+            <div class="mp-page-subtitle" th:text="${r == 'PATIENT' ? 'Patients can also register themselves on WhatsApp.' : 'This person will be able to sign in with the username and password below.'}">Subtitle</div>
+        </div>
+    </div>
+
+    <div th:replace="~{fragments/flash :: flash}"></div>
+
+    <form class="uf-wrap" id="userForm" method="post" novalidate="novalidate"
+          th:action="${edit} ? @{/admin/users/update/{id}(id=${user.id})} : @{'/admin/users/create-' + ${#strings.toLowerCase(r)}}">
+        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+
+        <div class="mp-card uf-card">
+            <div class="uf-section">
+                <div class="uf-title"><i class="fas fa-key"></i> Sign-in</div>
+                <div class="uf-grid">
+                    <div>
+                        <label class="mp-label" for="username">Username <span class="req">*</span></label>
+                        <input class="mp-input" id="username" name="username" th:value="${user.username}" th:readonly="${edit}" autocomplete="off" required="required"/>
+                        <div class="mp-helper" th:if="${edit}">Usernames can't be changed.</div>
+                    </div>
+                    <div>
+                        <label class="mp-label" for="pw" th:text="${edit ? 'New password' : 'Password'}">Password</label>
+                        <div style="position:relative;">
+                            <input class="mp-input" id="pw" type="password" th:name="${edit ? 'newPassword' : 'password'}" autocomplete="new-password"
+                                   th:required="${!edit}" style="padding-right:44px;" minlength="6"/>
+                            <button type="button" class="uf-eye" id="pwEye" aria-label="Show password"><i class="fas fa-eye"></i></button>
+                        </div>
+                        <div class="uf-meter"><span id="pwBar"></span></div>
+                        <div class="mp-helper" id="pwHelp" th:text="${edit ? 'Leave empty to keep the current password.' : 'At least 6 characters.'}">hint</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="uf-section">
+                <div class="uf-title"><i class="fas fa-user"></i> Personal details</div>
+                <div class="uf-grid">
+                    <div><label class="mp-label" for="firstName">First name <span class="req">*</span></label><input class="mp-input" id="firstName" name="firstName" th:value="${user.firstName}" required="required"/></div>
+                    <div><label class="mp-label" for="lastName">Last name <span class="req">*</span></label><input class="mp-input" id="lastName" name="lastName" th:value="${user.lastName}" required="required"/></div>
+                    <div><label class="mp-label" for="phoneNumber">Phone <span class="req">*</span></label><input class="mp-input" id="phoneNumber" name="phoneNumber" th:value="${user.phoneNumber}" inputmode="tel" placeholder="10-digit mobile number" required="required"/></div>
+                    <div><label class="mp-label" for="email">Email</label><input class="mp-input" id="email" type="email" name="email" th:value="${user.email}"/></div>
+
+                    <div th:if="${r == 'PATIENT'}" style="grid-column:1/-1;">
+                        <label class="mp-label" for="whatsappPhone"><i class="fab fa-whatsapp" style="color:var(--wa-green);"></i> WhatsApp number</label>
+                        <input class="mp-input" id="whatsappPhone" name="whatsappPhone" th:value="${user.whatsappPhone}" inputmode="tel" placeholder="+91 98765 43210"/>
+                        <label class="uf-check" th:if="${!edit}"><input type="checkbox" id="sameAsPhone" checked="checked"/> Same as phone number</label>
+                        <div class="mp-helper">Used for appointment reminders, queue alerts and the prescription PDF. Include the country code if it isn't an Indian number.</div>
+                    </div>
+
+                    <div>
+                        <label class="mp-label" for="gender">Gender</label>
+                        <select class="mp-select" id="gender" name="gender">
+                            <option value="">Select…</option>
+                            <option th:each="g : ${ {'Male','Female','Other'} }" th:value="${g}" th:text="${g}" th:selected="${user.gender == g}">Male</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="mp-label" for="dateOfBirth">Date of birth</label>
+                        <input class="mp-input" id="dateOfBirth" type="date" name="dateOfBirth" th:value="${user.dateOfBirth}" max="2100-01-01"/>
+                        <div class="mp-helper" id="ageHelp"></div>
+                    </div>
+                    <div th:if="${r == 'PATIENT'}">
+                        <label class="mp-label" for="age">Age (if date of birth is unknown)</label>
+                        <input class="mp-input" id="age" type="number" min="0" max="120" name="age" th:value="${user.age}"/>
+                    </div>
+                    <div style="grid-column:1/-1;"><label class="mp-label" for="address">Address</label><textarea class="mp-textarea" id="address" name="address" rows="2" th:text="${user.address}"></textarea></div>
+                </div>
+            </div>
+
+            <div class="uf-section" th:if="${r == 'DOCTOR'}">
+                <div class="uf-title"><i class="fas fa-stethoscope"></i> Professional details</div>
+                <div class="uf-grid">
+                    <div>
+                        <label class="mp-label" for="specialization">Specialization <span class="req">*</span></label>
+                        <input class="mp-input" id="specialization" name="specialization" th:value="${user.specialization}" list="specList" required="required" placeholder="e.g. Cardiology"/>
+                        <datalist id="specList">
+                            <option th:each="s : ${ {'General Medicine','Pediatrics','Cardiology','Neurology','Orthopedics','Dermatology','Ophthalmology','ENT','Gynecology','Psychiatry','Surgery','Radiology','Anesthesiology','Dentistry'} }" th:value="${s}"></option>
+                        </datalist>
+                    </div>
+                    <div><label class="mp-label" for="licenseNumber">Medical registration no. <span class="req">*</span></label><input class="mp-input" id="licenseNumber" name="licenseNumber" th:value="${user.licenseNumber}" required="required"/><div class="mp-helper">Printed on every prescription.</div></div>
+                    <div><label class="mp-label" for="department">Department</label><input class="mp-input" id="department" name="department" th:value="${user.department}" placeholder="e.g. OPD"/></div>
+                </div>
+            </div>
+
+            <div class="uf-section" th:if="${r == 'ATTENDANT' or r == 'PHARMA'}">
+                <div class="uf-title"><i class="fas fa-briefcase"></i> Work details</div>
+                <div class="uf-grid">
+                    <div><label class="mp-label" for="department">Department</label><input class="mp-input" id="department" name="department" th:value="${user.department}" th:placeholder="${r == 'PHARMA' ? 'Pharmacy' : 'Front desk'}"/></div>
+                </div>
+            </div>
+
+            <div class="uf-foot">
+                <a th:href="@{/admin/users/list}" class="mp-btn mp-btn-ghost">Cancel</a>
+                <button type="submit" class="mp-btn mp-btn-primary mp-btn-lg" id="saveBtn"><i class="fas fa-check"></i> <span th:text="${edit ? 'Save changes' : 'Create account'}">Create account</span></button>
+            </div>
+        </div>
+    </form>
+
+    <style>
+        .uf-wrap { padding:0 32px 40px; max-width:960px; }
+        .uf-card { overflow:visible; }
+        .uf-section { padding:22px 26px; border-bottom:1px solid var(--border); }
+        .uf-title { font:700 14px var(--font-display); color:var(--text-strong); margin-bottom:16px; display:flex; align-items:center; gap:9px; }
+        .uf-title i { width:28px; height:28px; border-radius:8px; background:var(--brand-primary-50); color:var(--brand-primary); display:inline-flex; align-items:center; justify-content:center; font-size:12px; }
+        .uf-grid { display:grid; grid-template-columns:1fr 1fr; gap:16px 20px; }
+        .uf-foot { padding:18px 26px; display:flex; justify-content:flex-end; gap:10px; background:var(--bg-subtle); border-radius:0 0 var(--r-md) var(--r-md); }
+        .req { color:var(--status-missed); }
+        .uf-check { display:flex; align-items:center; gap:8px; font-size:13px; color:var(--text-muted); margin-top:8px; cursor:pointer; }
+        .uf-eye { position:absolute; right:6px; top:50%; transform:translateY(-50%); width:32px; height:32px; border:0; background:transparent; border-radius:8px; color:var(--text-soft); cursor:pointer; }
+        .uf-eye:hover { background:var(--bg-muted); color:var(--text); }
+        .uf-meter { height:4px; background:var(--bg-muted); border-radius:4px; margin-top:8px; overflow:hidden; }
+        .uf-meter span { display:block; height:100%; width:0; transition:width .25s, background .25s; }
+        .mp-input.bad, .mp-select.bad { border-color:var(--status-missed-bar); box-shadow:0 0 0 3px rgba(239,68,68,.12); }
+        @media (max-width: 760px) { .uf-grid { grid-template-columns:1fr; } .uf-wrap { padding:0 16px 32px; } }
+    </style>
+
+    <script>
+    (function () {
+        var $ = function (id) { return document.getElementById(id); };
+        var pw = $('pw'), bar = $('pwBar');
+
+        $('pwEye').addEventListener('click', function () {
+            var show = pw.type === 'password';
+            pw.type = show ? 'text' : 'password';
+            this.firstElementChild.className = show ? 'fas fa-eye-slash' : 'fas fa-eye';
+        });
+        pw.addEventListener('input', function () {
+            var v = pw.value, score = 0;
+            if (v.length >= 6) score++; if (v.length >= 10) score++;
+            if (/[A-Z]/.test(v) && /[a-z]/.test(v)) score++;
+            if (/\d/.test(v)) score++; if (/[^A-Za-z0-9]/.test(v)) score++;
+            var colors = ['#EF4444', '#F97316', '#F59E0B', '#84CC16', '#10B981'];
+            bar.style.width = (v ? Math.max(1, score) * 20 : 0) + '%';
+            bar.style.background = colors[Math.max(0, score - 1)];
+        });
+
+        // WhatsApp number follows the phone number until staff type something different
+        var phone = $('phoneNumber'), wa = $('whatsappPhone'), same = $('sameAsPhone');
+        if (wa && same) {
+            var sync = function () { if (same.checked) { wa.value = phone.value; wa.readOnly = true; } else { wa.readOnly = false; } };
+            same.addEventListener('change', sync); phone.addEventListener('input', sync); sync();
+        }
+
+        // age from date of birth
+        var dob = $('dateOfBirth'), help = $('ageHelp'), age = $('age');
+        function showAge() {
+            if (!dob.value) { help.textContent = ''; return; }
+            var d = new Date(dob.value), t = new Date();
+            var y = t.getFullYear() - d.getFullYear();
+            var m = t.getMonth() - d.getMonth();
+            if (m < 0 || (m === 0 && t.getDate() < d.getDate())) y--;
+            help.textContent = y >= 0 ? 'Age: ' + y + ' years' : 'Date of birth is in the future';
+            if (age && y >= 0) age.value = y;
+        }
+        dob.addEventListener('change', showAge); showAge();
+
+        // validation + loading state
+        $('userForm').addEventListener('submit', function (e) {
+            var bad = null;
+            this.querySelectorAll('[required]').forEach(function (el) {
+                var empty = !el.value.trim();
+                el.classList.toggle('bad', empty);
+                if (empty && !bad) bad = el;
+            });
+            if (pw.value && pw.value.length < 6) { pw.classList.add('bad'); bad = bad || pw; }
+            var digits = phone.value.replace(/\D/g, '');
+            if (phone.value && digits.length < 7) { phone.classList.add('bad'); bad = bad || phone; }
+            if (bad) { e.preventDefault(); bad.focus(); return; }
+            var b = $('saveBtn'); b.disabled = true; b.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> Saving…';
+        });
+        document.querySelectorAll('.mp-input, .mp-select').forEach(function (el) {
+            el.addEventListener('input', function () { el.classList.remove('bad'); });
+        });
+    })();
+    </script>
+</div>
+
+</body>
+</html>

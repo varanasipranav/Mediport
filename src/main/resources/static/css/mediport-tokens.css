@@ -794,3 +794,27 @@ body.sidebar-collapse .main-footer { margin-left: 0 !important; }
 .mp-user-logout:hover { color: #fff; background: var(--sidebar-active-bg); }
 .main-sidebar ::-webkit-scrollbar { width: 4px; }
 .main-sidebar ::-webkit-scrollbar-thumb { background: rgba(255,255,255,.15); border-radius: 2px; }
+
+/* ============================================================
+   BOOTSTRAP 5 → 4 COMPAT (older pages use me-*, ms-*, gap-*, form-select ...)
+   ============================================================ */
+.me-1 { margin-right: .25rem !important; } .me-2 { margin-right: .5rem !important; } .me-3 { margin-right: 1rem !important; }
+.ms-1 { margin-left: .25rem !important; }  .ms-2 { margin-left: .5rem !important; }  .ms-3 { margin-left: 1rem !important; } .ms-auto { margin-left: auto !important; }
+.pe-1 { padding-right: .25rem !important; } .pe-2 { padding-right: .5rem !important; } .ps-1 { padding-left: .25rem !important; } .ps-2 { padding-left: .5rem !important; }
+.gap-1 { gap: .25rem !important; } .gap-2 { gap: .5rem !important; } .gap-3 { gap: 1rem !important; } .gap-4 { gap: 1.5rem !important; }
+.fw-bold { font-weight: 700 !important; } .fw-semibold { font-weight: 600 !important; } .fw-normal { font-weight: 400 !important; }
+.text-end { text-align: right !important; } .text-start { text-align: left !important; }
+.form-select { display: block; width: 100%; padding: 10px 14px; border: 1px solid var(--border-strong); border-radius: var(--r-sm); font-size: 14px; background: #fff; }
+.d-grid { display: grid !important; }
+.row.g-2 > * { padding-right: 4px; padding-left: 4px; margin-top: 8px; }
+.row.g-3 > * { padding-right: 8px; padding-left: 8px; margin-top: 16px; }
+.badge.bg-success { background: var(--status-completed-bg) !important; color: var(--status-completed) !important; }
+.badge.bg-warning { background: var(--status-waiting-bg) !important; color: var(--status-waiting) !important; }
+.badge.bg-danger  { background: var(--status-missed-bg) !important; color: var(--status-missed) !important; }
+.badge.bg-primary { background: var(--status-consult-bg) !important; color: var(--status-consult) !important; }
+.badge.bg-secondary { background: var(--bg-muted) !important; color: var(--text-muted) !important; }
+.btn-close { background: transparent; border: 0; font-size: 1.4rem; line-height: 1; opacity: .5; cursor: pointer; }
+.btn-close::before { content: '\00d7'; }
+
+/* icons placed directly before text get a little room even without utility classes */
+.mp-btn > i, .mp-btn > svg { flex-shrink: 0; }

@@ -42,6 +42,7 @@ public class User {
     private String address;
 
     @Column(name = "date_of_birth")
+    @org.springframework.format.annotation.DateTimeFormat(iso = org.springframework.format.annotation.DateTimeFormat.ISO.DATE)
     private LocalDate dateOfBirth;
 
     @Column(name = "age")
