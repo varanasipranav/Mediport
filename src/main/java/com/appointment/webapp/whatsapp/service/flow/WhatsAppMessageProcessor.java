@@ -909,7 +909,7 @@ public class WhatsAppMessageProcessor {
                       "\u2022 Booked slot: " + a.getScheduledTime().format(fmt) + "\n" +
                       "\u2022 Patients ahead of you: *" + s.ahead() + "*\n" +
                       "\u2022 Estimated time: *" + s.estimated().format(fmt) + "*" +
-                      (s.minutesLate() >= 20 ? "\n\nThe doctor is running about " + s.minutesLate() + " minutes behind. Thank you for your patience." : "");
+                      (s.minutesLate() >= 20 && s.minutesLate() <= 240 ? "\n\nThe doctor is running about " + s.minutesLate() + " minutes behind. Thank you for your patience." : "");
             };
             messageSender.sendTextMessage(conversation.getWhatsappPhone(), text);
         }

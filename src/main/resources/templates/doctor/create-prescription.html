@@ -241,7 +241,7 @@
                 <div th:if="${recentVisits != null and !recentVisits.empty}">
                     <div th:each="visit : ${recentVisits}" class="rx-visit-row">
                         <div class="rx-visit-date" th:text="${#temporals.format(visit.appointmentDate, 'dd MMM yyyy')}"></div>
-                        <div class="rx-visit-note" th:text="${visit.doctorFullName}"></div>
+                        <div class="rx-visit-note" th:text="${'Dr. ' + visit.doctor.firstName + ' ' + visit.doctor.lastName}"></div>
                     </div>
                 </div>
                 <div th:if="${recentVisits == null or recentVisits.empty}"

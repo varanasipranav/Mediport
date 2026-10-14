@@ -63,6 +63,11 @@ public class DoctorPrescriptionController {
         // Check if prescription already exists
         Optional<Prescription> existingPrescription = prescriptionService.getPrescriptionByAppointment(appointmentId);
 
+        model.addAttribute("recentVisits", appointmentService.getPatientAppointmentHistory(appointment.getPatient()).stream()
+            .filter(v -> !v.getId().equals(appointmentId))
+            .filter(v -> v.getStatus() == com.appointment.webapp.model.enums.AppointmentStatus.COMPLETED)
+            .limit(5)
+            .toList());
         model.addAttribute("appointment", appointment);
         model.addAttribute("prescription", existingPrescription.orElse(new Prescription()));
         model.addAttribute("isEdit", existingPrescription.isPresent());

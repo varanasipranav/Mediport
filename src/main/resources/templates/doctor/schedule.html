@@ -113,10 +113,10 @@
     </div>
 
     <style>
-        .ds-grid { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,2fr); gap:20px; padding:0 32px 32px; }
+        .ds-grid { display:grid; grid-template-columns:320px minmax(0,1fr); gap:20px; padding:0 32px 32px; }
         .ds-table { width:100%; border-collapse:collapse; }
         .ds-table th { text-align:left; font-size:11px; letter-spacing:.07em; text-transform:uppercase; color:var(--text-muted); font-weight:700; padding:11px 16px; background:var(--bg-subtle); border-bottom:1px solid var(--border); white-space:nowrap; }
-        .ds-table td { padding:12px 16px; border-bottom:1px solid var(--border); font-size:13.5px; vertical-align:middle; }
+        .ds-table td { white-space:nowrap; padding:12px 16px; border-bottom:1px solid var(--border); font-size:13.5px; vertical-align:middle; }
         .ds-table tr:last-child td { border-bottom:0; }
         .ds-table tbody tr:hover { background:var(--bg-subtle); }
         .ds-table tr.off { opacity:.55; }

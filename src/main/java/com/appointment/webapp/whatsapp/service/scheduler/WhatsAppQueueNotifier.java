@@ -34,6 +34,8 @@ public class WhatsAppQueueNotifier {
     private static final Logger logger = LoggerFactory.getLogger(WhatsAppQueueNotifier.class);
     private static final DateTimeFormatter TIME = DateTimeFormatter.ofPattern("hh:mm a");
     private static final int LATE_AFTER_MINUTES = 20;
+    /** Beyond this the booked time is clearly stale (old data, clinic closed) - say nothing rather than something silly. */
+    private static final int MAX_LATE_MINUTES = 240;
 
     static final String NEAR = "QUEUE_NEAR";
     static final String YOUR_TURN = "QUEUE_YOUR_TURN";
@@ -114,13 +116,13 @@ public class WhatsAppQueueNotifier {
         if (alreadyNudged) return;
 
         // 3. Their slot time has arrived but others are still ahead
-        if (s.minutesLate() >= LATE_AFTER_MINUTES) {
+        if (s.minutesLate() >= LATE_AFTER_MINUTES && s.minutesLate() <= MAX_LATE_MINUTES) {
             if (!sent.contains(RUNNING_LATE)) {
                 deliver(a, RUNNING_LATE, phone, "Hi " + name + ", " + doctor + " is running about *" + s.minutesLate() + " minutes* behind schedule today. 🙏\n\n" +
                     "You have " + s.ahead() + " patients ahead of you. New estimate: *" + s.estimated().format(TIME) + "*.\n" +
                     "Send *status* anytime to see where you are in the queue.");
             }
-        } else if (s.minutesLate() >= 0 && !a.getScheduledTime().isAfter(clock.now().toLocalTime())) {
+        } else if (s.minutesLate() >= 0 && s.minutesLate() < LATE_AFTER_MINUTES && !a.getScheduledTime().isAfter(clock.now().toLocalTime())) {
             if (!sent.contains(SLOT_TIME) && !sent.contains(RUNNING_LATE)) {
                 deliver(a, SLOT_TIME, phone, "Hi " + name + ", it's time for your slot with " + doctor + " (" +
                     a.getScheduledTime().format(TIME) + "). ⏰\n\n" +

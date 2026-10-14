@@ -55,8 +55,8 @@
                         <span class="pd-block you">You</span>
                     </div>
                     <div class="pd-note" th:if="${queue.ahead() == 0}"><i class="fas fa-bell"></i> You're next — please be ready outside the doctor's room.</div>
-                    <div class="pd-note" th:if="${queue.ahead() > 0 and queue.minutesLate() >= 20}"><i class="fas fa-clock"></i> The doctor is about <span th:text="${queue.minutesLate()}">20</span> minutes behind schedule. Thank you for your patience.</div>
-                    <div class="pd-note" th:if="${queue.ahead() > 0 and queue.minutesLate() < 20}"><i class="fas fa-info-circle"></i> Booked slot <strong th:text="${#temporals.format(queue.appointment().scheduledTime, 'hh:mm a')}">09:00 am</strong>. This updates as the queue moves.</div>
+                    <div class="pd-note" th:if="${queue.ahead() > 0 and queue.minutesLate() >= 20 and queue.minutesLate() <= 240}"><i class="fas fa-clock"></i> The doctor is about <span th:text="${queue.minutesLate()}">20</span> minutes behind schedule. Thank you for your patience.</div>
+                    <div class="pd-note" th:if="${queue.ahead() > 0 and (queue.minutesLate() < 20 or queue.minutesLate() > 240)}"><i class="fas fa-info-circle"></i> Booked slot <strong th:text="${#temporals.format(queue.appointment().scheduledTime, 'hh:mm a')}">09:00 am</strong>. This updates as the queue moves.</div>
                 </div>
             </div>
 
