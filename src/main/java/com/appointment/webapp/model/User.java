@@ -34,6 +34,9 @@ public class User {
     @Column(name = "whatsapp_phone", length = 20)
     private String whatsappPhone;  // WhatsApp number (E.164 format)
 
+    @Column(name = "preferred_language", nullable = false, length = 5)
+    private String preferredLanguage = "en";
+
     // Optional fields
     @Column(name = "email", length = 100)
     private String email;
@@ -342,5 +345,13 @@ public class User {
                 ", phoneNumber='" + phoneNumber + '\'' +
                 ", enabled=" + enabled +
                 '}';
+    }
+
+    public String getPreferredLanguage() {
+        return preferredLanguage;
+    }
+
+    public void setPreferredLanguage(String preferredLanguage) {
+        this.preferredLanguage = preferredLanguage == null || preferredLanguage.isBlank() ? "en" : preferredLanguage;
     }
 }

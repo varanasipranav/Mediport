@@ -55,7 +55,8 @@ class PageSmokeTest {
         // Prescription document pages, using whichever prescription exists in the dev database
         var rx = prescriptionRepository.findAll().stream().findFirst().orElse(null);
         if (rx != null) {
-            pagesByUser.put(rx.getDoctor().getUsername() + ":DOCTOR", new String[] {"/doctor/prescriptions/view/" + rx.getId()});
+            pagesByUser.put(rx.getDoctor().getUsername() + ":DOCTOR", new String[] {"/doctor/prescriptions/view/" + rx.getId(),
+                "/doctor/patients/" + rx.getPatient().getId() + "/record"});
             pagesByUser.put(rx.getPatient().getUsername() + ":PATIENT", new String[] {"/patient/prescriptions/view/" + rx.getId(), "/prescriptions/" + rx.getId() + "/pdf"});
             pagesByUser.put("phr01:PHARMA", new String[] {"/dashboard/index", "/pharma/dashboard", "/pharma/prescriptions/view/" + rx.getId(), "/pharma/prescriptions/search?searchTerm=a"});
             pagesByUser.put("anon:PUBLIC", new String[] {"/verify/rx/" + rx.getId() + "/" + rxDocumentService.sign(rx.getId()), "/verify/rx/" + rx.getId() + "/bad"});

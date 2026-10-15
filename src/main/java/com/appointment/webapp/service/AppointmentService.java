@@ -42,20 +42,20 @@ public class AppointmentService {
         // Lock the schedule row so concurrent bookings are serialized: the duplicate-patient check,
         // queue-number calculation and capacity check below are then race-free until commit.
         DoctorSchedule schedule = scheduleService.getScheduleByDoctorAndDateForUpdate(doctor, date)
-            .orElseThrow(() -> new BookingException("Doctor has no schedule on " + date));
+            .orElseThrow(() -> new BookingException("err.no_schedule", "Doctor has no schedule on " + date, date.format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy"))));
 
         if (!schedule.getIsActive()) {
-            throw new BookingException("Doctor is not available on " + date);
+            throw new BookingException("err.unavailable", "Doctor is not available on " + date, date.format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy")));
         }
 
         if (date.isBefore(LocalDate.now())) {
-            throw new BookingException("Cannot book an appointment in the past");
+            throw new BookingException("err.past", "Cannot book an appointment in the past");
         }
 
         // Check if patient already has an appointment on this date
         Optional<Appointment> existingAppointment = appointmentRepository.findByPatientAndDate(patient, date);
         if (existingAppointment.isPresent()) {
-            throw new BookingException("Patient already has an appointment on " + date);
+            throw new BookingException("err.already_booked", "Patient already has an appointment on " + date, date.format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy")));
         }
 
         // Calculate next queue number
@@ -64,12 +64,12 @@ public class AppointmentService {
 
         // Check capacity
         if (schedule.getMaxPatients() != null && nextQueueNumber > schedule.getMaxPatients()) {
-            throw new BookingException("Doctor is fully booked for " + date);
+            throw new BookingException("err.fully_booked", "Doctor is fully booked for " + date, date.format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy")));
         }
 
         // The slot must also fit inside the doctor's working hours
         if (!schedule.hasSlotFor(nextQueueNumber)) {
-            throw new BookingException("Doctor is fully booked for " + date);
+            throw new BookingException("err.fully_booked", "Doctor is fully booked for " + date, date.format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy")));
         }
 
         // Calculate scheduled time
@@ -383,7 +383,7 @@ public class AppointmentService {
             .orElseThrow(() -> new RuntimeException("Appointment not found"));
 
         if (appointment.getStatus() != AppointmentStatus.WAITING && appointment.getStatus() != AppointmentStatus.DELAYED) {
-            throw new BookingException("Only appointments that are still waiting can be cancelled");
+            throw new BookingException("err.only_waiting", "Only appointments that are still waiting can be cancelled");
         }
 
         appointment.setStatus(AppointmentStatus.CANCELLED);

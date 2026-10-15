@@ -43,6 +43,9 @@ public class DoctorPrescriptionController {
     @Autowired
     private com.appointment.webapp.service.RxDocumentService rxDocumentService;
 
+    @Autowired
+    private com.appointment.webapp.service.record.MedicalRecordService medicalRecordService;
+
     /**
      * Show prescription form for an appointment
      */
@@ -63,6 +66,8 @@ public class DoctorPrescriptionController {
         // Check if prescription already exists
         Optional<Prescription> existingPrescription = prescriptionService.getPrescriptionByAppointment(appointmentId);
 
+        medicalRecordService.logView(appointment.getPatient().getId(), authentication.getName());
+        model.addAttribute("record", medicalRecordService.getRecord(appointment.getPatient()));
         model.addAttribute("recentVisits", appointmentService.getPatientAppointmentHistory(appointment.getPatient()).stream()
             .filter(v -> !v.getId().equals(appointmentId))
             .filter(v -> v.getStatus() == com.appointment.webapp.model.enums.AppointmentStatus.COMPLETED)
@@ -135,8 +140,9 @@ public class DoctorPrescriptionController {
 
         Prescription prescription = prescriptionService.getPrescriptionById(prescriptionId);
 
-        // Verify this is the doctor's prescription
-        if (!prescription.getDoctor().getId().equals(doctor.getId())) {
+        // The writing doctor may always open it; so may a doctor treating the same patient (continuity of care)
+        if (!prescription.getDoctor().getId().equals(doctor.getId())
+                && !medicalRecordService.doctorMayView(doctor.getUsername(), prescription.getPatient().getId())) {
             throw new org.springframework.security.access.AccessDeniedException("Unauthorized access to prescription");
         }
 

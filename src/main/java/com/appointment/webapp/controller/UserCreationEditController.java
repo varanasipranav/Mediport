@@ -298,6 +298,9 @@ public class UserCreationEditController {
             existingUser.setSpecialization(updatedUser.getSpecialization());
             existingUser.setLicenseNumber(updatedUser.getLicenseNumber());
             existingUser.setWhatsappPhone(phoneNormalizer.toE164(updatedUser.getWhatsappPhone()));
+            if (updatedUser.getPreferredLanguage() != null) {
+                existingUser.setPreferredLanguage(updatedUser.getPreferredLanguage());
+            }
             if (updatedUser.getDateOfBirth() != null) {
                 existingUser.setAge((int) java.time.temporal.ChronoUnit.YEARS.between(updatedUser.getDateOfBirth(), java.time.LocalDate.now()));
             } else {

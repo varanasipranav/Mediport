@@ -6,6 +6,9 @@ import com.appointment.webapp.model.enums.AppointmentStatus;
 import com.appointment.webapp.repository.AppointmentRepository;
 import com.appointment.webapp.repository.NotificationLogRepository;
 import com.appointment.webapp.whatsapp.config.ClinicClock;
+import com.appointment.webapp.whatsapp.i18n.Lang;
+import com.appointment.webapp.whatsapp.i18n.LanguageService;
+import com.appointment.webapp.whatsapp.i18n.MessageCatalog;
 import com.appointment.webapp.whatsapp.service.appointment.QueueStatusService;
 import com.appointment.webapp.whatsapp.service.appointment.QueueStatusService.QueueStatus;
 import com.appointment.webapp.whatsapp.service.messaging.WhatsAppMessageSender;
@@ -48,9 +51,14 @@ public class WhatsAppQueueNotifier {
     private final AppointmentRepository appointments;
     private final WhatsAppMessageSender sender;
     private final ClinicClock clock;
+    private final MessageCatalog messages;
+    private final LanguageService languages;
 
     public WhatsAppQueueNotifier(QueueStatusService queueStatus, NotificationLogRepository log,
-                                 AppointmentRepository appointments, WhatsAppMessageSender sender, ClinicClock clock) {
+                                 AppointmentRepository appointments, WhatsAppMessageSender sender, ClinicClock clock,
+                                 MessageCatalog messages, LanguageService languages) {
+        this.messages = messages;
+        this.languages = languages;
         this.queueStatus = queueStatus;
         this.log = log;
         this.appointments = appointments;
@@ -80,13 +88,13 @@ public class WhatsAppQueueNotifier {
         if (phone == null || phone.isBlank()) return;
 
         Set<String> sent = new HashSet<>(log.findKindsByAppointmentId(a.getId()));
+        Lang lang = languages.of(a.getPatient());
         String doctor = "Dr. " + a.getDoctor().getFirstName() + " " + a.getDoctor().getLastName();
         String name = a.getPatient().getFirstName();
 
         if (a.getStatus() == AppointmentStatus.NOT_ATTENDED) {
             if (!sent.contains(MISSED)) {
-                deliver(a, MISSED, phone, "Hi " + name + ", we missed you for your appointment with " + doctor + " today.\n\n" +
-                    "No problem - send \"Hi\" anytime to book a new slot.");
+                deliver(a, MISSED, phone, messages.t(lang, "q.missed", name, doctor));
             }
             return;
         }
@@ -97,8 +105,7 @@ public class WhatsAppQueueNotifier {
         // 1. It's their turn
         if (s.ahead() == 0) {
             if (!sent.contains(YOUR_TURN)) {
-                deliver(a, YOUR_TURN, phone, "*It's almost your turn, " + name + "!* 🔔\n\n" +
-                    "No one is ahead of you now. Please be ready outside " + doctor + "'s room - you'll be called in shortly.");
+                deliver(a, YOUR_TURN, phone, messages.t(lang, "q.turn", name, doctor));
             }
             return;
         }
@@ -106,9 +113,8 @@ public class WhatsAppQueueNotifier {
         // 2. Only a couple of patients left
         if (s.ahead() <= 2) {
             if (!sent.contains(NEAR) && !sent.contains(YOUR_TURN)) {
-                String ahead = s.ahead() == 1 ? "Just *1 patient* is" : "Only *2 patients* are";
-                deliver(a, NEAR, phone, "Hi " + name + ", " + ahead + " ahead of you for " + doctor + ". ⏳\n\n" +
-                    "Please make your way to the clinic now. Estimated time: *" + s.estimated().format(TIME) + "*.");
+                deliver(a, NEAR, phone, messages.t(lang, s.ahead() == 1 ? "q.near.1" : "q.near.2",
+                    name, doctor, messages.time(s.estimated())));
             }
             return;
         }
@@ -118,15 +124,13 @@ public class WhatsAppQueueNotifier {
         // 3. Their slot time has arrived but others are still ahead
         if (s.minutesLate() >= LATE_AFTER_MINUTES && s.minutesLate() <= MAX_LATE_MINUTES) {
             if (!sent.contains(RUNNING_LATE)) {
-                deliver(a, RUNNING_LATE, phone, "Hi " + name + ", " + doctor + " is running about *" + s.minutesLate() + " minutes* behind schedule today. 🙏\n\n" +
-                    "You have " + s.ahead() + " patients ahead of you. New estimate: *" + s.estimated().format(TIME) + "*.\n" +
-                    "Send *status* anytime to see where you are in the queue.");
+                deliver(a, RUNNING_LATE, phone, messages.t(lang, "q.late",
+                    name, doctor, s.minutesLate(), s.ahead(), messages.time(s.estimated())));
             }
         } else if (s.minutesLate() >= 0 && s.minutesLate() < LATE_AFTER_MINUTES && !a.getScheduledTime().isAfter(clock.now().toLocalTime())) {
             if (!sent.contains(SLOT_TIME) && !sent.contains(RUNNING_LATE)) {
-                deliver(a, SLOT_TIME, phone, "Hi " + name + ", it's time for your slot with " + doctor + " (" +
-                    a.getScheduledTime().format(TIME) + "). ⏰\n\n" +
-                    s.ahead() + " patients are ahead of you - estimated time *" + s.estimated().format(TIME) + "*.");
+                deliver(a, SLOT_TIME, phone, messages.t(lang, "q.slot",
+                    name, doctor, messages.time(a.getScheduledTime()), s.ahead(), messages.time(s.estimated())));
             }
         }
     }

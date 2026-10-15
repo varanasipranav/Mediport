@@ -159,4 +159,7 @@ public interface AppointmentRepository extends JpaRepository<Appointment, Long> 
     List<Appointment> findByDateRangeAndStatusWithDetails(@Param("fromDate") LocalDate fromDate,
                                                           @Param("toDate") LocalDate toDate,
                                                           @Param("status") AppointmentStatus status);
+
+    /** True if this doctor has ever had (or is booked for) an appointment with the patient. */
+    boolean existsByDoctorUsernameAndPatientId(String doctorUsername, Long patientId);
 }

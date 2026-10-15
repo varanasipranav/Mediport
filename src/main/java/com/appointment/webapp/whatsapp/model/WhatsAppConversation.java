@@ -25,10 +25,12 @@ public class WhatsAppConversation {
     private User user; // Linked patient (null until registration complete)
 
     @Enumerated(EnumType.STRING)
+    @org.hibernate.annotations.JdbcTypeCode(java.sql.Types.VARCHAR)
     @Column(name = "current_state", nullable = false, length = 50)
     private ConversationState currentState = ConversationState.INITIAL;
 
     @Enumerated(EnumType.STRING)
+    @org.hibernate.annotations.JdbcTypeCode(java.sql.Types.VARCHAR)
     @Column(name = "previous_state", length = 50)
     private ConversationState previousState;
 
@@ -48,7 +50,7 @@ public class WhatsAppConversation {
     private String senderName;
 
     @Column(name = "preferred_language", length = 10)
-    private String preferredLanguage = "en";
+    private String preferredLanguage;  // null until the patient picks a language
 
     @Column(name = "created_at")
     private LocalDateTime createdAt;

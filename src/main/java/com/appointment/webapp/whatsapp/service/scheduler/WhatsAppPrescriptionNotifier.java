@@ -4,6 +4,9 @@ import com.appointment.webapp.model.Prescription;
 import com.appointment.webapp.service.PrescriptionCreatedEvent;
 import com.appointment.webapp.service.PrescriptionService;
 import com.appointment.webapp.service.RxDocumentService;
+import com.appointment.webapp.whatsapp.i18n.Lang;
+import com.appointment.webapp.whatsapp.i18n.LanguageService;
+import com.appointment.webapp.whatsapp.i18n.MessageCatalog;
 import com.appointment.webapp.whatsapp.service.messaging.WhatsAppMessageSender;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,9 +30,13 @@ public class WhatsAppPrescriptionNotifier {
     private final PrescriptionService prescriptions;
     private final RxDocumentService documents;
     private final WhatsAppMessageSender sender;
+    private final MessageCatalog messages;
+    private final LanguageService languages;
 
     public WhatsAppPrescriptionNotifier(PrescriptionService prescriptions, RxDocumentService documents,
-                                        WhatsAppMessageSender sender) {
+                                        WhatsAppMessageSender sender, MessageCatalog messages, LanguageService languages) {
+        this.messages = messages;
+        this.languages = languages;
         this.prescriptions = prescriptions;
         this.documents = documents;
         this.sender = sender;
@@ -51,11 +58,12 @@ public class WhatsAppPrescriptionNotifier {
                 return Outcome.NO_NUMBER;
             }
 
-            String text = "Hi " + p.getPatient().getFirstName() + ", your prescription from *Dr. " +
-                p.getDoctor().getFirstName() + " " + p.getDoctor().getLastName() + "* is ready. \uD83D\uDCC4\n\n" +
-                "Prescription no: *" + documents.rxNumber(p) + "*\n" +
-                "Download (PDF, valid 7 days):\n" + documents.signedPdfUrl(p.getId()) + "\n\n" +
-                "Show it at the pharmacy or collect your medicines there. Get well soon!";
+            Lang lang = languages.of(p.getPatient());
+            String text = messages.t(lang, "rx.ready",
+                p.getPatient().getFirstName(),
+                "Dr. " + p.getDoctor().getFirstName() + " " + p.getDoctor().getLastName(),
+                documents.rxNumber(p),
+                documents.signedPdfUrl(p.getId()));
             if (sender.sendTextMessage(phone, text) == null) {
                 logger.warn("Prescription {}: WhatsApp did not accept the message to {}", prescriptionId, phone);
                 return Outcome.REJECTED;

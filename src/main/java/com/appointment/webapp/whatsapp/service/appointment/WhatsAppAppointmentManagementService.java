@@ -7,6 +7,8 @@ import com.appointment.webapp.repository.AppointmentRepository;
 import com.appointment.webapp.service.AppointmentService;
 import com.appointment.webapp.service.BookingException;
 import com.appointment.webapp.whatsapp.config.ClinicClock;
+import com.appointment.webapp.whatsapp.i18n.Lang;
+import com.appointment.webapp.whatsapp.i18n.MessageCatalog;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -42,6 +44,9 @@ public class WhatsAppAppointmentManagementService {
     @Autowired
     private ClinicClock clock;
 
+    @Autowired
+    private MessageCatalog messages;
+
     /**
      * Get upcoming appointments for a patient (doctor and schedule already loaded)
      */
@@ -61,13 +66,13 @@ public class WhatsAppAppointmentManagementService {
 
         try {
             Appointment appointment = appointmentRepository.findById(appointmentId)
-                .orElseThrow(() -> new RuntimeException("Appointment not found"));
+                .orElseThrow(() -> new BookingException("err.not_found", "Appointment not found"));
 
             // Verify ownership
             if (!appointment.getPatient().getId().equals(patient.getId())) {
                 logger.error("Patient {} tried to cancel appointment {} belonging to another patient",
                            patient.getId(), appointmentId);
-                throw new BookingException("You can only cancel your own appointments");
+                throw new BookingException("err.not_yours", "You can only cancel your own appointments");
             }
 
             // Check if already cancelled
@@ -84,7 +89,7 @@ public class WhatsAppAppointmentManagementService {
 
             if (appointmentDateTime.isBefore(clock.now().plusHours(1))) {
                 logger.warn("Cannot cancel appointment {} - too close to start time", appointmentId);
-                throw new BookingException("Appointments cannot be cancelled less than 1 hour before the scheduled time");
+                throw new BookingException("err.too_late", "Appointments cannot be cancelled less than 1 hour before the scheduled time");
             }
 
             // Cancel the appointment
@@ -109,9 +114,9 @@ public class WhatsAppAppointmentManagementService {
     @Transactional(readOnly = true)
     public Appointment getOwnedAppointment(Long appointmentId, User patient) {
         Appointment appointment = appointmentRepository.findById(appointmentId)
-            .orElseThrow(() -> new BookingException("Appointment not found"));
+            .orElseThrow(() -> new BookingException("err.not_found", "Appointment not found"));
         if (patient == null || !appointment.getPatient().getId().equals(patient.getId())) {
-            throw new BookingException("Appointment not found");
+            throw new BookingException("err.not_found", "Appointment not found");
         }
         appointment.getDoctor().getFirstName(); // load for use outside the transaction
         return appointment;
@@ -150,16 +155,16 @@ public class WhatsAppAppointmentManagementService {
         logger.info("Rescheduling appointment {} to {}", appointmentId, newDate);
 
         Appointment old = appointmentRepository.findById(appointmentId)
-            .orElseThrow(() -> new BookingException("Appointment not found"));
+            .orElseThrow(() -> new BookingException("err.not_found", "Appointment not found"));
 
         if (!old.getPatient().getId().equals(patient.getId())) {
-            throw new BookingException("You can only reschedule your own appointments");
+            throw new BookingException("err.not_yours", "You can only reschedule your own appointments");
         }
         if (!canCancelAppointment(old)) {
-            throw new BookingException("This appointment can no longer be rescheduled");
+            throw new BookingException("err.cannot_resched", "This appointment can no longer be rescheduled");
         }
         if (old.getAppointmentDate().equals(newDate)) {
-            throw new BookingException("Please choose a different date");
+            throw new BookingException("err.same_day", "Please choose a different date");
         }
 
         // Cancel first so the "one appointment per day" rule can't trip on the old booking
@@ -174,52 +179,46 @@ public class WhatsAppAppointmentManagementService {
     }
 
     /**
-     * Format appointment for display
+     * Format appointment for display, in the patient's language
      */
-    public String formatAppointmentDetails(Appointment appointment) {
-        StringBuilder sb = new StringBuilder();
-
-        sb.append(String.format("📅 *Appointment #%d*\n\n", appointment.getId()));
-        sb.append(String.format("👨‍⚕️ *Doctor:* Dr. %s %s\n",
+    public String formatAppointmentDetails(Appointment appointment, Lang lang) {
+        String speciality = appointment.getDoctor().getSpecialization() != null
+            ? "   (" + appointment.getDoctor().getSpecialization() + ")\n" : "";
+        return messages.t(lang, "card.detail",
+            appointment.getId(),
             appointment.getDoctor().getFirstName(),
-            appointment.getDoctor().getLastName()));
-
-        if (appointment.getDoctor().getSpecialization() != null) {
-            sb.append(String.format("   (%s)\n", appointment.getDoctor().getSpecialization()));
-        }
-
-        sb.append(String.format("\n📆 *Date:* %s\n", appointment.getAppointmentDate().format(DATE_FORMATTER)));
-        sb.append(String.format("⏰ *Time:* %s\n", appointment.getScheduledTime().format(TIME_FORMATTER)));
-        sb.append(String.format("🔢 *Queue:* #%d\n", appointment.getQueueNumber()));
-        sb.append(String.format("📊 *Status:* %s", formatStatus(appointment.getStatus())));
-
-        return sb.toString();
+            appointment.getDoctor().getLastName(),
+            speciality,
+            messages.date(appointment.getAppointmentDate()),
+            messages.time(appointment.getScheduledTime()),
+            appointment.getQueueNumber(),
+            formatStatus(appointment.getStatus(), lang));
     }
 
     /**
      * Format appointment for list
      */
-    public String formatAppointmentShort(Appointment appointment, int index) {
-        return String.format("%d. Dr. %s - %s %s (Queue #%d)",
+    public String formatAppointmentShort(Appointment appointment, int index, Lang lang) {
+        return messages.t(lang, "card.short",
             index,
             appointment.getDoctor().getLastName(),
-            appointment.getAppointmentDate().format(DATE_FORMATTER),
-            appointment.getScheduledTime().format(TIME_FORMATTER),
+            messages.date(appointment.getAppointmentDate()),
+            messages.time(appointment.getScheduledTime()),
             appointment.getQueueNumber());
     }
 
     /**
      * Format status for display
      */
-    private String formatStatus(com.appointment.webapp.model.enums.AppointmentStatus status) {
-        return switch (status) {
-            case WAITING -> "⏳ Waiting";
-            case IN_CONSULTATION -> "👨‍⚕️ In Consultation";
-            case COMPLETED -> "✅ Completed";
-            case CANCELLED -> "❌ Cancelled";
-            case DELAYED -> "⏰ Delayed";
-            case NOT_ATTENDED -> "❌ Not Attended";
-        };
+    private String formatStatus(AppointmentStatus status, Lang lang) {
+        return messages.t(lang, switch (status) {
+            case WAITING -> "st.waiting";
+            case IN_CONSULTATION -> "st.in_consultation";
+            case COMPLETED -> "st.completed";
+            case CANCELLED -> "st.cancelled";
+            case DELAYED -> "st.delayed";
+            case NOT_ATTENDED -> "st.not_attended";
+        });
     }
 
     /**

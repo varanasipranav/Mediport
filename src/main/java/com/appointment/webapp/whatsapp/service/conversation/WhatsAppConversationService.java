@@ -124,6 +124,12 @@ public class WhatsAppConversationService {
         logger.info("Linked user {} to conversation {}", user.getId(), conversation.getId());
     }
 
+    /** Remember the language the patient chose for this chat. */
+    public void saveLanguage(WhatsAppConversation conversation, String languageCode) {
+        conversation.setPreferredLanguage(languageCode);
+        conversationRepository.save(conversation);
+    }
+
     /**
      * Reset conversation to initial state
      */

@@ -21,7 +21,7 @@
     <div class="rx-actions">
         <a th:href="@{/doctor/prescriptions/my-prescriptions}" class="mp-btn mp-btn-secondary"><i class="fas fa-arrow-left"></i> All prescriptions</a>
         <span class="grow"></span>
-        <a th:if="${prescription.appointment != null}" th:href="@{/doctor/prescriptions/create/{id}(id=${prescription.appointment.id})}" class="mp-btn mp-btn-secondary"><i class="fas fa-pen"></i> Edit</a>
+        <a th:if="${prescription.appointment != null and prescription.doctor.username == #authentication.name}" th:href="@{/doctor/prescriptions/create/{id}(id=${prescription.appointment.id})}" class="mp-btn mp-btn-secondary"><i class="fas fa-pen"></i> Edit</a>
         <form th:action="@{/prescriptions/{id}/send-whatsapp(id=${prescription.id})}" method="post" style="display:inline;margin:0;">
             <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
             <button type="submit" class="mp-btn mp-btn-secondary" style="color:var(--wa-text);"><i class="fab fa-whatsapp" style="color:var(--wa-green);"></i> Send on WhatsApp</button>

@@ -64,6 +64,16 @@
                         <div class="mp-helper">Used for appointment reminders, queue alerts and the prescription PDF. Include the country code if it isn't an Indian number.</div>
                     </div>
 
+                    <div th:if="${r == 'PATIENT'}">
+                        <label class="mp-label" for="preferredLanguage">Preferred language</label>
+                        <select class="mp-select" id="preferredLanguage" name="preferredLanguage">
+                            <option value="en" th:selected="${user.preferredLanguage == null or user.preferredLanguage == 'en'}">English</option>
+                            <option value="hi" th:selected="${user.preferredLanguage == 'hi'}">हिन्दी (Hindi)</option>
+                            <option value="te" th:selected="${user.preferredLanguage == 'te'}">తెలుగు (Telugu)</option>
+                            <option value="ta" th:selected="${user.preferredLanguage == 'ta'}">தமிழ் (Tamil)</option>
+                        </select>
+                        <div class="mp-helper">Language for WhatsApp messages and reminders.</div>
+                    </div>
                     <div>
                         <label class="mp-label" for="gender">Gender</label>
                         <select class="mp-select" id="gender" name="gender">

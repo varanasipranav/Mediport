@@ -60,6 +60,21 @@
 <body>
 <div layout:fragment="content">
     <style>
+        .rx-allergy { display:flex; gap:12px; align-items:flex-start; padding:12px 14px; margin-bottom:14px; border-radius:10px; background:var(--status-missed-bg); color:var(--status-missed); border:1px solid #F4C5C5; font-size:13px; }
+        .rx-allergy i { margin-top:3px; }
+        .rx-allergy-hit { padding:11px 14px; margin-bottom:14px; border-radius:10px; background:var(--status-missed); color:#fff; font-weight:600; font-size:13px; }
+        .rx-glance { list-style:none; margin:8px 0 6px; padding:0; }
+        .rx-glance li { font-size:12.5px; line-height:1.5; padding:6px 0 6px 16px; position:relative; border-bottom:1px dashed var(--border); }
+        .rx-glance li:last-child { border-bottom:0; }
+        .rx-glance li::before { content:''; position:absolute; left:2px; top:13px; width:6px; height:6px; border-radius:50%; background:var(--brand-primary); }
+        .rx-fulllink { display:inline-block; margin-top:8px; font-size:12.5px; font-weight:700; }
+        .rx-prev { border-top:1px solid var(--border); padding:12px 0 4px; }
+        .rx-prev:first-of-type { border-top:0; padding-top:6px; }
+        .rx-prev-head { display:flex; justify-content:space-between; font-size:12.5px; gap:8px; }
+        .rx-prev-doc { color:var(--text-muted); }
+        .rx-prev-dx { font-size:12px; color:var(--text-muted); margin:4px 0; }
+        .rx-prev-meds { margin:6px 0 10px; padding-left:16px; font-size:12.5px; }
+        .med-row-flag { background:var(--status-missed-bg) !important; }
         .med-finder { margin-bottom: 12px; }
         .med-search { position: relative; }
         .med-search > i { position: absolute; left: 13px; top: 14px; color: var(--text-soft); font-size: 13px; }
@@ -235,17 +250,43 @@
         <!-- ── RIGHT: context sidebar ── -->
         <div>
 
-            <!-- Recent visits -->
+            <!-- Allergies -->
+            <div class="rx-allergy" id="rxAllergy" th:if="${record.profile != null and record.profile.hasAllergies()}"
+                 th:attr="data-allergies=${record.profile.allergies}">
+                <i class="fas fa-exclamation-triangle"></i>
+                <div><strong>Allergies</strong><div th:text="${record.profile.allergies}">Penicillin</div></div>
+            </div>
+            <div class="rx-allergy-hit" id="rxAllergyHit" style="display:none;"><i class="fas fa-ban"></i> <span id="rxAllergyHitText"></span></div>
+
+            <!-- At a glance -->
             <div class="mp-card rx-sidebar-section" style="margin-bottom:16px;padding:18px 20px;">
-                <div class="rx-sidebar-label">Recent visits</div>
-                <div th:if="${recentVisits != null and !recentVisits.empty}">
-                    <div th:each="visit : ${recentVisits}" class="rx-visit-row">
-                        <div class="rx-visit-date" th:text="${#temporals.format(visit.appointmentDate, 'dd MMM yyyy')}"></div>
-                        <div class="rx-visit-note" th:text="${'Dr. ' + visit.doctor.firstName + ' ' + visit.doctor.lastName}"></div>
+                <div class="rx-sidebar-label">At a glance</div>
+                <ul class="rx-glance">
+                    <li th:each="line : ${record.summary}" th:text="${line}">line</li>
+                </ul>
+                <a th:href="@{/doctor/patients/{pid}/record(pid=${appointment.patient.id},appointmentId=${appointment.id})}" class="rx-fulllink">
+                    Full medical record <i class="fas fa-arrow-right"></i>
+                </a>
+            </div>
+
+            <!-- Previous prescriptions -->
+            <div class="mp-card rx-sidebar-section" style="margin-bottom:16px;padding:18px 20px;" th:if="${record.latestPrescription() != null}">
+                <div class="rx-sidebar-label">Previous prescriptions</div>
+                <th:block th:each="v : ${record.visits}" th:if="${v.prescription != null and v.appointmentId != appointment.id}">
+                    <div class="rx-prev">
+                        <div class="rx-prev-head">
+                            <strong th:text="${#temporals.format(v.date, 'dd MMM yyyy')}">14 Oct 2026</strong>
+                            <span class="rx-prev-doc" th:text="${v.doctorName}">Dr. X</span>
+                        </div>
+                        <div class="rx-prev-dx" th:if="${!#strings.isEmpty(v.prescription.diagnosis)}" th:text="${#strings.abbreviate(v.prescription.diagnosis, 90)}">diagnosis</div>
+                        <ul class="rx-prev-meds">
+                            <li th:each="m : ${v.prescription.medicines}" th:text="${m.name + (!#strings.isEmpty(m.duration) ? ' — ' + m.duration : '')}">Dolo — 3 days</li>
+                        </ul>
+                        <button type="button" class="mp-btn mp-btn-secondary mp-btn-sm rx-repeat" th:attr="data-meds=${v.prescription.rawMedicines}">
+                            <i class="fas fa-redo"></i> Repeat these medicines
+                        </button>
                     </div>
-                </div>
-                <div th:if="${recentVisits == null or recentVisits.empty}"
-                     style="font-size:12px;color:var(--text-muted);">No previous visits on record.</div>
+                </th:block>
             </div>
 
             <!-- Patient quick info -->
@@ -392,6 +433,39 @@
     document.getElementById('medCancel').addEventListener('click', function () { builder.style.display = 'none'; picked = null; });
 })();
 </script>
+<script>
+(function () {
+    var area = document.getElementById('medicines');
+    var box = document.getElementById('rxAllergy');
+    var hit = document.getElementById('rxAllergyHit'), hitText = document.getElementById('rxAllergyHitText');
+
+    // "Repeat these medicines": copies an earlier prescription's medicine lines into the box
+    document.querySelectorAll('.rx-repeat').forEach(function (b) {
+        b.addEventListener('click', function () {
+            var lines = (b.getAttribute('data-meds') || '').split(/\r?\n/).filter(function (l) { return l.trim(); });
+            var existing = area.value.replace(/\s+$/, '');
+            var n = existing ? existing.split(/\n/).filter(function (l) { return l.trim(); }).length : 0;
+            var added = lines.map(function (l, i) { return (n + i + 1) + '. ' + l.replace(/^\s*(\d+\s*[.)]|[-\u2022*])\s*/, ''); });
+            area.value = (existing ? existing + '\n' : '') + added.join('\n');
+            checkAllergies();
+            area.focus();
+        });
+    });
+
+    // warns when a medicine in the box matches a recorded allergy (simple text match - the doctor decides)
+    function checkAllergies() {
+        if (!box) return;
+        var allergies = (box.getAttribute('data-allergies') || '').toLowerCase().split(/[,;\n]+/)
+            .map(function (a) { return a.trim(); }).filter(function (a) { return a.length >= 3; });
+        var text = area.value.toLowerCase(), found = [];
+        allergies.forEach(function (a) { if (text.indexOf(a) !== -1) found.push(a); });
+        hit.style.display = found.length ? '' : 'none';
+        hitText.textContent = found.length ? 'Check before saving: this prescription mentions ' + found.join(', ') + ', which is on the allergy list.' : '';
+    }
+    if (area) { area.addEventListener('input', checkAllergies); checkAllergies(); }
+})();
+</script>
+
 
 </div>
 </body>

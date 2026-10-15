@@ -12,6 +12,8 @@ printable prescriptions (PDF + QR verification), and pharmacy inventory with dis
 | **Scheduling** | Doctors set a weekly template; daily schedules are generated from it. Each booking gets a queue number and a time worked out from the schedule (`start + (queue − 1) × slot`). Bookings are race-safe (row lock) and can never run past the doctor's hours. |
 | **WhatsApp bot** | Patients book, reschedule, cancel, view appointments and ask "where am I in the queue?" — all from WhatsApp. Days and times offered come straight from the doctor's schedule. |
 | **Live queue alerts** | WhatsApp messages when 2 patients are ahead, "it's your turn", slot time reached, doctor running late (with a new estimate), missed turn; 24 h and 2 h reminders; prescription-ready message with a PDF link. Each alert is sent once. |
+| **Languages** | The WhatsApp assistant speaks **English, Hindi, Telugu and Tamil**. New chats start with a language picker; patients can switch from the menu. The choice is saved on the patient (and on family members sharing the number), so reminders, queue alerts and the prescription message arrive in the same language. Adding a language = one enum value + one `i18n/whatsapp_xx.properties` file (a test checks the keys, placeholders and WhatsApp length limits). |
+| **Medical record** | Per patient: blood group, allergies, ongoing conditions, vitals per visit (entered by the doctor or front desk) and the full visit timeline with every prescription - from all doctors. When a patient books with a different doctor, that doctor sees the earlier prescriptions, can repeat medicines in one click, and gets an allergy warning. An "At a glance" summary is generated from the record (rule-based; swap in an AI summariser via the `RecordSummarizer` interface). Every access and change is logged. |
 | **Prescriptions** | Printable A4 prescription (clinic letterhead, doctor registration no., medicine table, signature block, QR code), server-side PDF, public QR verification page, expiring share link for WhatsApp. Medicine finder with live stock while writing. |
 | **Pharmacy** | Medicine catalogue, batches with expiry, receive/adjust stock, earliest-expiry-first dispensing against a prescription (partial dispensing supported), expiry and low-stock alerts, full movement history. |
 | **Security** | Role-based access on every page, signed WhatsApp webhook, CSRF, secrets outside the code, per-record ownership checks (a doctor/patient only sees their own). |
@@ -59,6 +61,19 @@ WhatsApp webhook URL: `https://<your-domain>/api/whatsapp/webhook` (subscribe to
 
 > **WhatsApp 24-hour rule.** Meta only allows free-text messages to people who messaged the clinic in the last 24 hours.
 > Reminders and alerts to patients who booked on the web (and haven't chatted recently) need approved **message templates**.
+
+## Languages
+
+- Texts live in `src/main/resources/i18n/whatsapp_<code>.properties` (UTF-8). `{0}`, `{1}`... are filled in by the code.
+- Hindi, Telugu and Tamil were written for this project - **have a native speaker (ideally a medical professional) review them before going live.** Doctor names and specialities are shown as entered (English).
+- Button and list texts must stay within WhatsApp's limits (buttons 20, row titles 24, row descriptions 72 characters); `MessageCatalogTest` enforces this.
+- The web screens are English only for now.
+
+## Medical record and privacy
+
+- A doctor can open the record of any patient who has (or had) an appointment with them. Admins and pharmacists do not see clinical records.
+- Opening a record, saving the profile and recording vitals are written to `record_access_log`.
+- The summary never leaves the server unless you plug in an AI summariser - if you do, get patient consent and a data-processing agreement first.
 
 ## Tests
 

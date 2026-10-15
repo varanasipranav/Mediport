@@ -250,6 +250,9 @@
                         <i class="fas fa-file-prescription"></i> View Rx
                     </a>
 
+                    <a th:href="@{/doctor/patients/{pid}/record(pid=${appointment.patient.id},appointmentId=${appointment.id})}"
+                       class="mp-btn mp-btn-ghost mp-btn-sm" title="Medical record and previous prescriptions"><i class="fas fa-notes-medical"></i> Record</a>
+
                     <!-- Notes button (always) -->
                     <button type="button" class="mp-btn mp-btn-ghost mp-btn-sm"
                             data-toggle="modal"

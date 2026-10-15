@@ -15,6 +15,9 @@ public enum ConversationState {
     /** Showing main menu options */
     MAIN_MENU("Main Menu"),
 
+    /** Waiting for the patient to pick a language */
+    SELECTING_LANGUAGE("Selecting Language"),
+
     // ========================================
     // Patient Identification Flow
     // ========================================

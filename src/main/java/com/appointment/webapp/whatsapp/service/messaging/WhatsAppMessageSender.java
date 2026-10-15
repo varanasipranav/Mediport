@@ -128,7 +128,7 @@ public class WhatsAppMessageSender {
             if (headerText != null && !headerText.isEmpty()) {
                 Map<String, String> header = new HashMap<>();
                 header.put("type", "text");
-                header.put("text", headerText);
+                header.put("text", fit(headerText, 60));
                 interactive.put("header", header);
             }
 
@@ -137,7 +137,7 @@ public class WhatsAppMessageSender {
             interactive.put("body", body);
 
             Map<String, Object> action = new HashMap<>();
-            action.put("button", buttonText);
+            action.put("button", fit(buttonText, 20));
 
             List<Map<String, Object>> sectionsList = new ArrayList<>();
             for (ListSection section : sections) {
@@ -287,13 +287,22 @@ public class WhatsAppMessageSender {
     }
 
     // Helper classes
+    /** Cuts text to WhatsApp's limit (counted in characters) and marks the cut with an ellipsis. */
+    static String fit(String text, int max) {
+        if (text == null || text.codePointCount(0, text.length()) <= max) {
+            return text;
+        }
+        int end = text.offsetByCodePoints(0, max - 1);
+        return text.substring(0, end) + "\u2026";
+    }
+
     public static class Button {
         private String id;
         private String title;
 
         public Button(String id, String title) {
             this.id = id;
-            this.title = title;
+            this.title = fit(title, 20);
         }
 
         public String getId() {
@@ -310,7 +319,7 @@ public class WhatsAppMessageSender {
         private List<ListRow> rows = new ArrayList<>();
 
         public ListSection(String title) {
-            this.title = title;
+            this.title = fit(title, 24);
         }
 
         public void addRow(ListRow row) {
@@ -333,8 +342,8 @@ public class WhatsAppMessageSender {
 
         public ListRow(String id, String title, String description) {
             this.id = id;
-            this.title = title;
-            this.description = description;
+            this.title = fit(title, 24);
+            this.description = fit(description, 72);
         }
 
         public String getId() {
