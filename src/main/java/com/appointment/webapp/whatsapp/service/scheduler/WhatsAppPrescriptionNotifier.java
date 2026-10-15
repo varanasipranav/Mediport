@@ -14,13 +14,15 @@ import org.springframework.transaction.event.TransactionalEventListener;
 import java.util.concurrent.CompletableFuture;
 
 /**
- * Tells the patient on WhatsApp the moment the doctor saves their prescription, with a PDF link
- * that stays valid for a week. Runs after the save has committed and off the doctor's request thread.
+ * Tells the patient on WhatsApp when their prescription is ready, with a PDF link that stays valid for a week.
+ * Sent automatically after the doctor saves, and on demand from the "Send on WhatsApp" button.
  */
 @Component
 public class WhatsAppPrescriptionNotifier {
 
     private static final Logger logger = LoggerFactory.getLogger(WhatsAppPrescriptionNotifier.class);
+
+    public enum Outcome { SENT, NO_NUMBER, REJECTED }
 
     private final PrescriptionService prescriptions;
     private final RxDocumentService documents;
@@ -35,14 +37,19 @@ public class WhatsAppPrescriptionNotifier {
 
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void onCreated(PrescriptionCreatedEvent event) {
-        CompletableFuture.runAsync(() -> send(event.prescriptionId()));
+        CompletableFuture.runAsync(() -> sendNow(event.prescriptionId()));
     }
 
-    private void send(Long prescriptionId) {
+    /** Sends the message now and says what happened. */
+    public Outcome sendNow(Long prescriptionId) {
         try {
             Prescription p = prescriptions.getPrescriptionById(prescriptionId);
             String phone = p.getPatient().getWhatsappPhone();
-            if (phone == null || phone.isBlank()) return;
+            if (phone == null || phone.isBlank()) {
+                logger.warn("Prescription {}: patient {} has no WhatsApp number - nothing sent",
+                    prescriptionId, p.getPatient().getUsername());
+                return Outcome.NO_NUMBER;
+            }
 
             String text = "Hi " + p.getPatient().getFirstName() + ", your prescription from *Dr. " +
                 p.getDoctor().getFirstName() + " " + p.getDoctor().getLastName() + "* is ready. \uD83D\uDCC4\n\n" +
@@ -50,10 +57,14 @@ public class WhatsAppPrescriptionNotifier {
                 "Download (PDF, valid 7 days):\n" + documents.signedPdfUrl(p.getId()) + "\n\n" +
                 "Show it at the pharmacy or collect your medicines there. Get well soon!";
             if (sender.sendTextMessage(phone, text) == null) {
-                logger.warn("Prescription {} was saved but the WhatsApp message could not be sent", prescriptionId);
+                logger.warn("Prescription {}: WhatsApp did not accept the message to {}", prescriptionId, phone);
+                return Outcome.REJECTED;
             }
+            logger.info("Prescription {}: WhatsApp message sent to {}", prescriptionId, phone);
+            return Outcome.SENT;
         } catch (Exception e) {
             logger.error("Could not notify patient about prescription {}", prescriptionId, e);
+            return Outcome.REJECTED;
         }
     }
 }

@@ -26,10 +26,13 @@ public class PrescriptionDocumentController {
     private final PrescriptionService prescriptionService;
     private final RxDocumentService rxDocumentService;
     private final UserRepository userRepository;
+    private final com.appointment.webapp.whatsapp.service.scheduler.WhatsAppPrescriptionNotifier whatsAppPrescriptionNotifier;
 
     public PrescriptionDocumentController(PrescriptionService prescriptionService,
                                           RxDocumentService rxDocumentService,
-                                          UserRepository userRepository) {
+                                          UserRepository userRepository,
+                                          com.appointment.webapp.whatsapp.service.scheduler.WhatsAppPrescriptionNotifier whatsAppPrescriptionNotifier) {
+        this.whatsAppPrescriptionNotifier = whatsAppPrescriptionNotifier;
         this.prescriptionService = prescriptionService;
         this.rxDocumentService = rxDocumentService;
         this.userRepository = userRepository;
@@ -48,6 +51,27 @@ public class PrescriptionDocumentController {
             .contentType(MediaType.APPLICATION_PDF)
             .header(HttpHeaders.CONTENT_DISPOSITION, ContentDisposition.inline().filename(filename).build().toString())
             .body(pdf);
+    }
+
+    /** "Send on WhatsApp" button: (re)sends the prescription message and reports what happened. */
+    @org.springframework.web.bind.annotation.PostMapping("/prescriptions/{id}/send-whatsapp")
+    public String sendWhatsApp(@PathVariable Long id, Authentication authentication,
+                               org.springframework.web.servlet.mvc.support.RedirectAttributes redirect,
+                               jakarta.servlet.http.HttpServletRequest request) {
+        Prescription prescription = prescriptionService.getPrescriptionById(id);
+        if (!canView(prescription, authentication)) {
+            throw new org.springframework.security.access.AccessDeniedException("Not allowed");
+        }
+        switch (whatsAppPrescriptionNotifier.sendNow(id)) {
+            case SENT -> redirect.addFlashAttribute("success", "Prescription sent to the patient on WhatsApp.");
+            case NO_NUMBER -> redirect.addFlashAttribute("warning",
+                "This patient has no WhatsApp number saved, so nothing was sent. Add it under Staff & Patients, then try again.");
+            case REJECTED -> redirect.addFlashAttribute("error",
+                "WhatsApp did not accept the message. The patient may need to message the clinic first (WhatsApp's 24-hour rule), "
+                + "or the number is not allowed on your WhatsApp test account.");
+        }
+        String back = request.getHeader("Referer");
+        return "redirect:" + (back != null && back.contains("/prescriptions/view/") ? back.substring(back.indexOf("/", 8)) : "/dashboard");
     }
 
     /** Public but signed and short-lived: the link sent to the patient on WhatsApp. */

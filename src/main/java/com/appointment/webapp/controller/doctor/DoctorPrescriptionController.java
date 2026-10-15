@@ -103,6 +103,13 @@ public class DoctorPrescriptionController {
                 prescriptionService.createPrescription(appointmentId, observations, medicines,
                     tests, additionalNotes, nextVisitDate);
                 redirectAttributes.addFlashAttribute("success", "Prescription created successfully");
+                var saved = prescriptionService.getPrescriptionByAppointment(appointmentId);
+                if (saved.isPresent() && (saved.get().getPatient().getWhatsappPhone() == null
+                        || saved.get().getPatient().getWhatsappPhone().isBlank())) {
+                    redirectAttributes.addFlashAttribute("warning",
+                        "This patient has no WhatsApp number saved, so the prescription was not sent on WhatsApp. "
+                        + "You can still print it or download the PDF.");
+                }
             }
 
             logger.info("Prescription saved by {}", authentication.getName());

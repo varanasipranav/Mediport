@@ -16,12 +16,18 @@
         </div>
     </div>
 
+    <div th:replace="~{fragments/flash :: flash}"></div>
+
     <div class="rx-actions">
         <a th:href="@{/pharma/dashboard}" class="mp-btn mp-btn-secondary"><i class="fas fa-arrow-left"></i> Back to queue</a>
         <span class="grow"></span>
         <form th:action="@{/pharma/prescriptions/{id}/mark-printed(id=${prescription.id})}" method="post" style="display:inline;">
             <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
             <button type="submit" class="mp-btn mp-btn-success"><i class="fas fa-check"></i> Mark as printed</button>
+        </form>
+        <form th:action="@{/prescriptions/{id}/send-whatsapp(id=${prescription.id})}" method="post" style="display:inline;margin:0;">
+            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+            <button type="submit" class="mp-btn mp-btn-secondary" style="color:var(--wa-text);"><i class="fab fa-whatsapp" style="color:var(--wa-green);"></i> Send on WhatsApp</button>
         </form>
         <a th:href="@{/prescriptions/{id}/pdf(id=${prescription.id})}" target="_blank" class="mp-btn mp-btn-secondary"><i class="fas fa-file-pdf"></i> Download PDF</a>
         <button type="button" class="mp-btn mp-btn-primary" onclick="window.print()"><i class="fas fa-print"></i> Print</button>

@@ -7,3 +7,9 @@
         });
     });
 })();
+
+/* Bootstrap modals must live directly under <body>; inside a page section or grid row they end up
+   behind the dark overlay (unclickable) and distort the layout. */
+(function () {
+    document.querySelectorAll('.modal').forEach(function (m) { document.body.appendChild(m); });
+})();
