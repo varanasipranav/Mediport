@@ -24,6 +24,9 @@ public class AdminUserController {
     @Autowired
     private UserService userService;
 
+    @Autowired
+    private com.appointment.webapp.service.DemoDataService demoDataService;
+
     @GetMapping("/list")
     public String listUsers(
             @RequestParam(required = false) String roleFilter,
@@ -126,6 +129,19 @@ public class AdminUserController {
             redirectAttributes.addFlashAttribute("error", "Error updating user: " + e.getMessage());
             return "redirect:/admin/users/edit/" + id;
         }
+    }
+
+    @PostMapping("/seed-demo-doctors")
+    public String seedDemoDoctors(org.springframework.security.core.Authentication auth, RedirectAttributes redirectAttributes) {
+        var result = demoDataService.seedDoctors(auth.getName());
+        if (result.created().isEmpty()) {
+            redirectAttributes.addFlashAttribute("success", "The sample doctors are already in the system.");
+        } else {
+            redirectAttributes.addFlashAttribute("success", result.created().size() + " sample doctors added (" +
+                String.join(", ", result.created()) + "). Password for all of them: " + result.password() +
+                " - note it now, it is not shown again.");
+        }
+        return "redirect:/admin/users/list";
     }
 
     @PostMapping("/toggle-status/{id}")

@@ -350,25 +350,10 @@ public class WhatsAppMessageProcessor {
 
                 conversationService.updateState(conversation, ConversationState.COLLECTING_PATIENT_NAME);
 
-            } else if (patients.size() == 1) {
-                // Single patient found - use directly
-                logger.info("✅ Found 1 patient: {}", patients.get(0).getFirstName());
-                User patient = patients.get(0);
-
-                conversationService.linkUser(conversation, patient);
-
-                messageSender.sendTextMessage(conversation.getWhatsappPhone(),
-                    String.format("Welcome back, *%s %s*! 👋\n\n" +
-                        "I found your profile in our system.",
-                        patient.getFirstName(), patient.getLastName()));
-
-                // Continue to doctor selection
-                conversationService.updateState(conversation, ConversationState.SELECTING_DOCTOR);
-                showDoctorSelection(conversation);
-
             } else {
-                // Multiple patients found - ask to select
-                logger.info("👥 Found {} patients. Asking to select...", patients.size());
+                // One or more profiles on this number: always ask who the appointment is for, so a parent
+                // with one profile can also book for (or register) a child or other family member
+                logger.info("👥 Found {} patient(s) on this number. Asking who the appointment is for...", patients.size());
 
                 // Save patient IDs in context
                 ConversationContext context = conversationService.getContext(conversation);
@@ -378,8 +363,9 @@ public class WhatsAppMessageProcessor {
                 // Send list of patients
                 String patientsText = buildPatientsListText(patients);
                 messageSender.sendTextMessage(conversation.getWhatsappPhone(),
-                    "I found multiple profiles with this phone number:\n\n" + patientsText +
-                    "\n\nOr type *'new'* to create a new profile.");
+                    (patients.size() == 1 ? "Welcome back! 👋 I found this profile on your number:\n\n"
+                                          : "Welcome back! 👋 I found these profiles on your number:\n\n") + patientsText +
+                    "\nYou can book for any of them, or add a family member (for example a child).");
 
                 // Send interactive list
                 sendPatientSelectionList(conversation, patients);
@@ -446,14 +432,14 @@ public class WhatsAppMessageProcessor {
         // Add "Create New" option
         section.addRow(new WhatsAppMessageSender.ListRow(
             "new_patient",
-            "➕ Create New Profile",
-            "Register as a new patient"
+            "➕ Add family member",
+            "Register a child or relative"
         ));
 
         messageSender.sendListMessage(
             conversation.getWhatsappPhone(),
-            "Select Profile",
-            "Please select your profile or create a new one:",
+            "Who is it for?",
+            "Who is this appointment for?",
             "Select",
             java.util.List.of(section)
         );
@@ -488,8 +474,8 @@ public class WhatsAppMessageProcessor {
                 // User wants to create new profile
                 logger.info("User chose to create new profile");
                 messageSender.sendTextMessage(conversation.getWhatsappPhone(),
-                    "Great! Let's create your new profile. 📋\n\n" +
-                    "Please enter your *full name*:");
+                    "Sure, let's add them. 📋\n\n" +
+                    "Please enter the patient's *full name*:");
 
                 conversationService.updateState(conversation, ConversationState.COLLECTING_PATIENT_NAME);
 

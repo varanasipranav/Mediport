@@ -51,21 +51,16 @@ public class WhatsAppPatientService {
     public List<User> findPatientsByPhone(String whatsappPhone) {
         logger.info("Searching for patients with phone: {}", whatsappPhone);
 
-        // Try with +
-        List<User> users = userRepository.findByWhatsappPhone(whatsappPhone);
-
-        // Try without + if not found
-        if (users.isEmpty() && whatsappPhone.startsWith("+")) {
-            String phoneWithoutPlus = whatsappPhone.substring(1);
-            users = userRepository.findByWhatsappPhone(phoneWithoutPlus);
+        // Numbers are stored both with and without "+" (front desk vs. bot), so look for both and merge
+        String digits = whatsappPhone.startsWith("+") ? whatsappPhone.substring(1) : whatsappPhone;
+        java.util.Map<Long, User> byId = new java.util.LinkedHashMap<>();
+        for (String variant : new String[] {"+" + digits, digits}) {
+            for (User u : userRepository.findByWhatsappPhone(variant)) {
+                byId.putIfAbsent(u.getId(), u);
+            }
         }
 
-        // Try adding + if not found
-        if (users.isEmpty() && !whatsappPhone.startsWith("+")) {
-            String phoneWithPlus = "+" + whatsappPhone;
-            users = userRepository.findByWhatsappPhone(phoneWithPlus);
-        }
-
+        List<User> users = new java.util.ArrayList<>(byId.values());
         logger.info("Found {} patient(s) with phone: {}", users.size(), whatsappPhone);
         return users;
     }
@@ -84,16 +79,33 @@ public class WhatsAppPatientService {
             // Basic info
             patient.setFirstName(extractFirstName(context.getTempPatientName()));
             patient.setLastName(extractLastName(context.getTempPatientName()));
-            patient.setEmail(generateEmail(conversation.getWhatsappPhone()));
-            patient.setUsername(generateUsername(conversation.getWhatsappPhone()));
+            // Several family members can share one WhatsApp number, so the username must be made unique
+            String baseUsername = generateUsername(conversation.getWhatsappPhone());
+            String username = baseUsername;
+            for (int n = 2; userRepository.existsByUsername(username); n++) {
+                username = baseUsername + "_" + n;
+            }
+            patient.setUsername(username);
+            patient.setEmail(username.equals(baseUsername)
+                ? generateEmail(conversation.getWhatsappPhone())
+                : generateEmail(conversation.getWhatsappPhone()).replace("@", "_" + username.substring(baseUsername.length() + 1) + "@"));
+
+            long next = userRepository.countByPatientIdNotNull() + 1;
+            String patientId = String.format("PAT%05d", next);
+            while (userRepository.existsByPatientId(patientId)) {
+                patientId = String.format("PAT%05d", ++next);
+            }
+            patient.setPatientId(patientId);
 
             // Password - random for WhatsApp users
             String randomPassword = UUID.randomUUID().toString();
             patient.setPassword(passwordEncoder.encode(randomPassword));
 
             // Phone numbers - both regular and WhatsApp
-            patient.setPhoneNumber(conversation.getWhatsappPhone());  // Required NOT NULL field
-            patient.setWhatsappPhone(conversation.getWhatsappPhone());
+            String e164 = conversation.getWhatsappPhone().startsWith("+")
+                ? conversation.getWhatsappPhone() : "+" + conversation.getWhatsappPhone();
+            patient.setPhoneNumber(e164);  // Required NOT NULL field
+            patient.setWhatsappPhone(e164);
 
             // Gender
             if (context.getTempPatientGender() != null) {
