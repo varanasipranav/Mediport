@@ -14,8 +14,8 @@ WORKDIR /app
 COPY --from=build /app.jar /app/app.jar
 USER mediport
 ENV TZ=Asia/Kolkata \
-    JAVA_OPTS="-XX:MaxRAMPercentage=75 -XX:+ExitOnOutOfMemoryError"
+    JAVA_OPTS="-Xms128m -Xmx450m -XX:+UseSerialGC -XX:+ExitOnOutOfMemoryError"
 EXPOSE 8081
 HEALTHCHECK --interval=30s --timeout=5s --start-period=60s --retries=3 \
-  CMD curl -fsS http://localhost:8081/health || exit 1
+  CMD curl -fsS http://localhost:${PORT:-8081}/health || exit 1
 ENTRYPOINT ["sh", "-c", "exec java $JAVA_OPTS -jar /app/app.jar"]

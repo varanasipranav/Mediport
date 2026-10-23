@@ -40,7 +40,7 @@
 `
 `## Deploying
 
-See **[DEPLOYMENT.md](DEPLOYMENT.md)**: Docker Compose with MySQL and automatic HTTPS, settings, WhatsApp webhook, backups, updates and a security checklist.
+Quickest demo: **[DEPLOYMENT-RAILWAY.md](DEPLOYMENT-RAILWAY.md)** (Railway, ~15 minutes). Full production setup: **[DEPLOYMENT.md](DEPLOYMENT.md)**: Docker Compose with MySQL and automatic HTTPS, settings, WhatsApp webhook, backups, updates and a security checklist.
 `GET /health` is the health check for load balancers.
 
 ## Configuration
