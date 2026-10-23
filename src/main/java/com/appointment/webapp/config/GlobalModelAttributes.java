@@ -13,6 +13,9 @@ public class GlobalModelAttributes {
 
     private final ClinicProperties clinic;
 
+    @org.springframework.beans.factory.annotation.Value("${app.tenancy.enabled:false}")
+    private boolean tenancyEnabled;
+
     public GlobalModelAttributes(ClinicProperties clinic) {
         this.clinic = clinic;
     }
@@ -20,6 +23,11 @@ public class GlobalModelAttributes {
     @ModelAttribute("currentUri")
     public String currentUri(HttpServletRequest request) {
         return request.getRequestURI();
+    }
+
+    @ModelAttribute("tenancyEnabled")
+    public boolean tenancyEnabled() {
+        return tenancyEnabled;
     }
 
     @ModelAttribute("clinic")

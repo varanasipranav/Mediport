@@ -1,0 +1,99 @@
+/* Login page: interactive product explorer (left) and clinic code helper (right). */
+.lg-hero { max-width: 600px; }
+.lx-lead { margin-top: 16px; font-size: 15px; color: rgba(255,255,255,.72); animation: lgUp .9s .25s ease both; }
+
+.lx { margin-top: 16px; animation: lgUp .9s .4s ease both; }
+.lx-tabs { display: flex; gap: 8px; flex-wrap: wrap; }
+.lx-tab { display: inline-flex; align-items: center; gap: 7px; padding: 8px 13px; border-radius: 999px; border: 1px solid rgba(255,255,255,.14); background: rgba(255,255,255,.06); color: rgba(255,255,255,.8); font: 600 12.5px var(--font-body); cursor: pointer; transition: background .2s, transform .2s, border-color .2s, color .2s; }
+.lx-tab i { color: #34D399; }
+.lx-tab:hover { background: rgba(255,255,255,.14); transform: translateY(-2px); }
+.lx-tab.on { background: #fff; color: #0F1B2D; border-color: #fff; }
+.lx-tab.on i { color: #0B4FB8; }
+
+.lx-stage { position: relative; margin-top: 12px; background: rgba(255,255,255,.07); border: 1px solid rgba(255,255,255,.13); border-radius: 16px; backdrop-filter: blur(6px); min-height: 330px; overflow: hidden; }
+.lx-panel { position: absolute; inset: 0; padding: 16px 18px; display: grid; grid-template-columns: 1.05fr 1fr; gap: 18px; opacity: 0; transform: translateY(10px); pointer-events: none; transition: opacity .35s ease, transform .35s ease; }
+.lx-panel.on { opacity: 1; transform: none; pointer-events: auto; }
+.lx-mock { align-self: center; min-width: 0; }
+.lx-text h3 { font: 700 17px var(--font-display); color: #fff !important; margin: 4px 0 10px; }
+.lx-text ul { list-style: none; display: flex; flex-direction: column; gap: 9px; }
+.lx-text li { position: relative; padding-left: 20px; font-size: 13px; line-height: 1.45; color: rgba(255,255,255,.82); }
+.lx-text li::before { content: ""; position: absolute; left: 0; top: 6px; width: 8px; height: 8px; border-radius: 50%; background: #34D399; box-shadow: 0 0 0 3px rgba(52,211,153,.18); }
+.lx-bar { height: 3px; background: rgba(255,255,255,.1); border-radius: 3px; margin-top: 10px; overflow: hidden; }
+.lx-bar span { display: block; height: 100%; width: 0; background: linear-gradient(90deg, #34D399, #60A5FA); }
+@keyframes lxFill { from { width: 0; } to { width: 100%; } }
+
+/* WhatsApp chat mock */
+.lx-chat { display: flex; flex-direction: column; gap: 7px; background: #0B141A; border-radius: 12px; padding: 12px; }
+.lx-b { max-width: 88%; font-size: 12px; line-height: 1.4; padding: 7px 10px; border-radius: 9px; color: #E9EDEF; opacity: 0; }
+.lx-b.me { align-self: flex-end; background: #005C4B; border-top-right-radius: 2px; }
+.lx-b.bot { align-self: flex-start; background: #202C33; border-top-left-radius: 2px; }
+.lx-b.ok { color: #86EFAC; }
+.lx-chip { display: inline-block; margin: 6px 6px 0 0; padding: 3px 9px; border-radius: 999px; border: 1px solid #53BDEB; color: #53BDEB; font-size: 11px; }
+.lx-panel.on .lx-b { animation: lxPop .45s var(--d, 0s) ease forwards; }
+@keyframes lxPop { from { opacity: 0; transform: translateY(8px) scale(.97); } to { opacity: 1; transform: none; } }
+
+/* queue card reuses .lg-card; fit it to the stage */
+.lx-mock .lg-card { margin: 0; max-width: none; }
+
+/* prescription mock */
+.lx-rx { background: #fff; border-radius: 10px; color: #0F1B2D; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,.25); }
+.lx-rx-head { padding: 9px 12px; border-bottom: 2px solid #0B4FB8; display: flex; justify-content: space-between; align-items: baseline; }
+.lx-rx-head b { font: 800 13px var(--font-display); color: #0B4FB8; }
+.lx-rx-head span { font-size: 10.5px; color: #5B6B85; }
+.lx-rx-body { position: relative; padding: 9px 12px 10px; min-height: 108px; }
+.lx-rx-line { padding: 4px 0; border-bottom: 1px dashed #E5EAF2; font-size: 11.5px; }
+.lx-rx-line b { display: block; }
+.lx-rx-line span { color: #5B6B85; font-size: 10.5px; }
+.lx-qr { position: absolute; right: 10px; bottom: 8px; width: 38px; height: 38px; background:
+  conic-gradient(#0F1B2D 25%, #fff 0 50%, #0F1B2D 0 75%, #fff 0) 0 0 / 10px 10px; border: 3px solid #0F1B2D; border-radius: 3px; }
+.lx-rx-foot { padding: 6px 12px; background: #E6F9EF; color: #075E54; font-size: 11px; font-weight: 700; }
+.lx-rx-foot i { margin-right: 4px; }
+
+/* pharmacy mock */
+.lx-stock { display: flex; flex-direction: column; gap: 9px; background: rgba(255,255,255,.07); border-radius: 12px; padding: 12px; }
+.lx-s { display: grid; grid-template-columns: 1fr; gap: 4px; font-size: 12px; }
+.lx-s span { font-weight: 700; color: #fff; }
+.lx-s em { font-style: normal; font-size: 11px; color: rgba(255,255,255,.65); }
+.lx-meter { height: 7px; border-radius: 99px; background: rgba(255,255,255,.12); overflow: hidden; }
+.lx-meter i { display: block; height: 100%; background: linear-gradient(90deg, #34D399, #10B981); border-radius: 99px; transform-origin: left; }
+.lx-panel.on .lx-meter i { animation: lxGrow 1s ease both; }
+@keyframes lxGrow { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+.lx-s.warn .lx-meter i { background: linear-gradient(90deg, #F87171, #EF4444); }
+.lx-s.warn em { color: #FCA5A5; font-weight: 700; }
+.lx-s.warn2 .lx-meter i { background: linear-gradient(90deg, #FBBF24, #F59E0B); }
+.lx-s.warn2 em { color: #FCD34D; font-weight: 700; }
+
+/* medical record mock */
+.lx-rec { display: flex; flex-direction: column; gap: 9px; background: rgba(255,255,255,.07); border-radius: 12px; padding: 12px; }
+.lx-alert { background: rgba(239,68,68,.16); border: 1px solid rgba(239,68,68,.45); color: #FCA5A5; border-radius: 8px; padding: 7px 10px; font-size: 12px; font-weight: 700; }
+.lx-alert i { margin-right: 6px; }
+.lx-tl { display: flex; gap: 10px; align-items: flex-start; font-size: 12px; color: #fff; }
+.lx-tl small { display: block; color: rgba(255,255,255,.62); font-size: 11px; }
+.lx-dot { margin-top: 4px; width: 9px; height: 9px; border-radius: 50%; background: #60A5FA; box-shadow: 0 0 0 3px rgba(96,165,250,.2); flex: none; }
+.lx-glance { font-size: 11.5px; color: rgba(255,255,255,.85); background: rgba(255,255,255,.08); border-radius: 8px; padding: 7px 10px; }
+.lx-glance b { color: #34D399; margin-right: 6px; }
+
+/* call-to-action links under the explorer */
+.lx-links { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 16px; animation: lgUp .9s .6s ease both; }
+.lx-link { display: inline-flex; align-items: center; gap: 8px; padding: 9px 16px; border-radius: 10px; font: 700 13px var(--font-display); color: #fff; text-decoration: none; border: 1px solid rgba(255,255,255,.25); transition: transform .15s, background .15s; }
+.lx-link:hover { transform: translateY(-2px); background: rgba(255,255,255,.12); }
+.lx-link.primary { background: #10B981; border-color: #10B981; color: #04281C; }
+.lx-link.primary:hover { background: #34D399; }
+
+/* right panel helpers */
+.lg-opt { font-weight: 500; color: var(--text-soft); font-size: 11.5px; }
+.lg-hint { margin-top: 6px; font-size: 12px; color: var(--text-muted); line-height: 1.45; }
+.lg-mobile-links { display: none; margin-top: 18px; text-align: center; font-size: 13px; color: var(--text-muted); }
+.lg-mobile-links a { color: var(--brand-primary); font-weight: 700; }
+
+@media (max-width: 1180px) {
+  .lx-stage { min-height: 380px; }
+  .lx-panel { grid-template-columns: 1fr; gap: 10px; overflow: auto; }
+}
+@media (max-width: 900px) {
+  .lg-mobile-links { display: block; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .lx-panel, .lx-b, .lx-meter i { transition: none; animation: none !important; opacity: 1; }
+  .lx-panel:not(.on) { opacity: 0; }
+}

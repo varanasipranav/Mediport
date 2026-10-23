@@ -21,7 +21,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
  * Renders every page as the matching role (read-only, uses existing users in the dev database)
  * and fails if any page returns an error status. Rendered HTML is written to target/pages for inspection.
  */
-@SpringBootTest
+@SpringBootTest(properties = "app.tenancy.enabled=false")
 @AutoConfigureMockMvc
 class PageSmokeTest {
 

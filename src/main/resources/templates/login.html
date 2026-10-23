@@ -10,6 +10,7 @@
     <link rel="stylesheet" th:href="@{/vendor/fa/css/all.min.css}"/>
     <link rel="stylesheet" th:href="@{/css/mediport-tokens.css}"/>
     <link rel="stylesheet" th:href="@{/css/login.css}"/>
+    <link rel="stylesheet" th:href="@{/css/login-explorer.css}"/>
 </head>
 <body>
 
@@ -35,35 +36,89 @@
         <div class="lg-hero">
             <div class="lg-headline">Care, simply<br/><span class="hl">organized.</span></div>
 
-            <div class="lg-rotator" id="lgRotator">
-                <p class="on">Appointment scheduling, live queues and prescriptions in one place.</p>
-                <p>Patients book, reschedule and get reminders on WhatsApp — no app to install.</p>
-                <p>Printable digital prescriptions with a PDF copy, ready in seconds.</p>
-                <p>Pharmacy stock and doctor schedules stay in sync automatically.</p>
-            </div>
+            <p class="lx-lead">Everything a clinic needs, in one place. Tap a topic to see how it works.</p>
 
-            <div class="lg-ecg" aria-hidden="true">
-                <svg viewBox="0 0 420 54" preserveAspectRatio="none">
-                    <path class="base" fill="none" stroke-width="2" d="M0 30 H70 L84 30 L92 8 L104 50 L114 20 L122 30 H190 L204 30 L212 8 L224 50 L234 20 L242 30 H310 L324 30 L332 8 L344 50 L354 20 L362 30 H420"/>
-                    <path class="live" d="M0 30 H70 L84 30 L92 8 L104 50 L114 20 L122 30 H190 L204 30 L212 8 L224 50 L234 20 L242 30 H310 L324 30 L332 8 L344 50 L354 20 L362 30 H420"/>
-                </svg>
-            </div>
-
-            <div class="lg-card" aria-hidden="true">
-                <div class="lg-card-head"><span>Today's queue</span><span class="lg-live">Live</span></div>
-                <div id="lgQueue">
-                    <div class="lg-row"><span class="lg-q">1</span><span class="lg-name">A. Reddy</span><span class="lg-time">09:00</span><span class="lg-tag done">Completed</span></div>
-                    <div class="lg-row"><span class="lg-q">2</span><span class="lg-name">S. Fatima</span><span class="lg-time">09:15</span><span class="lg-tag consult">In consultation</span></div>
-                    <div class="lg-row"><span class="lg-q">3</span><span class="lg-name">R. Kumar</span><span class="lg-time">09:30</span><span class="lg-tag waiting">Waiting</span></div>
-                    <div class="lg-row"><span class="lg-q">4</span><span class="lg-name">M. Joseph</span><span class="lg-time">09:45</span><span class="lg-tag waiting">Waiting</span></div>
+            <div class="lx" id="lx">
+                <div class="lx-tabs" role="tablist" aria-label="What Mediport does">
+                    <button type="button" class="lx-tab on" role="tab" data-i="0"><i class="fab fa-whatsapp"></i><span>WhatsApp booking</span></button>
+                    <button type="button" class="lx-tab" role="tab" data-i="1"><i class="fas fa-list-ol"></i><span>Live queue</span></button>
+                    <button type="button" class="lx-tab" role="tab" data-i="2"><i class="fas fa-file-prescription"></i><span>Prescriptions</span></button>
+                    <button type="button" class="lx-tab" role="tab" data-i="3"><i class="fas fa-pills"></i><span>Pharmacy</span></button>
+                    <button type="button" class="lx-tab" role="tab" data-i="4"><i class="fas fa-notes-medical"></i><span>Medical record</span></button>
                 </div>
+
+                <div class="lx-stage">
+                    <!-- 0 WhatsApp -->
+                    <div class="lx-panel on" data-i="0">
+                        <div class="lx-mock lx-chat" aria-hidden="true">
+                            <div class="lx-b me" style="--d:.2s">Hi, I need an appointment</div>
+                            <div class="lx-b bot" style="--d:1.1s">Welcome! Which doctor would you like to see?<span class="lx-chip">Dr. Asha Rao</span><span class="lx-chip">Dr. Bharat Iyer</span></div>
+                            <div class="lx-b me" style="--d:2.2s">Dr. Asha Rao &middot; tomorrow</div>
+                            <div class="lx-b bot ok" style="--d:3.2s"><i class="fas fa-check-circle"></i> Booked &middot; Queue #4 &middot; about 10:45 AM</div>
+                        </div>
+                        <div class="lx-text"><h3>Patients book in a chat</h3>
+                            <ul><li>No app to install &mdash; it works on the WhatsApp they already use</li><li>English, हिन्दी, తెలుగు and தமிழ்</li><li>Reschedule, cancel and ask &ldquo;where am I in the queue?&rdquo;</li></ul></div>
+                    </div>
+                    <!-- 1 Queue -->
+                    <div class="lx-panel" data-i="1">
+                        <div class="lx-mock">
+                            <div class="lg-card" aria-hidden="true">
+                                <div class="lg-card-head"><span>Today's queue</span><span class="lg-live">Live</span></div>
+                                <div id="lgQueue">
+                                    <div class="lg-row"><span class="lg-q">1</span><span class="lg-name">A. Reddy</span><span class="lg-time">09:00</span><span class="lg-tag done">Completed</span></div>
+                                    <div class="lg-row"><span class="lg-q">2</span><span class="lg-name">S. Fatima</span><span class="lg-time">09:15</span><span class="lg-tag consult">In consultation</span></div>
+                                    <div class="lg-row"><span class="lg-q">3</span><span class="lg-name">R. Kumar</span><span class="lg-time">09:30</span><span class="lg-tag waiting">Waiting</span></div>
+                                    <div class="lg-row"><span class="lg-q">4</span><span class="lg-name">M. Joseph</span><span class="lg-time">09:45</span><span class="lg-tag waiting">Waiting</span></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="lx-text"><h3>A queue everyone can see</h3>
+                            <ul><li>Doctors see waiting, in consultation and done at a glance</li><li>Patients get &ldquo;2 ahead of you&rdquo; and &ldquo;it's your turn&rdquo; on WhatsApp</li><li>Running late? The new estimate is sent automatically</li></ul></div>
+                    </div>
+                    <!-- 2 Prescriptions -->
+                    <div class="lx-panel" data-i="2">
+                        <div class="lx-mock lx-rx" aria-hidden="true">
+                            <div class="lx-rx-head"><b>Dr. Asha Rao</b><span>General Medicine</span></div>
+                            <div class="lx-rx-body">
+                                <div class="lx-rx-line"><b>1. Dolo 650 mg</b><span>1 tab &middot; 3 times a day &middot; 3 days</span></div>
+                                <div class="lx-rx-line"><b>2. Cetirizine 10 mg</b><span>1 tab at bedtime &middot; 5 days</span></div>
+                                <div class="lx-rx-line"><b>3. ORS sachets</b><span>after every loose motion</span></div>
+                                <div class="lx-qr"></div>
+                            </div>
+                            <div class="lx-rx-foot"><i class="fab fa-whatsapp"></i> Sent to the patient on WhatsApp</div>
+                        </div>
+                        <div class="lx-text"><h3>Prescriptions that look the part</h3>
+                            <ul><li>Printable A4 with your letterhead, PDF and a QR code to verify it</li><li>Medicine finder shows live stock while writing</li><li>The patient gets a secure link on WhatsApp</li></ul></div>
+                    </div>
+                    <!-- 3 Pharmacy -->
+                    <div class="lx-panel" data-i="3">
+                        <div class="lx-mock lx-stock" aria-hidden="true">
+                            <div class="lx-s"><span>Paracetamol 500</span><div class="lx-meter"><i style="width:82%"></i></div><em>240 &middot; exp Mar 27</em></div>
+                            <div class="lx-s"><span>Amoxicillin 250</span><div class="lx-meter"><i style="width:46%"></i></div><em>120 &middot; exp Jan 27</em></div>
+                            <div class="lx-s warn"><span>Cetirizine 10</span><div class="lx-meter"><i style="width:9%"></i></div><em>12 &middot; low stock</em></div>
+                            <div class="lx-s warn2"><span>ORS sachets</span><div class="lx-meter"><i style="width:30%"></i></div><em>60 &middot; expires in 21 days</em></div>
+                        </div>
+                        <div class="lx-text"><h3>Pharmacy that runs itself</h3>
+                            <ul><li>Batches and expiry dates, earliest-expiry dispensed first</li><li>Dispense straight from a prescription, even partly</li><li>Low-stock and expiry alerts before they cost you</li></ul></div>
+                    </div>
+                    <!-- 4 Record -->
+                    <div class="lx-panel" data-i="4">
+                        <div class="lx-mock lx-rec" aria-hidden="true">
+                            <div class="lx-alert"><i class="fas fa-exclamation-triangle"></i> Allergies: Penicillin, sulfa drugs</div>
+                            <div class="lx-tl"><span class="lx-dot"></span><div><b>12 Oct &middot; Dr. Asha Rao</b><small>Viral fever &middot; Dolo 650 mg</small></div></div>
+                            <div class="lx-tl"><span class="lx-dot"></span><div><b>02 Aug &middot; Dr. Bharat Iyer</b><small>Seasonal allergy &middot; Cetirizine</small></div></div>
+                            <div class="lx-glance"><b>At a glance</b> BP 128/84 &middot; 2 visits in 3 months</div>
+                        </div>
+                        <div class="lx-text"><h3>The whole story, every visit</h3>
+                            <ul><li>Any doctor sees earlier prescriptions, vitals and allergies</li><li>Repeat medicines in one click, with an allergy warning</li><li>Every access is logged for privacy</li></ul></div>
+                    </div>
+                </div>
+                <div class="lx-bar" aria-hidden="true"><span id="lxBar"></span></div>
             </div>
 
-            <div class="lg-pills">
-                <span class="lg-pill"><i class="fab fa-whatsapp"></i> WhatsApp booking</span>
-                <span class="lg-pill"><i class="fas fa-list-ol"></i> Live queue</span>
-                <span class="lg-pill"><i class="fas fa-file-prescription"></i> Digital Rx</span>
-                <span class="lg-pill"><i class="fas fa-pills"></i> Pharmacy stock</span>
+            <div class="lx-links" th:if="${tenancyEnabled}">
+                <a class="lx-link primary" th:href="@{/tour}"><i class="fas fa-play-circle"></i> Take the product tour</a>
+                <a class="lx-link" th:href="@{/site#demo}"><i class="fas fa-calendar-check"></i> Request a demo</a>
             </div>
         </div>
 
@@ -108,6 +163,15 @@
             <form name="loginForm" th:action="@{/login}" method="POST" id="loginForm" novalidate="novalidate">
                 <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
 
+                <div class="lg-field" th:if="${tenancyEnabled}">
+                    <label class="lg-label" for="clinic">Clinic code <span class="lg-opt">&mdash; from your administrator</span></label>
+                    <div class="lg-input-wrap">
+                        <i class="fas fa-hospital lead"></i>
+                        <input class="lg-input" type="text" id="clinic" autocomplete="organization" placeholder="e.g. sunrise" autocapitalize="none" spellcheck="false"/>
+                    </div>
+                    <div class="lg-hint">Your clinic code is the part after the <b>@</b> in your sign-in (admin<b>@sunrise</b>). Staff, doctors and patients all use it.</div>
+                </div>
+
                 <div class="lg-field">
                     <label class="lg-label" for="username" id="lgUserLabel">Email or username</label>
                     <div class="lg-input-wrap">
@@ -143,6 +207,10 @@
                 </button>
             </form>
 
+            <div class="lg-mobile-links" th:if="${tenancyEnabled}">
+                New to Mediport? <a th:href="@{/tour}">Take the product tour</a> &middot; <a th:href="@{/site#demo}">Request a demo</a>
+            </div>
+
             <div class="lg-wa">
                 <i class="fab fa-whatsapp"></i>
                 <div>
@@ -175,7 +243,7 @@
         $('lgUserLabel').textContent = r.label;
         $('username').placeholder = r.ph;
         $('lgSub').textContent = r.sub;
-        document.querySelector('.lg-input-wrap > i.lead').className = 'fas ' + r.icon + ' lead';
+        $('username').parentNode.querySelector('i.lead').className = 'fas ' + r.icon + ' lead';
         try { localStorage.setItem('mp.loginRole', idx); } catch (e) {}
     }
     tabs.forEach(function (t, i) { t.addEventListener('click', function () { selectTab(i); $('username').focus(); }); });
@@ -223,15 +291,42 @@
         $(id).addEventListener('input', function () { this.style.borderColor = ''; });
     });
 
-    if (reduce) return;
+    /* ---- interactive product explorer (left panel) ---- */
+    var lxTabs = document.querySelectorAll('.lx-tab'), lxPanels = document.querySelectorAll('.lx-panel'), lxBar = $('lxBar');
+    var lxI = 0, lxTimer = null, LX_MS = 7000, lxPaused = false;
+    function lxShow(i) {
+        lxI = (i + lxTabs.length) % lxTabs.length;
+        lxTabs.forEach(function (t, k) { t.classList.toggle('on', k === lxI); t.setAttribute('aria-selected', k === lxI); });
+        lxPanels.forEach(function (p, k) { p.classList.toggle('on', k === lxI); });
+        lxBar.style.animation = 'none'; void lxBar.offsetWidth;
+        if (lxTimer) clearInterval(lxTimer);
+        if (!reduce && !lxPaused) {
+            lxBar.style.animation = 'lxFill ' + LX_MS + 'ms linear forwards';
+            lxTimer = setInterval(function () { lxShow(lxI + 1); }, LX_MS);
+        }
+    }
+    lxTabs.forEach(function (t) { t.addEventListener('click', function () { lxShow(+t.dataset.i); }); });
+    var lxBox = $('lx');
+    lxBox.addEventListener('mouseenter', function () { lxPaused = true; if (lxTimer) clearInterval(lxTimer); lxBar.style.animation = 'none'; });
+    lxBox.addEventListener('mouseleave', function () { lxPaused = false; lxShow(lxI); });
+    lxShow(0);
 
-    /* ---- rotating tagline ---- */
-    var lines = document.querySelectorAll('#lgRotator p'), li = 0;
-    setInterval(function () {
-        lines[li].classList.remove('on');
-        li = (li + 1) % lines.length;
-        lines[li].classList.add('on');
-    }, 3800);
+    /* ---- clinic code (multi-clinic mode) ---- */
+    var clinicEl = $('clinic');
+    if (clinicEl) {
+        try {
+            var qs = new URLSearchParams(location.search).get('clinic');
+            clinicEl.value = qs || localStorage.getItem('mp.clinic') || '';
+        } catch (e) {}
+        if (/[?&]error=site/.test(location.search)) { clinicEl.focus(); clinicEl.style.borderColor = 'var(--status-missed-bar)'; }
+        $('loginForm').addEventListener('submit', function () {
+            var c = clinicEl.value.trim().toLowerCase().replace(/^@/, ''), u = $('username').value.trim();
+            if (c && u && u.indexOf('@') < 0) { $('username').value = u + '@' + c; }
+            try { if (c) localStorage.setItem('mp.clinic', c); } catch (e) {}
+        });
+    }
+
+    if (reduce) return;
 
     /* ---- rising particles ---- */
     var left = $('lgLeft');
