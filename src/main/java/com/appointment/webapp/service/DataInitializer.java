@@ -4,7 +4,6 @@ import com.appointment.webapp.model.Privilege;
 import com.appointment.webapp.model.Role;
 import com.appointment.webapp.repository.PrivilegeRepository;
 import com.appointment.webapp.repository.RoleRepository;
-import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -39,7 +38,7 @@ public class DataInitializer {
     public static final String ROLE_ATTENDANT = "ATTENDANT";
     public static final String ROLE_PHARMA = "PHARMA";
 
-    @PostConstruct
+    /** Creates/updates privileges and roles. Called at start-up (single clinic) or once per clinic by the tenancy startup. */
     @Transactional
     public void init() {
         // create privileges if missing

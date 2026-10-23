@@ -44,7 +44,7 @@ public class WhatsAppPrescriptionNotifier {
 
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void onCreated(PrescriptionCreatedEvent event) {
-        CompletableFuture.runAsync(() -> sendNow(event.prescriptionId()));
+        CompletableFuture.runAsync(com.appointment.webapp.tenancy.TenantRunner.wrap((Runnable) () -> { sendNow(event.prescriptionId()); }));
     }
 
     /** Sends the message now and says what happened. */

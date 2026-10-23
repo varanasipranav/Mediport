@@ -26,12 +26,19 @@ public class ScheduleAutoGenerationService {
     @Autowired
     private UserRepository userRepository;
 
+    @Autowired
+    private com.appointment.webapp.tenancy.TenantRunner tenantRunner;
+
     /**
      * Auto-generate schedules for all doctors every day at 2 AM
      * Generates schedules for the next 30 days
      */
     @Scheduled(cron = "0 0 2 * * ?") // Every day at 2:00 AM
     public void autoGenerateSchedulesDaily() {
+        tenantRunner.forEachTenant("scheduleDaily", this::doAutoGenerateSchedulesDaily);
+    }
+
+    private void doAutoGenerateSchedulesDaily() {
         logger.info("Starting auto-generation of daily schedules from weekly templates");
 
         try {
@@ -74,6 +81,10 @@ public class ScheduleAutoGenerationService {
      */
     @Scheduled(cron = "0 0 0 * * SUN") // Every Sunday at midnight
     public void weeklyScheduleGeneration() {
+        tenantRunner.forEachTenant("scheduleWeekly", this::doWeeklyScheduleGeneration);
+    }
+
+    private void doWeeklyScheduleGeneration() {
         logger.info("Starting weekly schedule generation (Sunday night)");
 
         try {

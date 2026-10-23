@@ -8,6 +8,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 @Entity
+@EntityListeners(com.appointment.webapp.tenancy.LoginDirectoryListener.class)
 @Table(name = "users")
 public class User {
 

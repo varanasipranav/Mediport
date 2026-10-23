@@ -52,7 +52,9 @@ public class WhatsAppConfig {
         // Add interceptor for logging and adding auth header
         restTemplate.getInterceptors().add((request, body, execution) -> {
             // Add authorization header to all WhatsApp API requests
-            request.getHeaders().set("Authorization", "Bearer " + api.accessToken);
+            if (request.getHeaders().getFirst("Authorization") == null) {
+                request.getHeaders().set("Authorization", "Bearer " + api.accessToken);
+            }
             request.getHeaders().set("Content-Type", "application/json");
             return execution.execute(request, body);
         });

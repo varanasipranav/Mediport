@@ -44,6 +44,9 @@ public class WebhookDispatcher {
     @Autowired
     private EntityManagerFactory entityManagerFactory;
 
+    @Autowired
+    private java.util.Optional<com.appointment.webapp.tenancy.TenantRegistry> tenantRegistry;
+
     public WebhookDispatcher() {
         for (int i = 0; i < LANES; i++) {
             lanes[i] = Executors.newSingleThreadExecutor(Thread.ofPlatform().name("whatsapp-lane-" + i).factory());
@@ -56,11 +59,21 @@ public class WebhookDispatcher {
             return;
         }
 
-        String sender = message.getFrom() != null ? message.getFrom() : "";
+        String sender = (message.getSiteId() != null ? message.getSiteId() + ":" : "") + (message.getFrom() != null ? message.getFrom() : "");
         ExecutorService lane = lanes[Math.floorMod(sender.hashCode(), LANES)];
+        // The clinic is looked up before the task runs; on the lane thread it is set only for this message and always cleared
+        var tenant = message.getSiteId() == null ? null : tenantRegistry.map(r -> r.find(message.getSiteId()).orElse(null)).orElse(null);
+        if (message.getSiteId() != null && tenant == null) {
+            logger.warn("Dropping WhatsApp message {}: unknown clinic {}", message.getMessageId(), message.getSiteId());
+            return;
+        }
         try {
             lane.execute(() -> {
-                processWithOpenSession(message);
+                if (tenant == null) {
+                    processWithOpenSession(message);
+                } else {
+                    com.appointment.webapp.tenancy.TenantContext.runAs(tenant, () -> processWithOpenSession(message));
+                }
             });
         } catch (RejectedExecutionException e) {
             logger.error("WhatsApp dispatcher is shut down; dropping message {}", message.getMessageId());

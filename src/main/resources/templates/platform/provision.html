@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Mediport — New clinic</title>
+    <link rel="stylesheet" th:href="@{/vendor/fa/css/all.min.css}"/>
+    <link rel="stylesheet" th:href="@{/css/mediport-tokens.css}"/>
+    <link rel="stylesheet" th:href="@{/css/site.css}"/>
+</head>
+<body class="site">
+<div class="wrap" style="max-width:680px;padding:36px 20px 60px">
+    <a th:href="@{/platform}" class="muted"><i class="fas fa-arrow-left"></i> Back to console</a>
+    <h2 style="font-size:24px;margin:12px 0 18px">Set up a clinic</h2>
+    <div class="form-card" style="max-width:none">
+        <div class="alert bad" th:if="${error}" th:text="${error}"></div>
+        <p class="muted" th:if="${req}" th:text="'From the demo request by ' + ${req.contactName} + ' (' + ${req.email} + ', ' + ${req.phone} + ')'"></p>
+        <form th:action="@{/platform/provision}" method="post">
+            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+            <input type="hidden" name="requestId" th:value="${requestId}"/>
+            <div class="row2">
+                <div class="f">
+                    <label for="siteId">Clinic code</label>
+                    <input id="siteId" name="siteId" type="text" th:value="${suggestedCode}" maxlength="30" pattern="[a-z][a-z0-9]{2,29}" required="required" autocomplete="off"/>
+                    <div class="hint" id="codeHint">Lowercase letters/digits. Staff sign in as <b>admin@<span id="codeEcho">code</span></b>.</div>
+                </div>
+                <div class="f">
+                    <label for="displayName">Clinic name</label>
+                    <input id="displayName" name="displayName" type="text" th:value="${req != null} ? ${req.clinicName} : (${form != null} ? ${form['displayName']} : '')" maxlength="150" required="required"/>
+                </div>
+            </div>
+            <div class="f"><label for="tagline">Tagline (optional)</label><input id="tagline" name="tagline" type="text" th:value="${form != null} ? ${form['tagline']} : ''" maxlength="200"/></div>
+            <div class="f"><label for="address">Address (optional)</label><input id="address" name="address" type="text" th:value="${form != null} ? ${form['address']} : ''" maxlength="300"/></div>
+            <div class="row2">
+                <div class="f"><label for="phone">Clinic phone</label><input id="phone" name="phone" type="text" th:value="${req != null} ? ${req.phone} : (${form != null} ? ${form['phone']} : '')" maxlength="40"/></div>
+                <div class="f"><label for="email">Admin email</label><input id="email" name="email" type="email" th:value="${req != null} ? ${req.email} : (${form != null} ? ${form['email']} : '')" maxlength="150"/></div>
+            </div>
+            <div class="f"><label><input type="checkbox" name="sampleData" value="true" style="width:auto"/> Add sample doctors (for a demo clinic)</label></div>
+
+            <h3 style="font-size:15px;margin:18px 0 8px">WhatsApp number (optional - can be added later)</h3>
+            <div class="row2">
+                <div class="f"><label for="waPhoneNumberId">Phone number ID</label><input id="waPhoneNumberId" name="waPhoneNumberId" type="text" maxlength="40"/></div>
+                <div class="f"><label for="waAccessToken">Access token</label><input id="waAccessToken" name="waAccessToken" type="password" maxlength="600" autocomplete="off"/></div>
+            </div>
+            <div class="f"><label for="waAppSecret">App secret (only if this number belongs to a different Meta app)</label><input id="waAppSecret" name="waAppSecret" type="password" maxlength="100" autocomplete="off"/></div>
+
+            <button class="btn btn-primary" type="submit" style="width:100%" id="goBtn"><i class="fas fa-rocket"></i> Create clinic</button>
+            <p class="muted" style="margin-top:10px">This creates the clinic's own database and its first admin. The password is shown once.</p>
+        </form>
+    </div>
+</div>
+<script th:inline="javascript">
+(function () {
+    var input = document.getElementById('siteId'), echo = document.getElementById('codeEcho'), hint = document.getElementById('codeHint');
+    var url = /*[[@{/platform/check-code}]]*/ '/platform/check-code', timer;
+    function sync() { echo.textContent = input.value || 'code'; }
+    input.addEventListener('input', function () {
+        sync(); clearTimeout(timer);
+        timer = setTimeout(function () {
+            if (!input.value) return;
+            fetch(url + '?code=' + encodeURIComponent(input.value), {credentials: 'same-origin'})
+                .then(function (r) { return r.json(); })
+                .then(function (j) { hint.style.color = j.ok ? '#047857' : '#B91C1C'; hint.textContent = j.message; })
+                .catch(function () {});
+        }, 300);
+    });
+    sync();
+})();
+</script>
+</body>
+</html>

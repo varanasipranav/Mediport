@@ -46,6 +46,9 @@ public class WhatsAppQueueNotifier {
     static final String RUNNING_LATE = "RUNNING_LATE";
     static final String MISSED = "MISSED_TURN";
 
+    @org.springframework.beans.factory.annotation.Autowired
+    private com.appointment.webapp.tenancy.TenantRunner tenantRunner;
+
     private final QueueStatusService queueStatus;
     private final NotificationLogRepository log;
     private final AppointmentRepository appointments;
@@ -68,6 +71,10 @@ public class WhatsAppQueueNotifier {
 
     @Scheduled(cron = "0 * * * * *", zone = "${app.timezone:Asia/Kolkata}")
     public void run() {
+        tenantRunner.forEachTenant("queueAlerts", this::runForCurrentClinic);
+    }
+
+    private void runForCurrentClinic() {
         try {
             List<QueueStatus> today = queueStatus.statusesFor(clock.today());
             for (QueueStatus s : today) {

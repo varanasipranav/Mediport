@@ -18,7 +18,7 @@ public class DashboardController {
     @Autowired
     private UserService userService;
 
-    @GetMapping({"/", "/dashboard", "/dashboard/index"})
+    @GetMapping({"/dashboard", "/dashboard/index"})
     public String dashboard(Model model) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         String username = auth.getName();

@@ -64,7 +64,7 @@ public class RxDocumentService {
 
     private final ClinicProperties clinic;
     private final String publicUrl;
-    private final byte[] signingKey;
+    private final byte[] defaultSigningKey;
 
     public RxDocumentService(ClinicProperties clinic,
                              @Value("${app.public-url:http://localhost:8081}") String publicUrl,
@@ -75,7 +75,7 @@ public class RxDocumentService {
             logger.warn("app.rx.signing-key is not set - prescription QR codes will stop verifying after a restart");
             signingKey = UUID.randomUUID().toString();
         }
-        this.signingKey = signingKey.getBytes(StandardCharsets.UTF_8);
+        this.defaultSigningKey = signingKey.getBytes(StandardCharsets.UTF_8);
     }
 
     /** One row of the medicine table. */
@@ -114,10 +114,22 @@ public class RxDocumentService {
 
     // ---------------------------------------------------------------- verification
 
+    /** Each clinic signs with its own key; single-clinic mode uses the configured one. */
+    private byte[] signingKey() {
+        var t = com.appointment.webapp.tenancy.TenantContext.get();
+        return t != null && t.rxSigningKey() != null ? t.rxSigningKey().getBytes(StandardCharsets.UTF_8) : defaultSigningKey;
+    }
+
+    /** "/s/{site}" when the link belongs to a clinic, so the public page knows which clinic to open. */
+    private String sitePart() {
+        String site = com.appointment.webapp.tenancy.TenantContext.siteId();
+        return site == null ? "" : "/s/" + site;
+    }
+
     public String sign(Long prescriptionId) {
         try {
             Mac mac = Mac.getInstance("HmacSHA256");
-            mac.init(new SecretKeySpec(signingKey, "HmacSHA256"));
+            mac.init(new SecretKeySpec(signingKey(), "HmacSHA256"));
             byte[] h = mac.doFinal(("rx:" + prescriptionId).getBytes(StandardCharsets.UTF_8));
             StringBuilder sb = new StringBuilder();
             for (int i = 0; i < 8; i++) sb.append(String.format("%02x", h[i]));
@@ -135,7 +147,7 @@ public class RxDocumentService {
     /** Public PDF link that stops working after a week: /rx/pdf/{id}/{expiryEpochDay}/{signature}. */
     public String signedPdfUrl(Long prescriptionId) {
         long expiry = LocalDate.now().plusDays(7).toEpochDay();
-        return publicUrl + "/rx/pdf/" + prescriptionId + "/" + expiry + "/" + sign(prescriptionId + ":" + expiry);
+        return publicUrl + "/rx/pdf" + sitePart() + "/" + prescriptionId + "/" + expiry + "/" + sign(prescriptionId + ":" + expiry);
     }
 
     public boolean verifyPdfLink(Long prescriptionId, long expiryEpochDay, String signature) {
@@ -148,7 +160,7 @@ public class RxDocumentService {
     public String sign(String payload) {
         try {
             Mac mac = Mac.getInstance("HmacSHA256");
-            mac.init(new SecretKeySpec(signingKey, "HmacSHA256"));
+            mac.init(new SecretKeySpec(signingKey(), "HmacSHA256"));
             byte[] h = mac.doFinal(("rx:" + payload).getBytes(StandardCharsets.UTF_8));
             StringBuilder sb = new StringBuilder();
             for (int i = 0; i < 12; i++) sb.append(String.format("%02x", h[i]));
@@ -159,7 +171,7 @@ public class RxDocumentService {
     }
 
     public String verifyUrl(Long prescriptionId) {
-        return publicUrl + "/verify/rx/" + prescriptionId + "/" + sign(prescriptionId);
+        return publicUrl + "/verify/rx" + sitePart() + "/" + prescriptionId + "/" + sign(prescriptionId);
     }
 
     // ---------------------------------------------------------------- QR

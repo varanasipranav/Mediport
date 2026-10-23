@@ -21,14 +21,18 @@ public class ClinicClock {
     }
 
     public ZoneId zone() {
+        var t = com.appointment.webapp.tenancy.TenantContext.get();
+        if (t != null && t.timezone() != null && !t.timezone().isBlank()) {
+            return ZoneId.of(t.timezone());
+        }
         return zone;
     }
 
     public LocalDate today() {
-        return LocalDate.now(zone);
+        return LocalDate.now(zone());
     }
 
     public LocalDateTime now() {
-        return LocalDateTime.now(zone);
+        return LocalDateTime.now(zone());
     }
 }

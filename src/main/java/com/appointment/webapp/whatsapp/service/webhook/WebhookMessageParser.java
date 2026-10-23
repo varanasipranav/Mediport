@@ -54,11 +54,13 @@ public class WebhookMessageParser {
 
                     // Get sender information
                     String senderName = extractSenderName(value);
+                    String phoneNumberId = value.getMetadata() != null ? value.getMetadata().getPhoneNumberId() : null;
 
                     // Parse each message
                     for (WebhookEvent.Message message : value.getMessages()) {
                         ParsedMessage parsed = parseIndividualMessage(message, senderName);
                         if (parsed != null) {
+                            parsed.setPhoneNumberId(phoneNumberId);
                             parsedMessages.add(parsed);
                             logger.info("Parsed message: {}", parsed);
                         }

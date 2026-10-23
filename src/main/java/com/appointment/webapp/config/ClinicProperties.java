@@ -17,16 +17,16 @@ public class ClinicProperties {
     private String email = "";
     private String registrationNo = "";
 
-    public String getName() { return name; }
+    public String getName() { var t = com.appointment.webapp.tenancy.TenantContext.get(); return t != null ? java.util.Objects.toString(t.displayName(), "") : name; }
     public void setName(String name) { this.name = name; }
-    public String getTagline() { return tagline; }
+    public String getTagline() { var t = com.appointment.webapp.tenancy.TenantContext.get(); return t != null ? java.util.Objects.toString(t.tagline(), "") : tagline; }
     public void setTagline(String tagline) { this.tagline = tagline; }
-    public String getAddress() { return address; }
+    public String getAddress() { var t = com.appointment.webapp.tenancy.TenantContext.get(); return t != null ? java.util.Objects.toString(t.address(), "") : address; }
     public void setAddress(String address) { this.address = address; }
-    public String getPhone() { return phone; }
+    public String getPhone() { var t = com.appointment.webapp.tenancy.TenantContext.get(); return t != null ? java.util.Objects.toString(t.phone(), "") : phone; }
     public void setPhone(String phone) { this.phone = phone; }
-    public String getEmail() { return email; }
+    public String getEmail() { var t = com.appointment.webapp.tenancy.TenantContext.get(); return t != null ? java.util.Objects.toString(t.email(), "") : email; }
     public void setEmail(String email) { this.email = email; }
-    public String getRegistrationNo() { return registrationNo; }
+    public String getRegistrationNo() { var t = com.appointment.webapp.tenancy.TenantContext.get(); return t != null ? java.util.Objects.toString(t.registrationNo(), "") : registrationNo; }
     public void setRegistrationNo(String registrationNo) { this.registrationNo = registrationNo; }
 }

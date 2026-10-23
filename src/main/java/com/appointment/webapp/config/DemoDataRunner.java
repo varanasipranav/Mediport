@@ -2,7 +2,6 @@ package com.appointment.webapp.config;
 
 import com.appointment.webapp.service.DemoDataService;
 import org.springframework.boot.CommandLineRunner;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
@@ -12,7 +11,7 @@ import org.springframework.stereotype.Component;
  */
 @Component
 @Order(100)
-@ConditionalOnProperty(name = "app.seed-demo-doctors", havingValue = "true")
+@org.springframework.boot.autoconfigure.condition.ConditionalOnExpression("'${app.seed-demo-doctors:false}' == 'true' and '${app.tenancy.enabled:false}' == 'false'")
 public class DemoDataRunner implements CommandLineRunner {
 
     private final DemoDataService demo;

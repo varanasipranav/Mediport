@@ -29,6 +29,9 @@ public class WhatsAppReminderScheduler {
     /** Reminders already sent (kind:appointmentId). The windows already prevent repeats; this guards overlaps and restarts. */
     private final Set<String> sentReminders = ConcurrentHashMap.newKeySet();
 
+    @org.springframework.beans.factory.annotation.Autowired
+    private com.appointment.webapp.tenancy.TenantRunner tenantRunner;
+
     private final WhatsAppAppointmentManagementService appointments;
     private final WhatsAppMessageSender sender;
     private final MessageCatalog messages;
@@ -46,11 +49,16 @@ public class WhatsAppReminderScheduler {
         if (sentReminders.size() > 10000) {
             sentReminders.clear();
         }
-        return candidates.stream().filter(a -> sentReminders.add(kind + ":" + a.getId())).collect(Collectors.toList());
+        String site = String.valueOf(com.appointment.webapp.tenancy.TenantContext.siteId());
+        return candidates.stream().filter(a -> sentReminders.add(site + ":" + kind + ":" + a.getId())).collect(Collectors.toList());
     }
 
     @Scheduled(cron = "0 0,30 * * * *", zone = "${app.timezone:Asia/Kolkata}")
     public void send24HourReminders() {
+        tenantRunner.forEachTenant("reminders24h", this::do24HourReminders);
+    }
+
+    private void do24HourReminders() {
         try {
             List<Appointment> due = unsent("24h", appointments.getAppointmentsStartingInWindow(24));
             logger.info("{} appointments need a 24h reminder", due.size());
@@ -62,6 +70,10 @@ public class WhatsAppReminderScheduler {
 
     @Scheduled(cron = "0 0,30 * * * *", zone = "${app.timezone:Asia/Kolkata}")
     public void send2HourReminders() {
+        tenantRunner.forEachTenant("reminders2h", this::do2HourReminders);
+    }
+
+    private void do2HourReminders() {
         try {
             List<Appointment> due = unsent("2h", appointments.getAppointmentsStartingInWindow(2));
             logger.info("{} appointments need a 2h reminder", due.size());

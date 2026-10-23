@@ -18,6 +18,11 @@ public class CustomAuthenticationFailureHandler implements AuthenticationFailure
             throws IOException, ServletException {
 
         // Don't echo the exception text into the URL; the login page shows a fixed message
+        if (exception instanceof com.appointment.webapp.tenancy.SiteRequiredException
+                || exception.getCause() instanceof com.appointment.webapp.tenancy.SiteRequiredException) {
+            response.sendRedirect(request.getContextPath() + "/login?error=site");
+            return;
+        }
         response.sendRedirect(request.getContextPath() + "/login?error=true");
     }
 }

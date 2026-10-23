@@ -17,6 +17,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 @Component
+@org.springframework.boot.autoconfigure.condition.ConditionalOnProperty(name = "app.tenancy.enabled", havingValue = "false", matchIfMissing = true)
 public class DataLoader implements CommandLineRunner {
 
     @Autowired

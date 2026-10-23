@@ -32,7 +32,12 @@ public class WebhookSignatureValidator {
      * @return true if signature is valid, false otherwise
      */
     public boolean validateSignature(String payload, String signature) {
-        String appSecret = whatsAppConfig.getWebhook().getAppSecret();
+        return validateSignature(payload, signature, null);
+    }
+
+    /** @param secretOverride a clinic's own app secret (dedicated WhatsApp number), or null for the platform secret */
+    public boolean validateSignature(String payload, String signature, String secretOverride) {
+        String appSecret = secretOverride != null && !secretOverride.isBlank() ? secretOverride : whatsAppConfig.getWebhook().getAppSecret();
         if (appSecret == null || appSecret.isBlank() || appSecret.startsWith("YOUR_APP_SECRET")) {
             logger.error("whatsapp.webhook.app-secret is not configured - rejecting webhook (fail closed)");
             return false;
@@ -52,7 +57,7 @@ public class WebhookSignatureValidator {
             String receivedSignature = signature.substring(7);
 
             // Compute expected signature
-            String expectedSignature = computeHmacSha256(payload, whatsAppConfig.getWebhook().getAppSecret());
+            String expectedSignature = computeHmacSha256(payload, appSecret);
 
             // Constant-time comparison to prevent timing attacks
             boolean isValid = MessageDigest.isEqual(

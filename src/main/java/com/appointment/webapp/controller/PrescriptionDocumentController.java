@@ -75,7 +75,7 @@ public class PrescriptionDocumentController {
     }
 
     /** Public but signed and short-lived: the link sent to the patient on WhatsApp. */
-    @GetMapping("/rx/pdf/{id}/{expiry}/{signature}")
+    @GetMapping({"/rx/pdf/{id}/{expiry}/{signature}", "/rx/pdf/s/{site}/{id}/{expiry}/{signature}"})
     public ResponseEntity<byte[]> sharedPdf(@PathVariable Long id, @PathVariable long expiry, @PathVariable String signature) {
         if (!rxDocumentService.verifyPdfLink(id, expiry, signature)) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
@@ -89,7 +89,7 @@ public class PrescriptionDocumentController {
     }
 
     /** Public: scanned from the QR code on a printed prescription. Shows only non-sensitive facts. */
-    @GetMapping("/verify/rx/{id}/{signature}")
+    @GetMapping({"/verify/rx/{id}/{signature}", "/verify/rx/s/{site}/{id}/{signature}"})
     public String verify(@PathVariable Long id, @PathVariable String signature, Model model) {
         boolean valid = rxDocumentService.verify(id, signature);
         model.addAttribute("valid", valid);

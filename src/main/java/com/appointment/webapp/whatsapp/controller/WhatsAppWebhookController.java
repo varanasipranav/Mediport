@@ -48,6 +48,9 @@ public class WhatsAppWebhookController {
     @Autowired
     private WebhookDispatcher webhookDispatcher;
 
+    @Autowired
+    private com.appointment.webapp.whatsapp.service.webhook.WhatsAppTenantRouter tenantRouter;
+
     @org.springframework.beans.factory.annotation.Value("${whatsapp.webhook.test-endpoints-enabled:false}")
     private boolean testEndpointsEnabled;
 
@@ -117,7 +120,7 @@ public class WhatsAppWebhookController {
         logger.info("Webhook POST request received");
 
         // Step 1: Verify signature - rejects anything not signed by Meta with our app secret
-        if (!signatureValidator.validateSignature(payload, signature)) {
+        if (!signatureValidator.validateSignature(payload, signature, tenantRouter.appSecretFor(payload))) {
             logger.error("SECURITY ALERT: Invalid webhook signature!");
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid signature");
         }
@@ -143,6 +146,15 @@ public class WhatsAppWebhookController {
         // Step 4: Process each message through conversation flow
         for (ParsedMessage message : messages) {
             logger.info("Received message {} (type {})", message.getMessageId(), message.getMessageType());
+
+            if (tenantRouter.enabled()) {
+                var clinic = tenantRouter.clinicFor(message.getPhoneNumberId());
+                if (clinic.isEmpty()) {
+                    logger.warn("Ignoring message {}: no clinic is registered for WhatsApp number {}", message.getMessageId(), message.getPhoneNumberId());
+                    continue;
+                }
+                message.setSiteId(clinic.get().siteId());
+            }
 
             // Hand off to the async dispatcher (ordered per sender, de-duplicated by message ID)
             webhookDispatcher.dispatch(message);

@@ -16,6 +16,8 @@ public class ParsedMessage {
     private String buttonText;          // For button replies
     private String listId;              // For list replies
     private String listTitle;           // For list replies
+    private String phoneNumberId;       // The business number that received the message (identifies the clinic)
+    private String siteId;              // Clinic this message belongs to (set by the webhook controller when tenancy is on)
 
     public enum MessageType {
         TEXT,
@@ -103,6 +105,22 @@ public class ParsedMessage {
 
     public void setListTitle(String listTitle) {
         this.listTitle = listTitle;
+    }
+
+    public String getPhoneNumberId() {
+        return phoneNumberId;
+    }
+
+    public void setPhoneNumberId(String phoneNumberId) {
+        this.phoneNumberId = phoneNumberId;
+    }
+
+    public String getSiteId() {
+        return siteId;
+    }
+
+    public void setSiteId(String siteId) {
+        this.siteId = siteId;
     }
 
     @Override

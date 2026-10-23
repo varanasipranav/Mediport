@@ -20,13 +20,18 @@ public class PhoneNormalizer {
         this.defaultRegion = defaultRegion;
     }
 
+    private String region() {
+        var t = com.appointment.webapp.tenancy.TenantContext.get();
+        return t != null && t.defaultRegion() != null && !t.defaultRegion().isBlank() ? t.defaultRegion() : defaultRegion;
+    }
+
     /** E.164 form, or null if the input is blank. Throws if it cannot be a real number. */
     public String toE164(String raw) {
         if (raw == null || raw.isBlank()) {
             return null;
         }
         try {
-            Phonenumber.PhoneNumber parsed = util.parse(raw.trim(), defaultRegion);
+            Phonenumber.PhoneNumber parsed = util.parse(raw.trim(), region());
             if (!util.isValidNumber(parsed)) {
                 throw new BookingException("\"" + raw.trim() + "\" is not a valid phone number");
             }

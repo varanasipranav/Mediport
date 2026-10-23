@@ -91,7 +91,9 @@
             <div>
                 <div th:if="${param.error}" class="lg-alert err">
                     <i class="fas fa-exclamation-circle" style="margin-top:2px;"></i>
-                    <span>Invalid username or password. Please try again.</span>
+                    <span th:if="${param.error[0] == 'site'}">Several clinics use this username. Sign in as <b>username@clinic</b> (for example admin@sunrise).</span>
+                    <span th:if="${param.error[0] == 'clinic'}">This clinic account is not available. Please contact your administrator.</span>
+                    <span th:if="${param.error[0] != 'site' and param.error[0] != 'clinic'}">Invalid username or password. Please try again.</span>
                 </div>
                 <div th:if="${param.logout}" class="lg-alert ok">
                     <i class="fas fa-check-circle" style="margin-top:2px;"></i>
@@ -111,7 +113,7 @@
                     <div class="lg-input-wrap">
                         <i class="fas fa-user lead"></i>
                         <input class="lg-input" type="text" id="username" name="username"
-                               placeholder="your.name@mediport.io" autocomplete="username" autofocus="autofocus" required="required"/>
+                               placeholder="username or username@clinic" autocomplete="username" autofocus="autofocus" required="required"/>
                     </div>
                 </div>
 

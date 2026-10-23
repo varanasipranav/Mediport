@@ -19,6 +19,11 @@ public class CustomRememberMeServices extends PersistentTokenBasedRememberMeServ
             org.springframework.security.core.Authentication successfulAuthentication) {
         String username = successfulAuthentication.getName();
         logger.debug("Creating new persistent login for user " + username);
+        if (successfulAuthentication.getPrincipal() instanceof com.appointment.webapp.tenancy.TenantUser tu) {
+            // store "user@clinic" so that auto-login finds the right clinic's user again
+            successfulAuthentication = new org.springframework.security.authentication.UsernamePasswordAuthenticationToken(
+                    tu.qualifiedName(), null, successfulAuthentication.getAuthorities());
+        }
         super.onLoginSuccess(request, response, successfulAuthentication);
     }
 }

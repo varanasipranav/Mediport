@@ -179,7 +179,12 @@ public class WhatsAppMessageSender {
      */
     private String sendMessage(Map<String, Object> payload) {
         try {
-            String endpoint = whatsAppConfig.getApi().getMessagesEndpoint();
+            // A clinic with its own WhatsApp number sends from that number with its own token
+            var clinic = com.appointment.webapp.tenancy.TenantContext.get();
+            boolean own = clinic != null && clinic.waPhoneNumberId() != null && clinic.waAccessToken() != null;
+            String endpoint = own
+                    ? whatsAppConfig.getApi().getBaseUrl() + "/" + clinic.waPhoneNumberId() + "/messages"
+                    : whatsAppConfig.getApi().getMessagesEndpoint();
 
             logger.info("📤 Sending message to WhatsApp API");
             logger.info("   Endpoint: {}", endpoint);
@@ -189,7 +194,10 @@ public class WhatsAppMessageSender {
 
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_JSON);
-            // Note: Authorization header is added by RestTemplate interceptor
+            if (own) {
+                headers.setBearerAuth(clinic.waAccessToken());
+            }
+            // Otherwise the Authorization header is added by the RestTemplate interceptor
 
             HttpEntity<String> request = new HttpEntity<>(jsonPayload, headers);
 
