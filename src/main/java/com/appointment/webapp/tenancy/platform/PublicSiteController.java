@@ -81,6 +81,35 @@ public class PublicSiteController {
         return "site/landing";
     }
 
+    public record Slide(int n, String chapter, String title, String blurb) {
+        public String file() {
+            return String.format("slide-%02d.jpg", n);
+        }
+    }
+
+    private static final java.util.List<Slide> TOUR = java.util.List.of(
+            new Slide(1, "Welcome", "Run your clinic. Let WhatsApp handle the front desk.", "Clinic management software with a WhatsApp patient assistant."),
+            new Slide(2, "The problem", "Front desks are stretched thin", "Phone calls to book, crowded waiting rooms, \"When is my turn?\", lost paper prescriptions, stock expiring unnoticed."),
+            new Slide(3, "Patients", "Patients book on WhatsApp", "Name, doctor, day and confirmation, all inside one chat. No app to install."),
+            new Slide(4, "Patients", "Speaks their language", "English, Hindi, Telugu and Tamil. Patients choose their language right in the chat."),
+            new Slide(5, "Patients", "Manage bookings in chat", "Queue status, my appointments, reschedule and cancel, all from one menu. Queue updates arrive in the same chat."),
+            new Slide(6, "Patients", "Families on one number", "A parent books for the children from one phone, then chooses who each appointment is for."),
+            new Slide(7, "Doctors", "Smart scheduling", "Weekly templates, automatic queue numbers, and no double-booking."),
+            new Slide(8, "Doctors", "Live queue for doctors", "Today's patients, in order, on one screen: waiting, in consultation and completed at a glance."),
+            new Slide(9, "Front desk", "A calmer front desk", "Check patients in and see the whole queue in one place."),
+            new Slide(10, "Doctors", "Prescriptions and medical record", "Printable A4 with a QR code, PDF, and allergies and history visible to any doctor the patient sees."),
+            new Slide(11, "Pharmacy", "Pharmacy built in", "Batches and expiry, earliest-expiry-first dispensing, and low-stock alerts."),
+            new Slide(12, "Portals", "One portal, every role", "Admin, doctor, patient, front desk and pharmacist each get their own dashboard."),
+            new Slide(13, "Platform", "Many clinics, one platform", "Each clinic has its own private database. Approve a demo request and the new clinic is ready in minutes."),
+            new Slide(14, "Trust", "Private and secure", "Role-based access, signed WhatsApp messages, an access log on medical records, and separate data per clinic."),
+            new Slide(15, "Get started", "Live in three simple steps", "Request a demo, we set up your clinic, then add your doctors and connect your WhatsApp number."));
+
+    @GetMapping("/tour")
+    public String tour(Model model) {
+        model.addAttribute("slides", TOUR);
+        return "site/tour";
+    }
+
     @GetMapping("/site/thanks")
     public String thanks() {
         return "site/thanks";

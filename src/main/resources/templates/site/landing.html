@@ -20,7 +20,7 @@
         </a>
         <nav>
             <a class="link" href="#features">Features</a>
-            <a class="link" href="#tour">Product tour</a>
+            <a class="link" th:href="@{/tour}">Product tour</a>
             <a class="link" href="#how">How it works</a>
             <a class="link" href="#faq">FAQ</a>
             <a class="btn btn-ghost btn-sm" th:href="@{/login}">Clinic sign in</a>
@@ -37,7 +37,7 @@
             <p class="lead">Online booking, live queues, printable prescriptions and a pharmacy — with a patient assistant on WhatsApp that speaks English, Hindi, Telugu and Tamil.</p>
             <div class="cta">
                 <a class="btn btn-primary" href="#demo"><i class="fas fa-calendar-check"></i> Request a demo</a>
-                <a class="btn btn-ghost" href="#tour"><i class="fas fa-play-circle"></i> See the product tour</a>
+                <a class="btn btn-ghost" th:href="@{/tour}"><i class="fas fa-play-circle"></i> See the product tour</a>
             </div>
         </div>
         <div class="phone" aria-hidden="true">
@@ -85,6 +85,7 @@
         <div class="tour-dots" id="tour-dots"></div>
         <p style="text-align:center;margin-top:18px">
             <a class="btn btn-primary" th:href="@{/downloads/mediport-product-demo.pdf}" download="Mediport-Product-Tour.pdf"><i class="fas fa-download"></i> Download the product tour (PDF)</a>
+            <a class="btn btn-ghost" th:href="@{/tour}" style="margin-left:8px"><i class="fas fa-layer-group"></i> Explore the full tour</a>
             <a class="btn btn-ghost" href="#demo" style="margin-left:8px">Request a demo</a>
         </p>
     </div>
