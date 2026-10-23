@@ -13,11 +13,15 @@ import java.io.IOException;
 @Component
 public class MyAuthenticationSuccessHandler implements AuthenticationSuccessHandler {
 
+    @org.springframework.beans.factory.annotation.Autowired
+    private com.appointment.webapp.security.LoginThrottle throttle;
+
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request,
             HttpServletResponse response, Authentication authentication)
             throws IOException, ServletException {
 
+        throttle.succeeded(request.getRemoteAddr(), request.getParameter("username"));
         HttpSession session = request.getSession();
         session.setAttribute("username", authentication.getName());
 

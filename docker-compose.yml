@@ -1,0 +1,70 @@
+# Mediport: app + MySQL + automatic HTTPS (Caddy).
+#   1. cp .env.example .env   and fill it in
+#   2. docker compose up -d --build
+# Only Caddy is reachable from the internet; MySQL and the app stay on the private network.
+services:
+  db:
+    image: mysql:8.0
+    restart: unless-stopped
+    command: ["--character-set-server=utf8mb4", "--collation-server=utf8mb4_0900_ai_ci", "--default-time-zone=+00:00"]
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:?set DB_ROOT_PASSWORD in .env}
+      MYSQL_USER: mediport
+      MYSQL_PASSWORD: ${DB_PASSWORD:?set DB_PASSWORD in .env}
+      MYSQL_DATABASE: platform_master
+    volumes:
+      - dbdata:/var/lib/mysql
+      - ./docker/mysql-init.sql:/docker-entrypoint-initdb.d/10-grants.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h localhost -uroot -p$$MYSQL_ROOT_PASSWORD --silent"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+
+  app:
+    build: .
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      TENANCY_JDBC_BASE: jdbc:mysql://db:3306
+      TENANCY_LEGACY_SCHEMA: ""          # fresh install: no pre-existing single-clinic database
+      DB_USERNAME: mediport
+      DB_PASSWORD: ${DB_PASSWORD}
+      APP_TENANCY_ENABLED: "true"
+      APP_PUBLIC_URL: https://${DOMAIN:?set DOMAIN in .env}
+      FORWARD_HEADERS: framework
+      SESSION_COOKIE_SECURE: "true"
+      REMEMBER_ME_KEY: ${REMEMBER_ME_KEY:?set REMEMBER_ME_KEY in .env}
+      PLATFORM_ADMIN_USER: ${PLATFORM_ADMIN_USER:-operator}
+      PLATFORM_ADMIN_PASSWORD: ${PLATFORM_ADMIN_PASSWORD:-}
+      WHATSAPP_APP_SECRET: ${WHATSAPP_APP_SECRET:-}
+      WHATSAPP_VERIFY_TOKEN: ${WHATSAPP_VERIFY_TOKEN:-}
+      WHATSAPP_ACCESS_TOKEN: ${WHATSAPP_ACCESS_TOKEN:-}
+      WHATSAPP_PHONE_NUMBER_ID: ${WHATSAPP_PHONE_NUMBER_ID:-}
+      CORS_ALLOWED_ORIGINS: https://${DOMAIN}
+      LOG_LEVEL: ${LOG_LEVEL:-INFO}
+      JAVA_OPTS: ${JAVA_OPTS:--XX:MaxRAMPercentage=75 -XX:+ExitOnOutOfMemoryError}
+    expose:
+      - "8081"
+
+  caddy:
+    image: caddy:2
+    restart: unless-stopped
+    depends_on:
+      - app
+    ports:
+      - "80:80"
+      - "443:443"
+    environment:
+      DOMAIN: ${DOMAIN}
+    volumes:
+      - ./docker/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddydata:/data
+      - caddyconfig:/config
+
+volumes:
+  dbdata:
+  caddydata:
+  caddyconfig:

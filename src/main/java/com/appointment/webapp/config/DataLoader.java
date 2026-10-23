@@ -129,7 +129,6 @@ public class DataLoader implements CommandLineRunner {
 
         System.out.println("Data initialization completed successfully!");
         System.out.println("Available Roles: ADMIN, DOCTOR, PATIENT, ATTENDANT, PHARMA");
-        System.out.println("Login with: username=admin, password=admin123");
     }
 
     @Transactional

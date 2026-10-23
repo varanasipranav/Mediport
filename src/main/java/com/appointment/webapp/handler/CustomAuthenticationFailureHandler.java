@@ -12,10 +12,15 @@ import java.io.IOException;
 @Component
 public class CustomAuthenticationFailureHandler implements AuthenticationFailureHandler {
 
+    @org.springframework.beans.factory.annotation.Autowired
+    private com.appointment.webapp.security.LoginThrottle throttle;
+
     @Override
     public void onAuthenticationFailure(HttpServletRequest request,
             HttpServletResponse response, AuthenticationException exception)
             throws IOException, ServletException {
+
+        throttle.failed(request.getRemoteAddr(), request.getParameter("username"));
 
         // Don't echo the exception text into the URL; the login page shows a fixed message
         if (exception instanceof com.appointment.webapp.tenancy.SiteRequiredException

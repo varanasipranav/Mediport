@@ -62,7 +62,7 @@ public class WebhookMessageParser {
                         if (parsed != null) {
                             parsed.setPhoneNumberId(phoneNumberId);
                             parsedMessages.add(parsed);
-                            logger.info("Parsed message: {}", parsed);
+                            logger.debug("Parsed message: {}", parsed);
                         }
                     }
                 }

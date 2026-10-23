@@ -190,7 +190,7 @@ public class WhatsAppMessageSender {
             logger.info("   Endpoint: {}", endpoint);
 
             String jsonPayload = objectMapper.writeValueAsString(payload);
-            logger.info("   Payload: {}", jsonPayload);
+            logger.debug("   Payload: {}", jsonPayload);
 
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_JSON);

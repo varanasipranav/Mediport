@@ -38,7 +38,12 @@
 `Database changes are managed by **Flyway** (`src/main/resources/db/migration`). Existing databases are baselined at V1
 `automatically; new versions apply on startup.
 `
-`## Configuration
+`## Deploying
+
+See **[DEPLOYMENT.md](DEPLOYMENT.md)**: Docker Compose with MySQL and automatic HTTPS, settings, WhatsApp webhook, backups, updates and a security checklist.
+`GET /health` is the health check for load balancers.
+
+## Configuration
 `
 `Everything sensitive comes from environment variables or a git-ignored `secrets.properties` next to the jar.
 `

@@ -54,6 +54,9 @@ public class SecurityConfiguration {
 	@Autowired
 	private AuthenticationFailureHandler authenticationFailureHandler;
 
+	@Autowired
+	private com.appointment.webapp.security.LoginThrottle loginThrottle;
+
 	/** Present only when app.tenancy.enabled=true: blocks any request that has no site id. */
 	@Autowired(required = false)
 	private com.appointment.webapp.tenancy.SiteFilter siteFilter;
@@ -69,7 +72,8 @@ public class SecurityConfiguration {
         		.ignoringRequestMatchers("/api/whatsapp/webhook", "/api/whatsapp/webhook/**")  // Disable CSRF for WhatsApp webhooks
         	)
         	// Keep Spring Security's default headers (nosniff, HSTS, cache control); allow same-origin framing
-        	.headers(headers -> headers.frameOptions(frame -> frame.sameOrigin()))
+        	.headers(headers -> headers.frameOptions(frame -> frame.sameOrigin())
+        		.referrerPolicy(r -> r.policy(org.springframework.security.web.header.writers.ReferrerPolicyHeaderWriter.ReferrerPolicy.STRICT_ORIGIN_WHEN_CROSS_ORIGIN)))
         	.authorizeHttpRequests(auth -> auth
         		.requestMatchers(
         			"/resources/**", "/static/**", "/adminlte/**",
@@ -80,7 +84,7 @@ public class SecurityConfiguration {
         		// WhatsApp Webhook endpoints (must be publicly accessible)
         		.requestMatchers("/api/whatsapp/webhook", "/api/whatsapp/webhook/**").permitAll()
         		.requestMatchers("/verify/rx/**", "/rx/pdf/**").permitAll()
-        		.requestMatchers("/", "/site", "/site/**", "/tour", "/downloads/**").permitAll()
+        		.requestMatchers("/", "/site", "/site/**", "/tour", "/downloads/**", "/health", "/robots.txt").permitAll()
                 .requestMatchers("/login*", "/logout.html", "/favicon.ico", "/offline/*",
                 		"/signin/**", "/signup/**", "/customLogin",
                         "/user/registration*", "/registrationConfirm*", "/expiredAccount*", "/registration*",
@@ -103,13 +107,13 @@ public class SecurityConfiguration {
             )
             .sessionManagement(session -> session
                 .invalidSessionUrl("/login?message=" + sessionExpired)
-                .sessionFixation().none()
+                .sessionFixation().changeSessionId()
                 .maximumSessions(1)
                 .sessionRegistry(sessionRegistry())
             )
             .logout(logout -> logout
                 .logoutSuccessHandler(myLogoutSuccessHandler)
-                .invalidateHttpSession(false)
+                .invalidateHttpSession(true)
                 .logoutSuccessUrl("/logout.html?logSucc=true")
                 .deleteCookies("JSESSIONID")
                 .permitAll()
@@ -118,6 +122,8 @@ public class SecurityConfiguration {
                 .rememberMeServices(rememberMeServices())
                 .key(rememberMeKey())
             );
+
+        http.addFilterBefore(loginThrottle.filter(), org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter.class);
 
         if (siteFilter != null) {
             http.addFilterBefore(siteFilter, org.springframework.security.web.access.intercept.AuthorizationFilter.class);

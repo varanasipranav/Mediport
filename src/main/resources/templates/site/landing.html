@@ -4,11 +4,21 @@
     <meta charset="UTF-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <title>Mediport — Clinic management with WhatsApp booking</title>
-    <meta name="description" content="Appointments, live queues, prescriptions, pharmacy and a WhatsApp assistant in English, Hindi, Telugu and Tamil."/>
+    <meta name="description" content="Appointments, live queues, prescriptions, pharmacy and a WhatsApp patient assistant in English, Hindi, Telugu and Tamil. Each clinic gets its own private database."/>
+    <meta name="theme-color" content="#0B4FB8"/>
+    <meta property="og:type" content="website"/>
+    <meta property="og:title" content="Mediport — Run your clinic. Let WhatsApp handle the front desk."/>
+    <meta property="og:description" content="Online booking, live queues, prescriptions and pharmacy, with a WhatsApp assistant that speaks English, Hindi, Telugu and Tamil."/>
+    <meta name="twitter:card" content="summary_large_image"/>
+    <script type="application/ld+json">
+    {"@context":"https://schema.org","@type":"SoftwareApplication","name":"Mediport","applicationCategory":"HealthApplication",
+     "operatingSystem":"Web","description":"Clinic management software with a WhatsApp patient assistant: appointments, live queues, prescriptions, pharmacy and medical records."}
+    </script>
     <link rel="shortcut icon" type="image/svg+xml" th:href="@{/images/hospital-icon.svg}"/>
     <link rel="stylesheet" th:href="@{/vendor/fa/css/all.min.css}"/>
     <link rel="stylesheet" th:href="@{/css/mediport-tokens.css}"/>
     <link rel="stylesheet" th:href="@{/css/site.css}"/>
+    <link rel="stylesheet" th:href="@{/css/landing.css}"/>
 </head>
 <body class="site">
 
@@ -20,8 +30,8 @@
         </a>
         <nav>
             <a class="link" href="#features">Features</a>
+            <a class="link" href="#roles">Who it's for</a>
             <a class="link" th:href="@{/tour}">Product tour</a>
-            <a class="link" href="#how">How it works</a>
             <a class="link" href="#faq">FAQ</a>
             <a class="btn btn-ghost btn-sm" th:href="@{/login}">Clinic sign in</a>
             <a class="btn btn-primary btn-sm" href="#demo">Request a demo</a>
@@ -29,28 +39,42 @@
     </div>
 </header>
 
+<!-- ───────── hero ───────── -->
 <section class="hero">
     <div class="wrap">
         <div>
             <span class="eyebrow">For clinics &amp; hospitals</span>
             <h1>Run your clinic. <span>Let WhatsApp</span> handle the front desk.</h1>
-            <p class="lead">Online booking, live queues, printable prescriptions and a pharmacy — with a patient assistant on WhatsApp that speaks English, Hindi, Telugu and Tamil.</p>
+            <p class="lead">Online booking, live queues, printable prescriptions and a pharmacy &mdash; with a patient assistant on WhatsApp that speaks English, Hindi, Telugu and Tamil.</p>
             <div class="cta">
                 <a class="btn btn-primary" href="#demo"><i class="fas fa-calendar-check"></i> Request a demo</a>
                 <a class="btn btn-ghost" th:href="@{/tour}"><i class="fas fa-play-circle"></i> See the product tour</a>
             </div>
+            <ul class="trust">
+                <li><i class="fas fa-check-circle"></i> No app for patients to install</li>
+                <li><i class="fas fa-check-circle"></i> Your own private database</li>
+                <li><i class="fas fa-check-circle"></i> Set up in a day</li>
+            </ul>
         </div>
         <div class="phone" aria-hidden="true">
-            <div class="head"><span class="dot"><i class="fab fa-whatsapp"></i></span> Your Clinic</div>
-            <div class="bubble me">Hi, I need an appointment</div>
-            <div class="bubble">Welcome! Which doctor would you like to see?<br/>• Dr. Bharat — General<br/>• Dr. Anitha — Pediatrics</div>
-            <div class="bubble me">Dr. Anitha, tomorrow</div>
-            <div class="bubble">✅ Booked: queue no. 4, about 10:45 AM. We'll remind you.</div>
+            <div class="head"><span class="dot"><i class="fab fa-whatsapp"></i></span> <span>Your Clinic <small>online</small></span></div>
+            <div class="chat" id="heroChat"></div>
         </div>
     </div>
 </section>
 
-<section class="block alt" id="features">
+<!-- ───────── facts ───────── -->
+<section class="facts">
+    <div class="wrap">
+        <div><b>4</b><span>languages in WhatsApp</span></div>
+        <div><b>5</b><span>role-based portals</span></div>
+        <div><b>1 chat</b><span>to book, reschedule or cancel</span></div>
+        <div><b>1 database</b><span>per clinic, never shared</span></div>
+    </div>
+</section>
+
+<!-- ───────── features ───────── -->
+<section class="block" id="features">
     <div class="wrap">
         <div class="sec-head">
             <h2>Everything a clinic needs, in one place</h2>
@@ -59,18 +83,73 @@
         <div class="grid3">
             <div class="card"><div class="ico"><i class="fas fa-calendar-alt"></i></div><h3>Smart scheduling</h3><p>Weekly templates per doctor, race-safe booking, queue numbers and times worked out automatically.</p></div>
             <div class="card"><div class="ico"><i class="fab fa-whatsapp"></i></div><h3>WhatsApp assistant</h3><p>Patients book, reschedule, cancel and ask "where am I in the queue?" without installing anything.</p></div>
-            <div class="card"><div class="ico"><i class="fas fa-bell"></i></div><h3>Live queue alerts</h3><p>"Two ahead of you", "your turn", running-late notices and reminders — each sent once.</p></div>
+            <div class="card"><div class="ico"><i class="fas fa-bell"></i></div><h3>Live queue alerts</h3><p>"Two ahead of you", "your turn", running-late notices and reminders &mdash; each sent once.</p></div>
             <div class="card"><div class="ico"><i class="fas fa-file-prescription"></i></div><h3>Prescriptions</h3><p>Printable A4 with letterhead, PDF, QR verification and an expiring link patients get on WhatsApp.</p></div>
             <div class="card"><div class="ico"><i class="fas fa-pills"></i></div><h3>Pharmacy inventory</h3><p>Batches and expiry, earliest-expiry-first dispensing against a prescription, low-stock alerts.</p></div>
-            <div class="card"><div class="ico"><i class="fas fa-notes-medical"></i></div><h3>Medical record</h3><p>Allergies, vitals and every earlier prescription in front of the doctor — across doctors, with an access log.</p></div>
-        </div>
-        <div class="langs">
-            <span class="lang">English</span><span class="lang">हिन्दी</span><span class="lang">తెలుగు</span><span class="lang">தமிழ்</span>
+            <div class="card"><div class="ico"><i class="fas fa-notes-medical"></i></div><h3>Medical record</h3><p>Allergies, vitals and every earlier prescription in front of the doctor &mdash; across doctors, with an access log.</p></div>
         </div>
     </div>
 </section>
 
-<section class="block" id="tour">
+<!-- ───────── role explorer ───────── -->
+<section class="block alt" id="roles">
+    <div class="wrap">
+        <div class="sec-head">
+            <h2>See it from where you sit</h2>
+            <p>Pick a role to see the screens that person uses every day. Scroll inside a screen to explore it.</p>
+        </div>
+        <div class="rx" id="rx">
+            <div class="rx-roles" role="tablist" aria-label="Choose a role">
+                <button type="button" class="rx-role on" data-r="0"><i class="fas fa-user-md"></i><span>Doctor</span></button>
+                <button type="button" class="rx-role" data-r="1"><i class="fas fa-desktop"></i><span>Front desk</span></button>
+                <button type="button" class="rx-role" data-r="2"><i class="fas fa-pills"></i><span>Pharmacist</span></button>
+                <button type="button" class="rx-role" data-r="3"><i class="fas fa-user"></i><span>Patient</span></button>
+                <button type="button" class="rx-role" data-r="4"><i class="fas fa-user-shield"></i><span>Owner / admin</span></button>
+            </div>
+            <div class="rx-body">
+                <div class="rx-info">
+                    <h3 id="rxTitle">Doctor</h3>
+                    <p id="rxLead"></p>
+                    <ul id="rxPoints"></ul>
+                    <div class="rx-views" id="rxViews" role="tablist"></div>
+                    <a class="btn btn-primary btn-sm" href="#demo">Try it with a demo</a>
+                </div>
+                <div class="rx-frame">
+                    <div class="rx-chrome"><i></i><i></i><i></i><span id="rxUrl">mediport</span></div>
+                    <div class="rx-screen" id="rxScreen"><img id="rxImg" alt="" width="1280" height="800"/></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ───────── languages ───────── -->
+<section class="block" id="languages">
+    <div class="wrap">
+        <div class="sec-head">
+            <h2>Your patients, in their language</h2>
+            <p>The same alert, in the language each patient chose. Tap a language.</p>
+        </div>
+        <div class="lang-demo">
+            <div class="lang-pick" id="langPick">
+                <button type="button" class="lang on" data-l="en">English</button>
+                <button type="button" class="lang" data-l="hi">हिन्दी</button>
+                <button type="button" class="lang" data-l="te">తెలుగు</button>
+                <button type="button" class="lang" data-l="ta">தமிழ்</button>
+                <p class="muted">Patients pick their language once, in the chat. Reminders, queue alerts and the prescription message all follow it.</p>
+            </div>
+            <div class="phone small" aria-hidden="true">
+                <div class="head"><span class="dot"><i class="fab fa-whatsapp"></i></span> <span>Your Clinic</span></div>
+                <div class="chat">
+                    <div class="bubble" id="langBubble"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ───────── product tour ───────── -->
+<section class="block alt" id="tour">
     <div class="wrap">
         <div class="sec-head">
             <h2>See Mediport in action</h2>
@@ -84,16 +163,16 @@
         </div>
         <div class="tour-dots" id="tour-dots"></div>
         <p style="text-align:center;margin-top:18px">
-            <a class="btn btn-primary" th:href="@{/downloads/mediport-product-demo.pdf}" download="Mediport-Product-Tour.pdf"><i class="fas fa-download"></i> Download the product tour (PDF)</a>
-            <a class="btn btn-ghost" th:href="@{/tour}" style="margin-left:8px"><i class="fas fa-layer-group"></i> Explore the full tour</a>
-            <a class="btn btn-ghost" href="#demo" style="margin-left:8px">Request a demo</a>
+            <a class="btn btn-primary" th:href="@{/tour}"><i class="fas fa-layer-group"></i> Explore the full tour</a>
+            <a class="btn btn-ghost" th:href="@{/downloads/mediport-product-demo.pdf}" download="Mediport-Product-Tour.pdf" style="margin-left:8px"><i class="fas fa-download"></i> Download the PDF</a>
         </p>
     </div>
 </section>
 
-<section class="block alt" id="how">
+<!-- ───────── how it works ───────── -->
+<section class="block" id="how">
     <div class="wrap">
-        <div class="sec-head"><h2>Up and running in a day</h2><p>Your clinic gets its own private database — your data is never mixed with anyone else's.</p></div>
+        <div class="sec-head"><h2>Up and running in a day</h2><p>Your clinic gets its own private database &mdash; your data is never mixed with anyone else's.</p></div>
         <div class="steps">
             <div class="step"><h3>Request a demo</h3><p>Tell us about your clinic below.</p></div>
             <div class="step"><h3>We set you up</h3><p>Your own clinic space, with sample doctors if you like.</p></div>
@@ -103,6 +182,19 @@
     </div>
 </section>
 
+<!-- ───────── trust ───────── -->
+<section class="block alt" id="trust">
+    <div class="wrap">
+        <div class="sec-head"><h2>Built to be trusted with patient data</h2></div>
+        <div class="grid3">
+            <div class="card"><div class="ico"><i class="fas fa-database"></i></div><h3>A database of your own</h3><p>Every clinic is stored separately. There is no shared patient table, and sign-in decides which clinic you see.</p></div>
+            <div class="card"><div class="ico"><i class="fas fa-user-lock"></i></div><h3>Role-based access</h3><p>Doctors see their own patients, the front desk sees the queue, the pharmacy sees prescriptions &mdash; nobody sees more than their job needs.</p></div>
+            <div class="card"><div class="ico"><i class="fas fa-clipboard-list"></i></div><h3>Every access is logged</h3><p>Opening or changing a medical record is written to an access log. WhatsApp messages are verified with a signature before they are trusted.</p></div>
+        </div>
+    </div>
+</section>
+
+<!-- ───────── demo form ───────── -->
 <section class="block" id="demo">
     <div class="wrap">
         <div class="sec-head"><h2>Request a demo</h2><p>We'll get back to you with a personal walkthrough and a trial clinic.</p></div>
@@ -154,28 +246,166 @@
                     <textarea id="message" th:field="*{message}" rows="3" maxlength="1000"></textarea>
                 </div>
                 <button type="submit" class="btn btn-primary" style="width:100%"><i class="fas fa-paper-plane"></i> Request my demo</button>
+                <p class="muted" style="text-align:center;margin:12px 0 0">We only use your details to contact you about the demo.</p>
             </form>
         </div>
     </div>
 </section>
 
-<section class="block" id="faq">
+<!-- ───────── FAQ ───────── -->
+<section class="block alt" id="faq">
     <div class="wrap faq" style="max-width:760px">
         <div class="sec-head"><h2>Questions</h2></div>
-        <details><summary>Is my patients' data kept separate from other clinics?</summary><p>Yes. Every clinic has its own database. There is no shared patient table.</p></details>
+        <details><summary>Is my patients' data kept separate from other clinics?</summary><p>Yes. Every clinic has its own database. There is no shared patient table, and signing in decides which clinic you can see.</p></details>
         <details><summary>Do patients need to install an app?</summary><p>No. Patients use WhatsApp, which they already have. Staff use the web app in any browser.</p></details>
         <details><summary>Which languages does the WhatsApp assistant speak?</summary><p>English, Hindi, Telugu and Tamil. Each patient's choice is remembered, including for reminders and queue alerts.</p></details>
-        <details><summary>Do we need our own WhatsApp number?</summary><p>Yes — your clinic uses its own WhatsApp Business number, so messages come from your clinic's name. We help you connect it.</p></details>
+        <details><summary>Do we need our own WhatsApp number?</summary><p>Yes &mdash; your clinic uses its own WhatsApp Business number, so messages come from your clinic's name. We help you connect it.</p></details>
+        <details><summary>Who pays for the WhatsApp messages?</summary><p>WhatsApp Business messaging is billed by Meta to the clinic's own WhatsApp Business account, according to Meta's pricing. We can walk you through what to expect.</p></details>
+        <details><summary>Can we try it before deciding?</summary><p>Yes. Request a demo and we set up a trial clinic for you, with sample doctors if you like.</p></details>
+        <details><summary>Can several doctors and staff use it at once?</summary><p>Yes. Doctors, front desk, pharmacy and admin each sign in with their own account and see only what their role needs.</p></details>
     </div>
 </section>
 
-<footer class="site-foot">© Mediport · <a th:href="@{/login}">Clinic sign in</a></footer>
+<!-- ───────── closing call to action ───────── -->
+<section class="closing">
+    <div class="wrap">
+        <h2>Ready to see it with your clinic?</h2>
+        <p>Tell us a little about your clinic and we'll set up a demo.</p>
+        <div class="cta">
+            <a class="btn btn-light" href="#demo"><i class="fas fa-calendar-check"></i> Request a demo</a>
+            <a class="btn btn-outline-light" th:href="@{/tour}">Take the product tour</a>
+        </div>
+    </div>
+</section>
+
+<footer class="site-foot">
+    <div class="wrap foot-grid">
+        <div><a class="brand" th:href="@{/site}"><span class="brand-mark"><svg width="18" height="18" viewBox="0 0 20 20" fill="none"><path d="M10 3v14M3 10h14" stroke="#fff" stroke-width="2.4" stroke-linecap="round"/></svg></span> Mediport</a>
+            <p>Clinic management with a WhatsApp patient assistant.</p></div>
+        <div><b>Product</b><a href="#features">Features</a><a href="#roles">Who it's for</a><a th:href="@{/tour}">Product tour</a><a th:href="@{/downloads/mediport-product-demo.pdf}">Download PDF</a></div>
+        <div><b>Get started</b><a href="#demo">Request a demo</a><a href="#faq">Questions</a><a th:href="@{/login}">Clinic sign in</a></div>
+    </div>
+    <div class="wrap foot-base">© Mediport</div>
+</footer>
+
+<a class="sticky-cta" href="#demo"><i class="fas fa-calendar-check"></i> Request a demo</a>
 
 <script th:inline="javascript">
 (function () {
-    var base = /*[[@{/images/tour/}]]*/ '/images/tour/', total = 15, i = 0;
-    var img = document.getElementById('tour-img'), count = document.getElementById('tour-count'), dots = document.getElementById('tour-dots');
-    var box = document.getElementById('tour-slider'), timer = null;
+    var base = /*[[@{/images/tour/}]]*/ '/images/tour/';
+    var shots = /*[[@{/images/shots/}]]*/ '/images/shots/';
+    var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    function $(id) { return document.getElementById(id); }
+
+    /* ---- hero chat: types out a booking, then loops ---- */
+    var script = [
+        {w: 'me', t: 'Hi, I need an appointment'},
+        {w: 'bot', t: 'Welcome! Which doctor would you like to see?<br><span class="chip">Dr. Asha Rao</span><span class="chip">Dr. Bharat Iyer</span>'},
+        {w: 'me', t: 'Dr. Asha Rao, tomorrow'},
+        {w: 'bot ok', t: '<i class="fas fa-check-circle"></i> Booked: queue no. 4, about 10:45 AM. We\'ll remind you.'},
+        {w: 'bot', t: 'Hi Priya, only <b>2 patients</b> are ahead of you. Please make your way to the clinic now. ⏳'}
+    ];
+    var chat = $('heroChat');
+    function playChat() {
+        chat.innerHTML = '';
+        var i = 0;
+        (function next() {
+            if (i >= script.length) { setTimeout(playChat, 5200); return; }
+            var m = script[i++];
+            var isBot = m.w.indexOf('bot') === 0, typing;
+            if (isBot) {
+                typing = document.createElement('div'); typing.className = 'bubble typing'; typing.innerHTML = '<i></i><i></i><i></i>';
+                chat.appendChild(typing);
+            }
+            setTimeout(function () {
+                if (typing) typing.remove();
+                var b = document.createElement('div');
+                b.className = 'bubble ' + (m.w === 'me' ? 'me' : (m.w.indexOf('ok') > 0 ? 'ok' : ''));
+                b.innerHTML = m.t; chat.appendChild(b);
+                setTimeout(next, m.w === 'me' ? 650 : 1100);
+            }, isBot ? 950 : 500);
+        })();
+    }
+    if (reduce) { script.forEach(function (m) { var b = document.createElement('div'); b.className = 'bubble ' + (m.w === 'me' ? 'me' : ''); b.innerHTML = m.t; chat.appendChild(b); }); }
+    else { playChat(); }
+
+    /* ---- role explorer ---- */
+    var roles = [
+        {n: 'Doctor', lead: 'Today\'s patients in order, with the whole history one click away.',
+         pts: ['Live queue: waiting, in consultation, completed', 'Earlier prescriptions, vitals and allergies from any doctor', 'Write a prescription and send it to the patient on WhatsApp'],
+         v: [ ['Live queue', 'doctor-queue', 'doctor/appointments/today'], ['Prescription', 'doctor-rx', 'doctor/prescriptions/view'], ['Patient record', 'doctor-record', 'doctor/patients/record'] ]},
+        {n: 'Front desk', lead: 'See everyone who is waiting and check patients in without a phone call.',
+         pts: ['Check-in and the whole queue on one screen', 'Book for walk-ins and record vitals', 'Patients are told their turn automatically'],
+         v: [ ['Queue', 'desk-queue', 'attendant/queue'], ['Check-in', 'desk-checkin', 'attendant/check-in'] ]},
+        {n: 'Pharmacist', lead: 'Know what is in stock, what is expiring, and what to dispense next.',
+         pts: ['Batches and expiry dates, earliest-expiry dispensed first', 'Dispense against a prescription, even partly', 'Low-stock and expiry alerts'],
+         v: [ ['Inventory', 'pharma-inventory', 'pharma/inventory'], ['Dispense', 'pharma-dispense', 'pharma/prescriptions/dispense'] ]},
+        {n: 'Patient', lead: 'Book, see appointments and open prescriptions &mdash; on the web or in WhatsApp.',
+         pts: ['Book with the doctor and day that suit them', 'All prescriptions in one place', 'Reminders and queue updates in their language'],
+         v: [ ['My dashboard', 'patient-dashboard', 'patient/dashboard'], ['Book appointment', 'patient-book', 'patient/book-appointment'] ]},
+        {n: 'Owner / admin', lead: 'Add doctors and staff, and see how the clinic is doing.',
+         pts: ['Create doctors, patients, front desk and pharmacy accounts', 'One dashboard for the whole clinic', 'Each role sees only what it needs'],
+         v: [ ['Dashboard', 'admin-dashboard', 'dashboard'], ['Users', 'admin-users', 'admin/users/list'] ]}
+    ];
+    var rI = 0, vI = 0, rTimer = null;
+    function showRole(i, user) {
+        rI = i; vI = 0;
+        var r = roles[i];
+        document.querySelectorAll('.rx-role').forEach(function (b, k) { b.classList.toggle('on', k === i); });
+        $('rxTitle').textContent = r.n; $('rxLead').innerHTML = r.lead;
+        $('rxPoints').innerHTML = r.pts.map(function (p) { return '<li>' + p + '</li>'; }).join('');
+        $('rxViews').innerHTML = r.v.map(function (v, k) { return '<button type="button" class="rx-view' + (k === 0 ? ' on' : '') + '" data-v="' + k + '">' + v[0] + '</button>'; }).join('');
+        document.querySelectorAll('.rx-view').forEach(function (b) { b.addEventListener('click', function () { showView(+b.dataset.v, true); }); });
+        showImg();
+        if (user && rTimer) { clearInterval(rTimer); rTimer = null; }
+    }
+    function showView(k, user) {
+        vI = k;
+        document.querySelectorAll('.rx-view').forEach(function (b, j) { b.classList.toggle('on', j === k); });
+        showImg();
+        if (user && rTimer) { clearInterval(rTimer); rTimer = null; }
+    }
+    function showImg() {
+        var v = roles[rI].v[vI], img = $('rxImg');
+        img.style.opacity = 0;
+        img.onload = function () { img.style.opacity = 1; };
+        img.src = shots + v[1] + '.jpg'; img.alt = roles[rI].n + ' screen: ' + v[0];
+        $('rxUrl').textContent = 'mediport / ' + v[2];
+        $('rxScreen').scrollTop = 0;
+    }
+    document.querySelectorAll('.rx-role').forEach(function (b) { b.addEventListener('click', function () { showRole(+b.dataset.r, true); }); });
+    showRole(0);
+    var rxBox = $('rx');
+    function stopRx() { if (rTimer) { clearInterval(rTimer); rTimer = null; } }
+    if (!reduce && 'IntersectionObserver' in window) {
+        new IntersectionObserver(function (es) {
+            es.forEach(function (e) {
+                if (e.isIntersecting && !rTimer && !rxBox.dataset.touched) { rTimer = setInterval(function () { showRole((rI + 1) % roles.length); }, 7000); }
+                if (!e.isIntersecting) stopRx();
+            });
+        }, {threshold: 0.4}).observe(rxBox);
+        ['click', 'mouseenter', 'wheel', 'touchstart'].forEach(function (ev) { rxBox.addEventListener(ev, function () { rxBox.dataset.touched = '1'; stopRx(); }, {passive: true}); });
+    }
+
+    /* ---- languages ---- */
+    var msgs = {
+        en: 'Hi Priya, only <b>2 patients</b> are ahead of you for Dr. Asha Rao. ⏳<br><br>Please make your way to the clinic now. Estimated time: <b>10:45 AM</b>.',
+        hi: 'नमस्ते Priya, Dr. Asha Rao के पास आपसे पहले सिर्फ़ <b>2 मरीज़</b> हैं। ⏳<br><br>कृपया अभी क्लिनिक के लिए निकलें। अनुमानित समय: <b>10:45 AM</b>।',
+        te: 'నమస్తే Priya, Dr. Asha Rao వద్ద మీకంటే ముందు కేవలం <b>2 రోగులు</b> ఉన్నారు. ⏳<br><br>దయచేసి ఇప్పుడే క్లినిక్‌కు బయలుదేరండి. అంచనా సమయం: <b>10:45 AM</b>.',
+        ta: 'வணக்கம் Priya, Dr. Asha Rao இடம் உங்களுக்கு முன் <b>2 நோயாளிகள்</b> மட்டுமே உள்ளனர். ⏳<br><br>இப்போதே கிளினிக்கிற்குப் புறப்படவும். மதிப்பிடப்பட்ட நேரம்: <b>10:45 AM</b>.'
+    };
+    var bubble = $('langBubble');
+    function showLang(l) {
+        document.querySelectorAll('.lang').forEach(function (b) { b.classList.toggle('on', b.dataset.l === l); });
+        bubble.classList.remove('pop'); void bubble.offsetWidth;
+        bubble.innerHTML = msgs[l]; bubble.classList.add('pop');
+    }
+    document.querySelectorAll('.lang').forEach(function (b) { b.addEventListener('click', function () { showLang(b.dataset.l); }); });
+    showLang('en');
+
+    /* ---- product tour slider ---- */
+    var total = 15, i = 0;
+    var img = $('tour-img'), count = $('tour-count'), dots = $('tour-dots'), box = $('tour-slider'), timer = null;
     for (var n = 0; n < total; n++) {
         var d = document.createElement('button');
         d.type = 'button'; d.setAttribute('aria-label', 'Slide ' + (n + 1)); d.dataset.n = n;
@@ -193,8 +423,8 @@
         var nxt = new Image(); nxt.src = base + 'slide-' + pad(((i + 1) % total) + 1) + '.jpg';
     }
     function stop() { if (timer) { clearInterval(timer); timer = null; } }
-    document.getElementById('tour-prev').addEventListener('click', function () { go(i - 1, true); });
-    document.getElementById('tour-next').addEventListener('click', function () { go(i + 1, true); });
+    $('tour-prev').addEventListener('click', function () { go(i - 1, true); });
+    $('tour-next').addEventListener('click', function () { go(i + 1, true); });
     box.addEventListener('keydown', function (e) {
         if (e.key === 'ArrowLeft') { go(i - 1, true); e.preventDefault(); }
         if (e.key === 'ArrowRight') { go(i + 1, true); e.preventDefault(); }
@@ -207,9 +437,12 @@
         if (Math.abs(dx) > 40) go(i + (dx < 0 ? 1 : -1), true);
     });
     go(0);
-    if (window.matchMedia && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-        timer = setInterval(function () { go(i + 1); }, 5000);
-        box.addEventListener('mouseenter', stop);
+    if (!reduce) { timer = setInterval(function () { go(i + 1); }, 5000); box.addEventListener('mouseenter', stop); }
+
+    /* ---- sticky mobile button hides while the form is on screen ---- */
+    var cta = document.querySelector('.sticky-cta'), form = $('demo');
+    if (cta && form && 'IntersectionObserver' in window) {
+        new IntersectionObserver(function (es) { es.forEach(function (e) { cta.classList.toggle('hide', e.isIntersecting); }); }, {threshold: 0.15}).observe(form);
     }
 })();
 </script>

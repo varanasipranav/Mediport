@@ -148,7 +148,8 @@
                     <i class="fas fa-exclamation-circle" style="margin-top:2px;"></i>
                     <span th:if="${param.error[0] == 'site'}">Several clinics use this username. Sign in as <b>username@clinic</b> (for example admin@sunrise).</span>
                     <span th:if="${param.error[0] == 'clinic'}">This clinic account is not available. Please contact your administrator.</span>
-                    <span th:if="${param.error[0] != 'site' and param.error[0] != 'clinic'}">Invalid username or password. Please try again.</span>
+                    <span th:if="${param.error[0] == 'locked'}">Too many failed attempts. Please wait 15 minutes and try again, or ask your administrator to reset your password.</span>
+                    <span th:if="${param.error[0] != 'site' and param.error[0] != 'clinic' and param.error[0] != 'locked'}">Invalid username or password. Please try again.</span>
                 </div>
                 <div th:if="${param.logout}" class="lg-alert ok">
                     <i class="fas fa-check-circle" style="margin-top:2px;"></i>

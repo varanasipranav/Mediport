@@ -1,0 +1,12 @@
+target
+.git
+.idea
+.vscode
+.claude
+docs
+design_handoff_mediport_ui
+*.sql
+!docker/*.sql
+secrets.properties
+.env
+uploads

@@ -108,19 +108,19 @@ public class MasterRepository {
     }
 
     private static DemoRequest mapDemo(java.sql.ResultSet rs, int i) throws java.sql.SQLException {
-        var created = rs.getTimestamp("created_at");
+        var created = rs.getObject("created_at", java.time.LocalDateTime.class);
         return new DemoRequest(rs.getLong("id"), rs.getString("clinic_name"), rs.getString("contact_name"), rs.getString("email"),
                 rs.getString("phone"), rs.getString("city"), rs.getString("doctors_count"), rs.getString("requested_code"),
                 rs.getString("message"), rs.getString("status"), rs.getString("site_id"),
-                created == null ? null : created.toLocalDateTime());
+                created);
     }
 
     public void insertDemoRequest(DemoRequest r, String ip) {
-        jdbc.sql("insert into demo_requests (clinic_name, contact_name, email, phone, city, doctors_count, requested_code, message, ip) "
-                        + "values (:cn, :ct, :em, :ph, :city, :dc, :code, :msg, :ip)")
+        jdbc.sql("insert into demo_requests (clinic_name, contact_name, email, phone, city, doctors_count, requested_code, message, ip, created_at) "
+                        + "values (:cn, :ct, :em, :ph, :city, :dc, :code, :msg, :ip, :now)")
                 .param("cn", r.clinicName()).param("ct", r.contactName()).param("em", r.email()).param("ph", r.phone())
                 .param("city", blank(r.city())).param("dc", blank(r.doctorsCount())).param("code", blank(r.requestedCode()))
-                .param("msg", blank(r.message())).param("ip", ip).update();
+                .param("msg", blank(r.message())).param("ip", ip).param("now", java.time.LocalDateTime.now()).update();
     }
 
     public List<DemoRequest> demoRequests(String status) {
