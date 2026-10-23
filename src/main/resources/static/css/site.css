@@ -57,6 +57,18 @@ section.alt { background: #fff; border-top: 1px solid var(--border); border-bott
 .faq summary { font: 700 15px var(--font-display); cursor: pointer; }
 .faq p { margin: 10px 0 0; color: var(--text-muted); font-size: 14.5px; }
 
+/* product tour (slide viewer) */
+.tour { position: relative; max-width: 960px; margin: 0 auto; background: #0F1B2D; border: 1px solid var(--border); border-radius: 14px; box-shadow: 0 18px 48px rgba(15,27,45,.12); overflow: hidden; outline: none; }
+.tour:focus-visible { box-shadow: 0 0 0 3px var(--brand-primary-100), 0 18px 48px rgba(15,27,45,.12); }
+.tour img { display: block; width: 100%; height: auto; aspect-ratio: 16 / 9; }
+.tour-nav { position: absolute; top: 50%; transform: translateY(-50%); width: 42px; height: 42px; border-radius: 50%; border: 0; background: rgba(255,255,255,.92); color: var(--text-strong); cursor: pointer; box-shadow: 0 4px 14px rgba(15,27,45,.25); }
+.tour-nav:hover { background: #fff; }
+.tour-nav.prev { left: 12px; } .tour-nav.next { right: 12px; }
+.tour-count { position: absolute; right: 12px; bottom: 10px; background: rgba(15,27,45,.7); color: #fff; font: 600 12px var(--font-display); padding: 3px 10px; border-radius: 99px; }
+.tour-dots { display: flex; justify-content: center; gap: 7px; margin-top: 14px; flex-wrap: wrap; }
+.tour-dots button { width: 9px; height: 9px; padding: 0; border-radius: 50%; border: 0; background: var(--border-strong); cursor: pointer; }
+.tour-dots button.on { background: var(--brand-primary); transform: scale(1.25); }
+
 /* forms */
 .form-card { max-width: 640px; margin: 0 auto; background: #fff; border: 1px solid var(--border); border-radius: 16px; padding: 28px; box-shadow: 0 12px 32px rgba(15,27,45,.06); }
 .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }

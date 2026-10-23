@@ -20,6 +20,7 @@
         </a>
         <nav>
             <a class="link" href="#features">Features</a>
+            <a class="link" href="#tour">Product tour</a>
             <a class="link" href="#how">How it works</a>
             <a class="link" href="#faq">FAQ</a>
             <a class="btn btn-ghost btn-sm" th:href="@{/login}">Clinic sign in</a>
@@ -36,7 +37,7 @@
             <p class="lead">Online booking, live queues, printable prescriptions and a pharmacy — with a patient assistant on WhatsApp that speaks English, Hindi, Telugu and Tamil.</p>
             <div class="cta">
                 <a class="btn btn-primary" href="#demo"><i class="fas fa-calendar-check"></i> Request a demo</a>
-                <a class="btn btn-ghost" href="#features">See what's inside</a>
+                <a class="btn btn-ghost" href="#tour"><i class="fas fa-play-circle"></i> See the product tour</a>
             </div>
         </div>
         <div class="phone" aria-hidden="true">
@@ -69,7 +70,27 @@
     </div>
 </section>
 
-<section class="block" id="how">
+<section class="block" id="tour">
+    <div class="wrap">
+        <div class="sec-head">
+            <h2>See Mediport in action</h2>
+            <p>A 15-slide walkthrough: WhatsApp booking, queues, prescriptions, pharmacy and more.</p>
+        </div>
+        <div class="tour" id="tour-slider" tabindex="0" aria-roledescription="carousel" aria-label="Mediport product tour">
+            <img id="tour-img" th:src="@{/images/tour/slide-01.jpg}" alt="Mediport product tour slide 1 of 15" width="1600" height="900"/>
+            <button type="button" class="tour-nav prev" id="tour-prev" aria-label="Previous slide"><i class="fas fa-chevron-left"></i></button>
+            <button type="button" class="tour-nav next" id="tour-next" aria-label="Next slide"><i class="fas fa-chevron-right"></i></button>
+            <span class="tour-count" id="tour-count">1 / 15</span>
+        </div>
+        <div class="tour-dots" id="tour-dots"></div>
+        <p style="text-align:center;margin-top:18px">
+            <a class="btn btn-primary" th:href="@{/downloads/mediport-product-demo.pdf}" download="Mediport-Product-Tour.pdf"><i class="fas fa-download"></i> Download the product tour (PDF)</a>
+            <a class="btn btn-ghost" href="#demo" style="margin-left:8px">Request a demo</a>
+        </p>
+    </div>
+</section>
+
+<section class="block alt" id="how">
     <div class="wrap">
         <div class="sec-head"><h2>Up and running in a day</h2><p>Your clinic gets its own private database — your data is never mixed with anyone else's.</p></div>
         <div class="steps">
@@ -81,7 +102,7 @@
     </div>
 </section>
 
-<section class="block alt" id="demo">
+<section class="block" id="demo">
     <div class="wrap">
         <div class="sec-head"><h2>Request a demo</h2><p>We'll get back to you with a personal walkthrough and a trial clinic.</p></div>
         <div class="form-card">
@@ -149,5 +170,47 @@
 
 <footer class="site-foot">© Mediport · <a th:href="@{/login}">Clinic sign in</a></footer>
 
+<script th:inline="javascript">
+(function () {
+    var base = /*[[@{/images/tour/}]]*/ '/images/tour/', total = 15, i = 0;
+    var img = document.getElementById('tour-img'), count = document.getElementById('tour-count'), dots = document.getElementById('tour-dots');
+    var box = document.getElementById('tour-slider'), timer = null;
+    for (var n = 0; n < total; n++) {
+        var d = document.createElement('button');
+        d.type = 'button'; d.setAttribute('aria-label', 'Slide ' + (n + 1)); d.dataset.n = n;
+        d.addEventListener('click', function () { go(+this.dataset.n, true); });
+        dots.appendChild(d);
+    }
+    function pad(n) { return (n < 10 ? '0' : '') + n; }
+    function go(n, user) {
+        i = (n + total) % total;
+        img.src = base + 'slide-' + pad(i + 1) + '.jpg';
+        img.alt = 'Mediport product tour slide ' + (i + 1) + ' of ' + total;
+        count.textContent = (i + 1) + ' / ' + total;
+        Array.prototype.forEach.call(dots.children, function (b, k) { b.className = k === i ? 'on' : ''; });
+        if (user) stop();
+        var nxt = new Image(); nxt.src = base + 'slide-' + pad(((i + 1) % total) + 1) + '.jpg';
+    }
+    function stop() { if (timer) { clearInterval(timer); timer = null; } }
+    document.getElementById('tour-prev').addEventListener('click', function () { go(i - 1, true); });
+    document.getElementById('tour-next').addEventListener('click', function () { go(i + 1, true); });
+    box.addEventListener('keydown', function (e) {
+        if (e.key === 'ArrowLeft') { go(i - 1, true); e.preventDefault(); }
+        if (e.key === 'ArrowRight') { go(i + 1, true); e.preventDefault(); }
+    });
+    var sx = null;
+    box.addEventListener('touchstart', function (e) { sx = e.touches[0].clientX; }, {passive: true});
+    box.addEventListener('touchend', function (e) {
+        if (sx === null) return;
+        var dx = e.changedTouches[0].clientX - sx; sx = null;
+        if (Math.abs(dx) > 40) go(i + (dx < 0 ? 1 : -1), true);
+    });
+    go(0);
+    if (window.matchMedia && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+        timer = setInterval(function () { go(i + 1); }, 5000);
+        box.addEventListener('mouseenter', stop);
+    }
+})();
+</script>
 </body>
 </html>
